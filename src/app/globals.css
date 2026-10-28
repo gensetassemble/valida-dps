@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@theme inline {
+  --color-background: #f4f6f1;
+  --color-foreground: #0b2545;
+  --color-card: #ffffff;
+  --color-card-foreground: #0b2545;
+  --color-primary: #0b2545;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #1f9d6b;
+  --color-muted: #e9ede6;
+  --color-muted-foreground: #52635f;
+  --color-border: #dce3db;
+  --color-input: #cbd4ca;
+  --color-ring: #1f9d6b;
+  --font-sans: "Public Sans", sans-serif;
+  --font-heading: "Space Grotesk", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
+h1,h2,h3 { font-family: var(--font-heading); }
+button,a,input { -webkit-tap-highlight-color: transparent; }
+::selection { background: #c5e7d6; }

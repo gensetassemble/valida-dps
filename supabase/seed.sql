@@ -1,0 +1,2 @@
+-- Only the DPS branch and role catalog are seeded by the versioned migration.
+-- No employee, customer, Auth identity or certificate fixtures are seeded.
