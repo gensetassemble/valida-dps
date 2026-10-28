@@ -7,13 +7,19 @@ export async function proxy(request: NextRequest) {
   const config = getSupabaseConfig();
   if (!config) return response;
   const supabase = createServerClient(config.url, config.key, {
-    cookieOptions: { path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" },
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(values) {
         values.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        values.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        values.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
         response.headers.set("Cache-Control", "private, no-store");
       },
     },
@@ -21,4 +27,19 @@ export async function proxy(request: NextRequest) {
   await supabase.auth.getClaims();
   return response;
 }
-export const config = { matcher: ["/dashboard/:path*", "/login", "/reset-password", "/update-password", "/auth/:path*", "/api/microsoft/:path*"] };
+export const config = {
+  matcher: [
+    "/dashboard/:path*",
+    "/master-data/:path*",
+    "/pelanggan/:path*",
+    "/pengaturan/:path*",
+    "/profil",
+    "/audit",
+    "/login",
+    "/reset-password",
+    "/update-password",
+    "/auth/:path*",
+    "/api/microsoft/:path*",
+    "/api/master-data/:path*",
+  ],
+};

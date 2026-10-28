@@ -6,5 +6,11 @@ export const DELEGATED_SCOPES = ["https://graph.microsoft.com/Mail.Send"];
 export function createMicrosoftAuthClient() {
   const config = getMicrosoftConfig();
   if (!config) throw new Error("Konfigurasi Microsoft Entra belum lengkap.");
-  return new ConfidentialClientApplication({ auth: { clientId: config.clientId, authority: `https://login.microsoftonline.com/${config.tenantId}`, clientSecret: config.clientSecret } });
+  return new ConfidentialClientApplication({
+    auth: {
+      clientId: config.clientId,
+      authority: `https://login.microsoftonline.com/${config.tenantId}`,
+      clientSecret: config.clientSecret,
+    },
+  });
 }

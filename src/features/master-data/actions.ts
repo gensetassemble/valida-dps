@@ -1,0 +1,128 @@
+"use server";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { hasPermission } from "@/lib/auth/permissions";
+import { entityContext, masterClient, publicDatabaseError } from "./server";
+import { recordSchema, requestScopeSchema } from "./validation";
+export type MutationResult =
+  | { ok: true; message: string; id?: string }
+  | { ok: false; error: string; fields?: Record<string, string> };
+export async function saveRecord(
+  request: unknown,
+  input: unknown,
+): Promise<MutationResult> {
+  const scope = requestScopeSchema.safeParse(request);
+  if (!scope.success)
+    return { ok: false, error: "Lingkup permintaan tidak valid." };
+  const context = await entityContext(
+    scope.data.entity,
+    scope.data.branch,
+    true,
+  );
+  const { entity, branch, user, scopes } = context;
+  if (!scope.data.id && entity.create === false)
+    return {
+      ok: false,
+      error: "Penambahan data ini memerlukan provisioning organisasi.",
+    };
+  const parsed = recordSchema(entity, !!scope.data.id).safeParse(input);
+  if (!parsed.success)
+    return {
+      ok: false,
+      error: "Periksa kembali data formulir.",
+      fields: Object.fromEntries(
+        parsed.error.issues.map((issue) => [
+          String(issue.path[0] || "form"),
+          issue.message,
+        ]),
+      ),
+    };
+  const payload: Record<string, unknown> = { ...parsed.data };
+  const isAdmin = hasPermission(scopes, branch, ["admin"]);
+  if (entity.key === "pelanggan" && !isAdmin) {
+    if (!scope.data.id) payload.account_manager_id = user.id;
+    else {
+      delete payload.account_manager_id;
+      delete payload.portfolio_id;
+    }
+  }
+  if (entity.key !== "cabang" && entity.key !== "roles")
+    payload.branch_code = branch;
+  const db = await masterClient();
+  const query = scope.data.id
+    ? db
+        .from(entity.table)
+        .update(payload)
+        .eq(entity.idKey, scope.data.id)
+        .eq(entity.key === "cabang" ? "code" : "branch_code", branch)
+    : db.from(entity.table).insert(payload);
+  const { data, error } = await query.select(entity.idKey).maybeSingle();
+  if (error) return { ok: false, error: publicDatabaseError(error.code) };
+  if (!data)
+    return {
+      ok: false,
+      error:
+        "Tidak ada data yang tersimpan. Rekaman tidak ditemukan atau akses telah berubah.",
+    };
+  revalidatePath(entity.path, "layout");
+  revalidatePath("/dashboard");
+  return {
+    ok: true,
+    message: "Perubahan telah tersimpan.",
+    id: String((data as unknown as Record<string, unknown>)[entity.idKey]),
+  };
+}
+export async function setRecordsActive(
+  request: unknown,
+  ids: unknown,
+  active: unknown,
+  reason?: unknown,
+): Promise<MutationResult> {
+  const scope = requestScopeSchema.safeParse(request);
+  const selected = z
+    .array(z.string().min(1).max(100))
+    .min(1)
+    .max(20)
+    .refine((ids) => new Set(ids).size === ids.length)
+    .safeParse(ids);
+  if (!scope.success || !selected.success || typeof active !== "boolean")
+    return { ok: false, error: "Pilihan perubahan tidak valid." };
+  const { entity, branch, user } = await entityContext(
+    scope.data.entity,
+    scope.data.branch,
+    true,
+  );
+  if (!entity.fields.some((field) => field.key === "is_active"))
+    return { ok: false, error: "Perubahan status tidak tersedia." };
+  if (entity.key === "pengguna" && selected.data.includes(user.id))
+    return { ok: false, error: "Status akun sendiri tidak dapat diubah." };
+  const payload: Record<string, unknown> = { is_active: active };
+  if (entity.key === "penugasan-peran") {
+    const parsed = z.string().trim().min(8).max(1000).safeParse(reason);
+    if (!parsed.success)
+      return {
+        ok: false,
+        error: "Tuliskan alasan pemberian/pencabutan minimal 8 karakter.",
+      };
+    payload.grant_reason = parsed.data;
+  }
+  const db = await masterClient();
+  const { data, error } = await db
+    .from(entity.table)
+    .update(payload)
+    .in(entity.idKey, selected.data)
+    .eq(entity.key === "cabang" ? "code" : "branch_code", branch)
+    .select(entity.idKey);
+  if (error) return { ok: false, error: publicDatabaseError(error.code) };
+  if (data?.length !== selected.data.length)
+    return {
+      ok: false,
+      error:
+        "Sebagian pilihan tidak dapat diakses. Muat ulang data untuk memeriksa status aktual.",
+    };
+  revalidatePath(entity.path, "layout");
+  return {
+    ok: true,
+    message: `Status ${data.length} rekaman telah diperbarui.`,
+  };
+}

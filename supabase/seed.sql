@@ -1,2 +1,3 @@
--- Only the DPS branch and role catalog are seeded by the versioned migration.
--- No employee, customer, Auth identity or certificate fixtures are seeded.
+-- Versioned migrations seed DPS, roles, Bali/NTB/NTT, requested portfolio codes,
+-- and three clearly labelled CONTOH certificate-type catalog entries.
+-- No employee, customer, Auth identity, operational certificate or regulatory claim is seeded here.

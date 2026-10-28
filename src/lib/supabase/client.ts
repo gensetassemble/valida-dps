@@ -5,5 +5,11 @@ import type { Database } from "@/types/database";
 export function createClient() {
   const config = getSupabaseConfig();
   if (!config) throw new Error("Supabase belum dikonfigurasi dengan benar.");
-  return createBrowserClient<Database>(config.url, config.key, { cookieOptions: { path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" } });
+  return createBrowserClient<Database>(config.url, config.key, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+  });
 }
