@@ -24,7 +24,7 @@ Tanggal: **28 Oktober 2026**, zona waktu Asia/Makassar. Lingkup: **PROMPT 01**. 
 | Vercel Deployment | **Menunggu Otorisasi** | Konfigurasi lokal siap; belum ada build cloud atau URL deployment |
 | GitHub Actions | **Terkonfigurasi — Belum Diuji** | Workflow aplikasi/database tersedia; run GitHub belum dapat dilakukan sebelum push |
 
-Git lokal menggunakan branch main. Repository remote belum dibuat, remote origin belum dipasang, dan tidak ada push atau run CI cloud yang diklaim.
+Git lokal menggunakan branch main dan commit awal telah dibuat. Repository remote belum dibuat, remote origin belum dipasang, dan tidak ada push atau run CI cloud yang diklaim. `next-env.d.ts` dihasilkan ulang oleh framework dan diabaikan Git sesuai panduan versi Next.js terpasang; typecheck menjalankan `next typegen` terlebih dahulu agar clone bersih tidak bergantung pada artefak development.
 
 ## B. Informasi terverifikasi
 
