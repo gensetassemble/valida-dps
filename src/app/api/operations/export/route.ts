@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { addMonitoringSheets } from "@/features/operations/monitoring-export";
+import { addPersonnelSheet } from "@/features/operations/personnel-export";
+import { personnelExportData } from "@/features/operations/personnel-export-data";
 import {
   entityContext,
   listRecords,
+  masterClient,
   type QueryParams,
   type DataRow,
 } from "@/features/master-data/server";
@@ -46,12 +49,14 @@ export async function GET(request: NextRequest) {
       );
     rows.push(
       ...data.rows.map((row) =>
-        Object.fromEntries(
-          Object.entries(row).map(([key, value]) => [
-            key,
-            data.labels[key]?.[String(value)] || value,
-          ]),
-        ),
+        c.entity.key === "kompetensi-personil"
+          ? row
+          : Object.fromEntries(
+              Object.entries(row).map(([key, value]) => [
+                key,
+                data.labels[key]?.[String(value)] || value,
+              ]),
+            ),
       ),
     );
     if (rows.length >= data.total || !data.rows.length) break;
@@ -60,7 +65,24 @@ export async function GET(request: NextRequest) {
   book.creator = "VALIDA";
   if (c.entity.key === "kalibrasi-alat")
     addMonitoringSheets(book, rows, c.branch);
-  else {
+  else if (c.entity.key === "kompetensi-personil") {
+    try {
+      const data = await personnelExportData(
+        await masterClient(),
+        rows,
+        c.branch,
+      );
+      addPersonnelSheet(book, data.rows, data.branchName);
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            "Data pendukung kompetensi belum dapat dimuat. Silakan coba ekspor kembali.",
+        },
+        { status: 503 },
+      );
+    }
+  } else {
     const sheet = book.addWorksheet("Data sesuai akses");
     sheet.columns = c.entity.columns.map((key) => ({
       header: key,
