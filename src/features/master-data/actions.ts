@@ -6,6 +6,7 @@ import { entityContext, masterClient, publicDatabaseError } from "./server";
 import { recordSchema, requestScopeSchema } from "./validation";
 import { addMonths } from "@/lib/domain/validity";
 import { measurementKeys } from "@/features/operations/monitoring";
+import { saveProfileAccount } from "./profile-account";
 export type MutationResult =
   | { ok: true; message: string; id?: string }
   | { ok: false; error: string; fields?: Record<string, string> };
@@ -96,6 +97,29 @@ export async function saveRecord(
   if (entity.key !== "cabang" && entity.key !== "roles")
     payload.branch_code = branch;
   const db = await masterClient();
+  if (entity.key === "pengguna") {
+    delete payload.branch_code;
+    const password =
+      typeof payload.password === "string" ? payload.password : null;
+    delete payload.password;
+    const result = await saveProfileAccount({
+      db,
+      branch,
+      id: scope.data.id,
+      details: payload,
+      password,
+      superAdmin: scopes.some(
+        (s) => s.branch_code === branch && s.role_code === "super_admin",
+      ),
+    });
+    if (result.error) return { ok: false, error: result.error };
+    revalidatePath(entity.path, "layout");
+    return {
+      ok: true,
+      id: result.id,
+      message: "Identitas pengguna tersimpan.",
+    };
+  }
   if (entity.key === "riwayat-kalibrasi" && scope.data.id) {
     const { data: current, error } = await db
       .from("calibrations")

@@ -3,6 +3,7 @@ import { OPERATIONAL_ENTITIES } from "@/features/operations/entities";
 export type FieldKind =
   | "text"
   | "email"
+  | "password"
   | "tel"
   | "textarea"
   | "boolean"
@@ -486,6 +487,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     ...base,
     key: "pengguna",
     table: "profiles",
+    readTable: "profile_identity_records",
     title: "Pengguna",
     singular: "Profil pengguna",
     path: "/pengaturan/pengguna",
@@ -494,16 +496,22 @@ export const ENTITIES: Record<string, EntityConfig> = {
     readRoles: admin,
     writeRoles: admin,
     description:
-      "Tautkan Auth UUID yang telah disediakan organisasi. Halaman ini tidak membuat akun Supabase Auth atau mengirim undangan.",
+      "Kelola identitas dan akun login. Password hanya dapat dikelola Super Admin.",
     fields: [
-      { ...text("id", "UUID akun Supabase Auth", true, 36), immutable: true },
-      lookup("employee_id", "Identitas pegawai terverifikasi", "pegawai"),
-      text("full_name", "Nama tampilan akun", false, 160),
-      { key: "email", label: "Email akun terverifikasi", kind: "email" },
+      text("full_name", "Nama", true, 160),
+      { key: "email", label: "Email", kind: "email", required: true },
+      { ...text("npp", "NPP", false, 40), hint: "Kosongkan untuk Non-NPP." },
       { key: "whatsapp", label: "WhatsApp", kind: "tel" },
+      {
+        key: "password",
+        label: "Password",
+        kind: "password",
+        hint: "Kosongkan untuk mempertahankan password akun lama. Minimal 12 karakter.",
+        max: 128,
+      },
       active,
     ],
-    columns: ["full_name", "email", "employee_id", "is_active"],
+    columns: ["full_name", "email", "npp", "whatsapp", "is_active"],
     search: ["full_name", "email"],
   },
   roles: {

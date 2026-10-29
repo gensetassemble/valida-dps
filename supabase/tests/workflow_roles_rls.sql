@@ -45,6 +45,10 @@ end $$;
 select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000006',true);
 select pg_temp.assert_true((select count(*)=1 from public.equipment where id in ('e5000000-0000-4000-8000-000000000001','e5000000-0000-4000-8000-000000000002')),'PTK limited to assigned portfolio');
 insert into public.calibrations(equipment_id,branch_code,laboratory) values('e5000000-0000-4000-8000-000000000001','DPS','[CONTOH] Workflow PTK Positive');
+do $$ declare new_asset uuid;begin
+ new_asset:=public.create_equipment_with_calibration('DPS',jsonb_build_object('name','[CONTOH] PTK Atomic Asset','portfolio_id',(select portfolio_id from public.equipment where id='e5000000-0000-4000-8000-000000000001')),jsonb_build_object('calibration_date','2026-10-29','due_date','2027-10-29'));
+ if not exists(select 1 from public.equipment_monitoring_records where id=new_asset) then raise exception 'FAIL: PTK cannot read newly created equipment';end if;
+end $$;
 do $$ begin begin
  insert into public.calibrations(equipment_id,branch_code) values('e5000000-0000-4000-8000-000000000002','DPS');raise exception 'FAIL: PTK cross-portfolio calibration';exception when insufficient_privilege then null;end;end $$;
 select pg_temp.assert_true(not private.has_role('DPS',array['hrga','admin']),'PTK cannot approve personnel or administer users');

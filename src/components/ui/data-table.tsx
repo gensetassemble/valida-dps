@@ -79,6 +79,7 @@ export function DataTable({
   canWrite,
   userId,
   isAdmin,
+  canManagePasswords = false,
   parent,
 }: {
   entity: EntityConfig;
@@ -87,6 +88,7 @@ export function DataTable({
   canWrite: boolean;
   userId: string;
   isAdmin: boolean;
+  canManagePasswords?: boolean;
   parent?: { field: string; id: string };
 }) {
   const routeParams = useSearchParams();
@@ -507,6 +509,7 @@ export function DataTable({
             parent={parent}
             userId={userId}
             isAdmin={isAdmin}
+            canManagePasswords={canManagePasswords}
             onSaved={() => setEditing(null)}
           />
         )}

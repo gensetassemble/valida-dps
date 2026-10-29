@@ -218,10 +218,16 @@ export async function listRecords(
     (page - 1) * size,
     page * size - 1,
   );
-  if (error)
+  if (error) {
+    console.error("Record query failed", {
+      entity: entity.key,
+      code: error.code,
+      message: error.message?.slice(0, 160),
+    });
     throw new Error(
       "Data belum dapat dimuat. Silakan coba kembali atau hubungi administrator.",
     );
+  }
   const rows = (data ?? []) as DataRow[];
   for (const row of rows)
     if (typeof row.previous_order_value_text === "string")

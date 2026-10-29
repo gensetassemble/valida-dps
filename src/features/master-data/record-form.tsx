@@ -124,6 +124,7 @@ function initialValue(
   userId: string,
   entity: string,
 ) {
+  if (field.kind === "password") return "";
   const value = row?.[field.key];
   if (field.kind === "boolean")
     return typeof value === "boolean"
@@ -156,6 +157,7 @@ export function RecordForm({
   parent,
   userId,
   isAdmin,
+  canManagePasswords = false,
   onSaved,
 }: {
   entity: EntityConfig;
@@ -164,6 +166,7 @@ export function RecordForm({
   parent?: { field: string; id: string };
   userId: string;
   isAdmin: boolean;
+  canManagePasswords?: boolean;
   onSaved: () => void;
 }) {
   const editing = !!row;
@@ -365,8 +368,28 @@ export function RecordForm({
             </select>
           </label>
         )}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          role={entity.key === "kalibrasi-alat" ? "table" : undefined}
+          aria-label={
+            entity.key === "kalibrasi-alat" ? "Parameter alat" : undefined
+          }
+          className={
+            entity.key === "kalibrasi-alat"
+              ? "overflow-hidden rounded-lg border border-border"
+              : "grid gap-4 sm:grid-cols-2"
+          }
+        >
+          {entity.key === "kalibrasi-alat" && (
+            <div
+              role="row"
+              className="hidden grid-cols-[minmax(160px,0.35fr)_minmax(0,1fr)] gap-5 border-b border-border bg-slate-50 p-3 text-xs font-bold sm:grid"
+            >
+              <span role="columnheader">Parameter</span>
+              <span role="columnheader">Isian</span>
+            </div>
+          )}
           {formFields.map((field) => {
+            if (field.kind === "password" && !canManagePasswords) return null;
             if (
               lifetime &&
               ["interval_months", "expiry_date"].includes(field.key)
@@ -391,6 +414,9 @@ export function RecordForm({
               return (
                 <FormField
                   key={field.key}
+                  layout={
+                    entity.key === "kalibrasi-alat" ? "table" : "standard"
+                  }
                   id={field.key}
                   label={field.label}
                   hint="Identitas/relasi tetap; buat penugasan baru bila diperlukan."
@@ -419,6 +445,7 @@ export function RecordForm({
             return (
               <FormField
                 key={field.key}
+                layout={entity.key === "kalibrasi-alat" ? "table" : "standard"}
                 id={field.key}
                 label={field.label}
                 hint={field.hint}
@@ -520,13 +547,18 @@ export function RecordForm({
                         ? "number"
                         : field.kind === "date"
                           ? "date"
-                          : field.kind === "email"
-                            ? "email"
-                            : field.kind === "tel"
-                              ? "tel"
-                              : "text"
+                          : field.kind === "password"
+                            ? "password"
+                            : field.kind === "email"
+                              ? "email"
+                              : field.kind === "tel"
+                                ? "tel"
+                                : "text"
                     }
                     {...register(field.key)}
+                    autoComplete={
+                      field.kind === "password" ? "new-password" : undefined
+                    }
                     maxLength={field.max || 254}
                     onInput={
                       field.kind === "date"
@@ -601,8 +633,9 @@ export function RecordForm({
         description="Pastikan identitas, status aktivasi, penugasan peran, dan cabang telah disetujui organisasi."
       >
         <p className="mb-4 text-sm">
-          Perubahan berlaku segera dan dicatat pada audit. Formulir ini tidak
-          membuat akun Auth dan tidak mengirim email.
+          {entity.key === "pengguna"
+            ? "Perubahan identitas dan password berlaku segera. Akun baru belum memiliki peran sampai ditugaskan. Password kosong mempertahankan password lama. Tidak ada email yang dikirim."
+            : "Perubahan akses berlaku segera dan dicatat pada audit."}
         </p>
         <Button
           disabled={saving}

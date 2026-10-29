@@ -36,6 +36,10 @@ export async function MasterTable({
       canWrite={context.canWrite}
       userId={context.user.id}
       isAdmin={hasPermission(context.scopes, context.branch, ["admin"])}
+      canManagePasswords={context.scopes.some(
+        (s) =>
+          s.branch_code === context.branch && s.role_code === "super_admin",
+      )}
       parent={parent}
     />
   );

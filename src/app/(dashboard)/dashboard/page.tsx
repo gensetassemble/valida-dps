@@ -1,4 +1,9 @@
 import Link from "next/link";
+import {
+  dashboardFilters,
+  dashboardScope,
+  MODULE_ACCESS,
+} from "@/lib/auth/module-access";
 import { DeadlineDate } from "@/components/ui/deadline-date";
 import { ScrollMore } from "@/components/ui/scroll-more";
 import { requireActiveUser } from "@/lib/auth/guards";
@@ -52,16 +57,34 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<QueryParams & { category?: string; examples?: string }>;
 }) {
-  const p = await searchParams,
+  const requested = await searchParams,
     c = await requireActiveUser(),
-    branch = activeBranch(c.scopes, c.profile.branch_code, p.branch),
+    branch = activeBranch(c.scopes, c.profile.branch_code, requested.branch),
     db = await masterClient();
+  const { domains, category } = dashboardScope(
+    c.scopes,
+    branch,
+    requested.category,
+  );
+  const p = dashboardFilters(requested, category);
+  const showClients =
+    domains.includes("clients") && ["all", "clients"].includes(category);
+  const showPersonnel =
+    domains.includes("personnel") && ["all", "personnel"].includes(category);
+  const showCalibrations =
+    domains.includes("calibrations") &&
+    ["all", "calibrations"].includes(category);
   const { data, error } = await db.rpc("operational_summary", {
     b: branch,
     filters: { ...p, scroll: "true" },
   });
-  if (error)
+  if (error) {
+    console.error("Dashboard query failed", {
+      code: error.code,
+      message: error.message?.slice(0, 160),
+    });
     throw Error("Ringkasan belum dapat dimuat dalam cakupan yang diminta.");
+  }
   const s = data as Summary;
   const equipmentIds = [
     ...new Set(
@@ -86,15 +109,17 @@ export default async function DashboardPage({
       }
   }
   const tabs = [
-    ["all", "Semua"],
-    ["clients", "Sertifikat Klien"],
-    ["personnel", "Kompetensi Personil"],
-    ["calibrations", "Kalibrasi Alat"],
+    ...(domains.length > 1 ? [["all", "Semua"]] : []),
+    ...domains.map((d) => [d, MODULE_ACCESS[d].label]),
   ];
   return (
     <>
       <PageHeader
-        title="Dashboard"
+        title={
+          domains.length === 1
+            ? "Dashboard " + MODULE_ACCESS[domains[0]].label
+            : "Dashboard"
+        }
         eyebrow={
           "Cabang " + branch + " · " + formatBusinessDate(todayWita()) + " WITA"
         }
@@ -129,28 +154,32 @@ export default async function DashboardPage({
             ? "kompetensi-personil"
             : p.category === "calibrations"
               ? "kalibrasi-alat"
-              : "sertifikat-klien"
+              : p.category === "clients"
+                ? "sertifikat-klien"
+                : "dashboard-all"
         }
         branch={branch}
         params={p}
       />
       <div className="mb-5 flex flex-wrap justify-between gap-3 text-xs">
         <p>{s.total} rekaman aktif sesuai akses dan filter.</p>
-        <Link
-          className="underline"
-          href={
-            "/dashboard?" +
-            new URLSearchParams({
-              ...p,
-              branch,
-              examples: p.examples === "true" ? "false" : "true",
-            } as Record<string, string>)
-          }
-        >
-          {p.examples === "true"
-            ? "Sembunyikan data [CONTOH]"
-            : "Tampilkan juga data [CONTOH]"}
-        </Link>
+        {showClients && (
+          <Link
+            className="underline"
+            href={
+              "/dashboard?" +
+              new URLSearchParams({
+                ...p,
+                branch,
+                examples: p.examples === "true" ? "false" : "true",
+              } as Record<string, string>)
+            }
+          >
+            {p.examples === "true"
+              ? "Sembunyikan data [CONTOH]"
+              : "Tampilkan juga data [CONTOH]"}
+          </Link>
+        )}
       </div>
       {s.example_count > 0 && (
         <p className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs">
@@ -167,77 +196,89 @@ export default async function DashboardPage({
           "Aman",
           "Tanggal Belum Diisi",
           "Berlaku Seumur Hidup",
-        ].map((status) => (
+        ]
+          .filter(
+            (status) => status !== "Berlaku Seumur Hidup" || showPersonnel,
+          )
+          .map((status) => (
+            <Link
+              key={status}
+              href={
+                "/dashboard?" +
+                new URLSearchParams({
+                  ...p,
+                  branch,
+                  validity: status,
+                  page: "1",
+                } as Record<string, string>)
+              }
+            >
+              <Card className="p-4">
+                <StatusBadge value={status} />
+                <strong className="mt-4 block text-3xl tabular-nums text-brand-navy">
+                  {s.buckets[status] || 0}
+                </strong>
+              </Card>
+            </Link>
+          ))}
+        {showClients && (
+          <Card className="p-4">
+            <p className="text-xs font-semibold text-muted-foreground">
+              Nilai Peluang Perpanjangan
+            </p>
+            <strong className="mt-4 block text-xl tabular-nums text-primary-hover">
+              {s.real_client_count
+                ? formatRupiah(s.opportunity || "0")
+                : "Belum ada data"}
+            </strong>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Sertifikat klien yang berakhir dalam 90 hari; data contoh
+              dikecualikan.
+            </p>
+          </Card>
+        )}
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {showPersonnel && (
           <Link
-            key={status}
             href={
-              "/dashboard?" +
-              new URLSearchParams({
-                ...p,
-                branch,
-                validity: status,
-                page: "1",
-              } as Record<string, string>)
+              "/dashboard?branch=" +
+              branch +
+              "&category=personnel&kind=lifetime"
             }
           >
             <Card className="p-4">
-              <StatusBadge value={status} />
-              <strong className="mt-4 block text-3xl tabular-nums text-brand-navy">
-                {s.buckets[status] || 0}
+              <p className="text-xs font-semibold">Kompetensi seumur hidup</p>
+              <strong className="mt-2 block text-2xl tabular-nums">
+                {s.lifetime_count || 0}
               </strong>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Terpisah dari bucket expired dan pengingat.
+              </p>
             </Card>
           </Link>
-        ))}
-        <Card className="p-4">
-          <p className="text-xs font-semibold text-muted-foreground">
-            Nilai Peluang Perpanjangan
-          </p>
-          <strong className="mt-4 block text-xl tabular-nums text-primary-hover">
-            {s.real_client_count
-              ? formatRupiah(s.opportunity || "0")
-              : "Belum ada data"}
-          </strong>
-          <p className="mt-3 text-[11px] text-muted-foreground">
-            Sertifikat klien yang berakhir dalam 90 hari; data contoh
-            dikecualikan.
-          </p>
-        </Card>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <Link
-          href={
-            "/dashboard?branch=" + branch + "&category=personnel&kind=lifetime"
-          }
-        >
-          <Card className="p-4">
-            <p className="text-xs font-semibold">Kompetensi seumur hidup</p>
-            <strong className="mt-2 block text-2xl tabular-nums">
-              {s.lifetime_count || 0}
-            </strong>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              Terpisah dari bucket expired dan pengingat.
-            </p>
-          </Card>
-        </Link>
-        <Link
-          href={
-            "/kalibrasi-alat?branch=" +
-            branch +
-            "&eligibility=" +
-            encodeURIComponent("Tidak Layak Pakai")
-          }
-        >
-          <Card className="p-4">
-            <StatusBadge value="Tidak Layak Pakai" />
-            <strong className="mt-2 block text-2xl tabular-nums text-red-900">
-              {s.unfit_equipment_count || 0}
-            </strong>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              Masa berlaku yang belum berakhir tidak mengesampingkan hasil
-              kalibrasi gagal.
-            </p>
-          </Card>
-        </Link>
+        )}
+        {showCalibrations && (
+          <Link
+            href={
+              "/kalibrasi-alat?branch=" +
+              branch +
+              "&eligibility=" +
+              encodeURIComponent("Tidak Layak Pakai")
+            }
+          >
+            <Card className="p-4">
+              <StatusBadge value="Tidak Layak Pakai" />
+              <strong className="mt-2 block text-2xl tabular-nums text-red-900">
+                {s.unfit_equipment_count || 0}
+              </strong>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Masa berlaku yang belum berakhir tidak mengesampingkan hasil
+                kalibrasi gagal.
+              </p>
+            </Card>
+          </Link>
+        )}
       </div>
       {(p.validity || p.kind) && (
         <Card className="mt-6 overflow-hidden">

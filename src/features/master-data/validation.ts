@@ -6,6 +6,16 @@ import { initialCalibrationFields } from "@/features/operations/monitoring";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
 function fieldSchema(field: Field) {
+  if (field.kind === "password")
+    return z.preprocess(
+      emptyToNull,
+      z
+        .string()
+        .min(12, "Gunakan minimal 12 karakter.")
+        .max(128)
+        .nullable()
+        .optional(),
+    );
   if (field.kind === "money")
     return z.preprocess(
       emptyToNull,

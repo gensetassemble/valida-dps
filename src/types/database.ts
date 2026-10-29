@@ -252,6 +252,13 @@ export type Database = {
             foreignKeyName: "calibrations_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calibrations_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -359,6 +366,13 @@ export type Database = {
             foreignKeyName: "client_assignment_history_changed_by_fkey";
             columns: ["changed_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_assignment_history_changed_by_fkey";
+            columns: ["changed_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -373,7 +387,21 @@ export type Database = {
             foreignKeyName: "client_assignment_history_new_account_manager_id_fkey";
             columns: ["new_account_manager_id"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_assignment_history_new_account_manager_id_fkey";
+            columns: ["new_account_manager_id"];
+            isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_assignment_history_old_account_manager_id_fkey";
+            columns: ["old_account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
             referencedColumns: ["id"];
           },
           {
@@ -577,6 +605,13 @@ export type Database = {
             foreignKeyName: "client_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -665,6 +700,13 @@ export type Database = {
             foreignKeyName: "client_contacts_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_contacts_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -748,6 +790,13 @@ export type Database = {
             foreignKeyName: "clients_account_manager_id_fkey";
             columns: ["account_manager_id"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey";
+            columns: ["account_manager_id"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -778,6 +827,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "clients_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "clients_verified_by_fkey";
@@ -868,6 +924,13 @@ export type Database = {
             foreignKeyName: "employee_directory_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "employee_directory_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -929,6 +992,13 @@ export type Database = {
           verification_status?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "employee_portfolio_assignments_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "employee_portfolio_assignments_approved_by_fkey";
             columns: ["approved_by"];
@@ -1092,6 +1162,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "employee_directory";
             referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "equipment_verified_by_fkey";
@@ -1484,6 +1561,13 @@ export type Database = {
             foreignKeyName: "personnel_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personnel_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -1612,6 +1696,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "portfolio_aliases_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "portfolio_aliases_verified_by_fkey";
@@ -2108,6 +2199,13 @@ export type Database = {
             foreignKeyName: "service_competency_requirements_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_competency_requirements_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -2218,6 +2316,13 @@ export type Database = {
             foreignKeyName: "user_role_assignments_granted_by_fkey";
             columns: ["granted_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_role_assignments_granted_by_fkey";
+            columns: ["granted_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -2225,7 +2330,21 @@ export type Database = {
             foreignKeyName: "user_role_assignments_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_role_assignments_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_role_assignments_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
             referencedColumns: ["id"];
           },
           {
@@ -2361,6 +2480,13 @@ export type Database = {
             foreignKeyName: "calibrations_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calibrations_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -2426,6 +2552,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "equipment_records";
             referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "calibrations_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "calibrations_verified_by_fkey";
@@ -2564,7 +2697,21 @@ export type Database = {
             foreignKeyName: "client_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey";
+            columns: ["account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
             referencedColumns: ["id"];
           },
           {
@@ -2700,7 +2847,21 @@ export type Database = {
             foreignKeyName: "client_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey";
+            columns: ["account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
             referencedColumns: ["id"];
           },
           {
@@ -2802,6 +2963,13 @@ export type Database = {
             foreignKeyName: "equipment_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "equipment_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -2873,6 +3041,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "employee_directory";
             referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "equipment_verified_by_fkey";
@@ -2962,6 +3137,13 @@ export type Database = {
             foreignKeyName: "personnel_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personnel_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -3025,6 +3207,13 @@ export type Database = {
             foreignKeyName: "personnel_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personnel_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
@@ -3058,6 +3247,49 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "marketing_contacts";
             referencedColumns: ["id", "branch_code"];
+          },
+        ];
+      };
+      profile_identity_records: {
+        Row: {
+          activated_at: string | null;
+          activated_by: string | null;
+          branch_code: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          display_name: string | null;
+          email: string | null;
+          employee_id: string | null;
+          full_name: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          npp: string | null;
+          role_code: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          whatsapp: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profiles_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "profiles_employee_branch_fk";
+            columns: ["employee_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "employee_directory";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "profiles_role_code_fkey";
+            columns: ["role_code"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["code"];
           },
         ];
       };
@@ -3190,7 +3422,21 @@ export type Database = {
             foreignKeyName: "client_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey";
+            columns: ["account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
             referencedColumns: ["id"];
           },
           {
@@ -3329,7 +3575,21 @@ export type Database = {
             foreignKeyName: "client_certificates_verified_by_fkey";
             columns: ["verified_by"];
             isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey";
+            columns: ["account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
             referencedColumns: ["id"];
           },
           {
@@ -3382,6 +3642,10 @@ export type Database = {
       review_import: {
         Args: { approve: boolean; n: Json; r: string; reason: string };
         Returns: undefined;
+      };
+      save_profile_identity: {
+        Args: { b: string; details: Json; profile: string };
+        Returns: string;
       };
       stage_import: {
         Args: {

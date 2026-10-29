@@ -148,7 +148,9 @@ export async function OperationalFilters({
               "Pantau",
               "Aman",
               "Tanggal Belum Diisi",
-              "Berlaku Seumur Hidup",
+              ...(entity === "kompetensi-personil" || entity === "dashboard-all"
+                ? ["Berlaku Seumur Hidup"]
+                : []),
             ].map((x) => (
               <option key={x}>{x}</option>
             ))}

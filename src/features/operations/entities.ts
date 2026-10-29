@@ -1,5 +1,5 @@
 import type { EntityConfig, Field } from "@/features/master-data/registry";
-import type { Role } from "@/lib/auth/permissions";
+import { MODULE_ACCESS } from "@/lib/auth/module-access";
 import {
   monitoringColumns,
   monitoringAssetFields,
@@ -48,22 +48,9 @@ const common = {
     "Pencatatan bersumber dari database dengan otorisasi cabang. Status masa berlaku dihitung otomatis dari tanggal WITA.",
   create: true,
 };
-const clientRoles: Role[] = ["admin", "account_manager", "qshe", "branch_head"];
-const personnelRoles: Role[] = [
-  "admin",
-  "hrga",
-  "coordinator",
-  "qshe",
-  "inspector",
-  "branch_head",
-];
-const equipmentRoles: Role[] = [
-  "admin",
-  "equipment_manager",
-  "coordinator",
-  "qshe",
-  "branch_head",
-];
+const clientRoles = MODULE_ACCESS.clients.read;
+const personnelRoles = MODULE_ACCESS.personnel.read;
+const equipmentRoles = MODULE_ACCESS.calibrations.read;
 export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
   "sertifikat-klien": {
     ...common,
