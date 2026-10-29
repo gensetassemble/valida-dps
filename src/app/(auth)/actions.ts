@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseConfig } from "@/lib/env/public";
 import { getAppConfig } from "@/lib/env/server";
 import { loginSchema, resetSchema, passwordSchema } from "@/lib/auth/schemas";
+import { signOutCurrentDevice } from "@/lib/auth/logout";
 export async function login(input: unknown) {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return { error: "Periksa alamat email dan kata sandi." };
@@ -19,10 +20,7 @@ export async function login(input: unknown) {
   redirect("/dashboard");
 }
 export async function logout() {
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signOut();
-  if (error)
-    throw new Error("Sesi belum dapat diakhiri. Silakan coba kembali.");
+  await signOutCurrentDevice();
   redirect("/login");
 }
 export async function resetPassword(input: unknown) {
@@ -53,7 +51,7 @@ export async function updatePassword(input: unknown) {
   const supabase = await createClient();
   const { data, error: userError } = await supabase.auth.getUser();
   if (userError || !data.user)
-    return { error: "Tautan pemulihan tidak valid atau telah kedaluwarsa." };
+    return { error: "Tautan pemulihan tidak valid atau telah expired." };
   const { error } = await supabase.auth.updateUser(parsed.data);
   if (error) return { error: "Kata sandi belum dapat diperbarui." };
   await supabase.auth.signOut();

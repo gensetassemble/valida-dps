@@ -1,9 +1,10 @@
 import "server-only";
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabaseConfig } from "@/lib/env/public";
 import type { Database } from "@/types/database";
-export async function createClient() {
+export const createClient = cache(async () => {
   const config = getSupabaseConfig();
   if (!config) throw new Error("Supabase belum dikonfigurasi dengan benar.");
   const store = await cookies();
@@ -26,4 +27,4 @@ export async function createClient() {
       },
     },
   });
-}
+});

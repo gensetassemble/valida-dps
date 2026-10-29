@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { EntityConfig, Field } from "./registry";
 import { ALL_ROLES } from "@/lib/auth/permissions";
 import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
+import { initialCalibrationFields } from "@/features/operations/monitoring";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
 function fieldSchema(field: Field) {
@@ -90,7 +91,12 @@ function fieldSchema(field: Field) {
 }
 export function recordSchema(entity: EntityConfig, editing = false) {
   const shape: Record<string, z.ZodType> = {};
-  for (const field of entity.fields) {
+  for (const field of [
+    ...entity.fields,
+    ...(entity.key === "kalibrasi-alat" && !editing
+      ? initialCalibrationFields
+      : []),
+  ]) {
     if (editing && (field.key === entity.idKey || field.immutable)) continue;
     shape[field.key] = fieldSchema(field);
   }
@@ -116,6 +122,26 @@ export function recordSchema(entity: EntityConfig, editing = false) {
           : null;
       const fail = (path: string, message: string) =>
         context.addIssue({ code: "custom", path: [path], message });
+      if (
+        entity.key === "kalibrasi-alat" &&
+        !editing &&
+        values.initial_enabled
+      ) {
+        if (!values.initial_calibration_date)
+          fail(
+            "initial_calibration_date",
+            "Isi tanggal kalibrasi awal atau matikan pencatatan kalibrasi awal.",
+          );
+        if (
+          typeof values.initial_calibration_date === "string" &&
+          typeof values.initial_due_date === "string" &&
+          values.initial_due_date < values.initial_calibration_date
+        )
+          fail(
+            "initial_due_date",
+            "Tanggal akhir tidak boleh mendahului kalibrasi awal.",
+          );
+      }
       if (
         values.validity_kind === "lifetime" &&
         (values.expiry_date || values.interval_months)

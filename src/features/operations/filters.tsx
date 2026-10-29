@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
+import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 export async function OperationalFilters({
   entity,
   branch,
@@ -19,7 +19,7 @@ export async function OperationalFilters({
       ? [
           ["client", "clients", "name", "Pelanggan"],
           ["area", "work_areas", "name", "Wilayah"],
-          ["am", "profiles", "full_name", "Account Manager"],
+          ["marketing", "marketing_contacts", "full_name", "AM / Marketing"],
           ["portfolio", "portfolios", "code", "Portofolio"],
           ["type", "certificate_types", "name", "Jenis sertifikat"],
         ]
@@ -32,6 +32,23 @@ export async function OperationalFilters({
         : [["portfolio", "portfolios", "code", "Portofolio"]];
   const options = await Promise.all(
     keys.map(async ([param, table, label, title]) => {
+      if (entity === "kalibrasi-alat" && param === "portfolio") {
+        const { data, error } = await db
+          .from("equipment_monitoring_records")
+          .select("portfolio_id,portfolio_code")
+          .eq("branch_code", branch)
+          .order("portfolio_code")
+          .limit(10000);
+        if (error) throw Error("Portofolio alat belum dapat dimuat.");
+        const unique = new Map<string, Record<string, string>>();
+        for (const row of data || [])
+          if (row.portfolio_id && row.portfolio_code)
+            unique.set(String(row.portfolio_id), {
+              id: String(row.portfolio_id),
+              code: String(row.portfolio_code),
+            });
+        return { param, title, label, rows: [...unique.values()] };
+      }
       if (param === "am") {
         // Derive labels from authorized certificates; reading profiles would
         // offer the caller's own name even when that caller is not an AM.
@@ -78,7 +95,7 @@ export async function OperationalFilters({
   );
   return (
     <Card className="mb-4 p-4">
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <AutoFilterForm className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="branch" value={branch} />
         {params.q && <input type="hidden" name="q" value={params.q} />}
         {entity === "kompetensi-personil" && (
@@ -125,7 +142,7 @@ export async function OperationalFilters({
           >
             <option value="">Semua status</option>
             {[
-              "Kedaluwarsa",
+              "Expired",
               "Kritis",
               "Perhatian",
               "Pantau",
@@ -178,14 +195,13 @@ export async function OperationalFilters({
             className="mt-1 block h-10 rounded-lg border border-input px-2"
           />
         </label>
-        <Button variant="outline">Terapkan filter</Button>
         <Link
           href={(clearPath || "/" + entity) + "?branch=" + branch}
           className="text-xs underline"
         >
           Hapus filter
         </Link>
-      </form>
+      </AutoFilterForm>
       <p className="mt-3 text-[11px] text-muted-foreground">
         Pilihan referensi dibatasi 100 sesuai akses. Gunakan pencarian tabel
         untuk mempersempit data.

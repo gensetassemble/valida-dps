@@ -32,6 +32,16 @@ export async function GET(request: NextRequest) {
   if (search) query = query.ilike(target.labelKey, `%${search}%`);
   if (params.get("id")) query = query.eq(target.idKey, params.get("id")!);
   if (target.key === "roles") query = query.eq("is_active", true);
+  if (
+    ["kalibrasi-alat", "kompetensi-personil", "riwayat-kalibrasi"].includes(
+      context.entity.key,
+    )
+  ) {
+    if (target.key === "pegawai")
+      query = query.not("full_name", "ilike", "%[CONTOH]%");
+    if (target.key === "portofolio")
+      query = query.not("code", "like", "CONTOH_%");
+  }
   if (context.entity.key === "persyaratan" && target.key === "jenis-sertifikat")
     query = query.eq("category", "personnel");
   if (
@@ -56,9 +66,11 @@ export async function GET(request: NextRequest) {
         label:
           String(row[target.labelKey] || row[target.idKey]) +
           (target.key === "pegawai"
-            ? " · NPP " + String(row.npp || "belum diketahui")
+            ? row.npp
+              ? " · NPP " + String(row.npp)
+              : " · Non-NPP"
             : target.key === "kalibrasi-alat"
-              ? " · " + String(row.eligibility_status || "Perlu Verifikasi")
+              ? " · " + String(row.eligibility_status || "Belum Ada Kalibrasi")
               : ""),
       })),
     },

@@ -1,7 +1,7 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import { Input } from "@/components/ui/input";
 import type { EntityConfig } from "./registry";
 export function FilterBar({ entity }: { entity: EntityConfig }) {
@@ -21,21 +21,9 @@ export function FilterBar({ entity }: { entity: EntityConfig }) {
   const value = params.get("value");
   return (
     <div className="border-b border-border">
-      <form
-        key={params.toString()}
+      <AutoFilterForm
+        keys={["q", "active", "filter", "value"]}
         className="flex flex-wrap items-end gap-3 p-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const data = new FormData(event.currentTarget);
-          const next = new URLSearchParams(params.toString());
-          next.delete("page");
-          for (const key of ["q", "active", "filter", "value"]) {
-            const value = String(data.get(key) || "").trim();
-            if (value) next.set(key, value);
-            else next.delete(key);
-          }
-          router.push(`${pathname}?${next}`);
-        }}
       >
         <div className="min-w-44 flex-1">
           <label htmlFor={`search-${entity.key}`} className="sr-only">
@@ -98,9 +86,7 @@ export function FilterBar({ entity }: { entity: EntityConfig }) {
                 className="h-10 max-w-44 rounded-lg border border-input bg-white px-2 text-xs"
               >
                 <option value="">Semua nilai</option>
-                {entity.fields
-                  .filter((field) => field.kind === "select")
-                  .flatMap((field) => field.options || [])
+                {(filter?.options || [])
                   .filter(
                     (option, index, array) =>
                       array.findIndex(
@@ -116,10 +102,7 @@ export function FilterBar({ entity }: { entity: EntityConfig }) {
             </label>
           </>
         )}
-        <Button type="submit" variant="outline">
-          Terapkan
-        </Button>
-      </form>
+      </AutoFilterForm>
       {(params.get("q") || active || filter) && (
         <div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-muted px-4 py-2 text-[11px]">
           {params.get("q") && (

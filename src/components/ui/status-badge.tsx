@@ -35,10 +35,10 @@ const statuses: Record<
     label: "Ditolak",
     style: "bg-red-50 text-red-800 border-red-200",
   },
-  Kedaluwarsa: {
-    label: "Kedaluwarsa",
-    style: "bg-orange-50 text-orange-900 border-orange-200",
-    color: "#D9653F",
+  Expired: {
+    label: "Expired",
+    style: "bg-red-50 text-red-800 border-red-200",
+    color: "#DC2626",
   },
   Kritis: {
     label: "Kritis",
@@ -52,8 +52,8 @@ const statuses: Record<
   },
   Pantau: {
     label: "Pantau",
-    style: "bg-emerald-50 text-emerald-900 border-emerald-200",
-    color: "#6FD3A3",
+    style: "bg-yellow-50 text-yellow-900 border-yellow-200",
+    color: "#CA8A04",
   },
   Aman: {
     label: "Aman",
@@ -64,8 +64,8 @@ const statuses: Record<
     label: "Berlaku Seumur Hidup",
     style: "bg-violet-50 text-violet-900 border-violet-200",
   },
-  "Tanpa Kedaluwarsa (perlu verifikasi dokumen)": {
-    label: "Tanpa Kedaluwarsa (perlu verifikasi dokumen)",
+  "Tanpa Expired (perlu verifikasi dokumen)": {
+    label: "Tanpa Expired (perlu verifikasi dokumen)",
     style: "bg-amber-50 text-amber-900 border-amber-200",
   },
   "Tidak Layak Pakai": {

@@ -10,15 +10,18 @@ import {
   entityContext,
   pageEntityContext,
   getRecord,
+  referenceLabels,
   masterClient,
   type QueryParams,
   type DataRow,
 } from "@/features/master-data/server";
 import { hasPermission } from "@/lib/auth/permissions";
+import { DeadlineDate } from "@/components/ui/deadline-date";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
 import { driveFolder, validityLabel } from "@/lib/domain/validity";
 import { OperationalForm, CorrectionForm, EvidenceForm } from "./forms";
 import { OperationalFilters } from "./filters";
+import { monitoringColumns } from "./monitoring";
 export async function OperationList({
   entity,
   params,
@@ -94,7 +97,7 @@ export async function OperationEditor({
         title={(id ? "Ubah " : "Tambah ") + c.entity.singular}
         description="Identitas induk tetap dipertahankan. Masa berlaku langsung dihitung dari tanggal yang dicatat."
       />
-      <Card className="max-w-4xl p-5">
+      <Card className="w-full p-5">
         <OperationalForm
           entity={c.entity}
           row={row || undefined}
@@ -121,6 +124,7 @@ export async function OperationDetail({
   if (!c) return <AccessDenied />;
   const row = await getRecord(c.entity, c.branch, id);
   if (!row) notFound();
+  const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
   const domain =
     entity === "sertifikat-klien"
@@ -200,6 +204,80 @@ export async function OperationDetail({
           </Button>
         )}
       </div>
+      {Array.isArray(row.monitoring_measurements) &&
+        row.monitoring_measurements.length > 1 && (
+          <Card className="mb-4 overflow-x-auto p-4">
+            <h2 className="mb-2 text-sm font-bold">
+              Rincian parameter kalibrasi dari Excel
+            </h2>
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr>
+                  {[
+                    "Parameter",
+                    "Range / Kapasitas",
+                    "Faktor Koreksi",
+                    "Internal",
+                    "Eksternal",
+                    "Signifikan — Ya",
+                    "Signifikan — Tidak",
+                  ].map((label) => (
+                    <th className="border-b p-2" key={label}>
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {row.monitoring_measurements.map((m, index) => (
+                  <tr key={index}>
+                    {[
+                      String(index + 1),
+                      ...monitoringColumns
+                        .filter(([key]) =>
+                          [
+                            "measurement_range",
+                            "correction_factor",
+                            "calibration_internal",
+                            "calibration_external",
+                            "significant_yes",
+                            "significant_no",
+                          ].includes(key),
+                        )
+                        .sort(
+                          (a, b) =>
+                            [
+                              "measurement_range",
+                              "correction_factor",
+                              "calibration_internal",
+                              "calibration_external",
+                              "significant_yes",
+                              "significant_no",
+                            ].indexOf(a[0]) -
+                            [
+                              "measurement_range",
+                              "correction_factor",
+                              "calibration_internal",
+                              "calibration_external",
+                              "significant_yes",
+                              "significant_no",
+                            ].indexOf(b[0]),
+                        )
+                        .map(([key]) => String((m as DataRow)[key] ?? "—")),
+                    ].map((v, col) => (
+                      <td
+                        className="border-b p-2 align-top whitespace-pre-wrap"
+                        key={col}
+                      >
+                        {v}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        )}
       {entity === "sertifikat-klien" && (
         <Card className="mb-5 grid gap-4 p-5 sm:grid-cols-3">
           {[
@@ -226,23 +304,31 @@ export async function OperationDetail({
             <div key={f.key}>
               <p className="text-[11px] text-muted-foreground">{f.label}</p>
               <p className="mt-1 break-words text-sm">
-                {f.kind === "money"
-                  ? formatRupiah(String(row[f.key] ?? ""))
-                  : f.kind === "date"
-                    ? formatBusinessDate(row[f.key] as string | null)
-                    : f.options?.find((o) => o.value === row[f.key])?.label ||
-                      String(
-                        (
-                          {
-                            client_id: row.client_name,
-                            employee_id: row.employee_name,
-                            certificate_type_id: row.certificate_type_name,
-                            equipment_id: row.equipment_name,
-                          } as Record<string, unknown>
-                        )[f.key] ||
-                          row[f.key] ||
-                          "—",
-                      )}
+                {f.kind === "lookup" ? (
+                  labels[f.key] || "—"
+                ) : f.kind === "money" ? (
+                  formatRupiah(String(row[f.key] ?? ""))
+                ) : f.kind === "date" ? (
+                  /(?:expiry|due|valid_until|end_date)/.test(f.key) ? (
+                    <DeadlineDate value={row[f.key]} />
+                  ) : (
+                    formatBusinessDate(row[f.key] as string | null)
+                  )
+                ) : (
+                  f.options?.find((o) => o.value === row[f.key])?.label ||
+                  String(
+                    (
+                      {
+                        client_id: row.client_name,
+                        employee_id: row.employee_name,
+                        certificate_type_id: row.certificate_type_name,
+                        equipment_id: row.equipment_name,
+                      } as Record<string, unknown>
+                    )[f.key] ||
+                      row[f.key] ||
+                      "—",
+                  )
+                )}
               </p>
             </div>
           ))}
@@ -259,7 +345,7 @@ export async function OperationDetail({
                 {String(label)}
               </p>
               <strong className="mt-1 block text-sm">
-                {formatBusinessDate(value as string | null)}
+                {<DeadlineDate value={value} />}
               </strong>
             </div>
           ))}
@@ -298,7 +384,7 @@ export async function OperationDetail({
               href={"/sertifikat-klien/" + h.id + "?branch=" + c.branch}
             >
               {String(h.certificate_number || "Generasi berikutnya")} ·{" "}
-              {formatBusinessDate(h.expiry_date as string)}
+              {<DeadlineDate value={h.expiry_date} />}
             </Link>
           ))}
         </Card>

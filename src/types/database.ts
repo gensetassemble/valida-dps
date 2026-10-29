@@ -103,22 +103,31 @@ export type Database = {
           calculated_due_date: string | null;
           calculation_base: string | null;
           calibration_date: string | null;
+          calibration_date_original: string | null;
+          calibration_external: string | null;
+          calibration_internal: string | null;
           certificate_number: string | null;
+          correction_factor: string | null;
           created_at: string;
           created_by: string | null;
           date_basis: string | null;
           date_source: string | null;
           due_date: string | null;
+          due_date_original: string | null;
           equipment_id: string;
           id: string;
+          interval_label: string | null;
           interval_months: number | null;
           is_active: boolean;
           issue_date: string | null;
           laboratory: string | null;
+          monitoring_measurements: Json | null;
           notes: string | null;
           reported_due_date: string | null;
           resolution_note: string | null;
           result: string | null;
+          significant_no: string | null;
+          significant_yes: string | null;
           source_import_row_id: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -132,22 +141,31 @@ export type Database = {
           calculated_due_date?: string | null;
           calculation_base?: string | null;
           calibration_date?: string | null;
+          calibration_date_original?: string | null;
+          calibration_external?: string | null;
+          calibration_internal?: string | null;
           certificate_number?: string | null;
+          correction_factor?: string | null;
           created_at?: string;
           created_by?: string | null;
           date_basis?: string | null;
           date_source?: string | null;
           due_date?: string | null;
+          due_date_original?: string | null;
           equipment_id: string;
           id?: string;
+          interval_label?: string | null;
           interval_months?: number | null;
           is_active?: boolean;
           issue_date?: string | null;
           laboratory?: string | null;
+          monitoring_measurements?: Json | null;
           notes?: string | null;
           reported_due_date?: string | null;
           resolution_note?: string | null;
           result?: string | null;
+          significant_no?: string | null;
+          significant_yes?: string | null;
           source_import_row_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -161,22 +179,31 @@ export type Database = {
           calculated_due_date?: string | null;
           calculation_base?: string | null;
           calibration_date?: string | null;
+          calibration_date_original?: string | null;
+          calibration_external?: string | null;
+          calibration_internal?: string | null;
           certificate_number?: string | null;
+          correction_factor?: string | null;
           created_at?: string;
           created_by?: string | null;
           date_basis?: string | null;
           date_source?: string | null;
           due_date?: string | null;
+          due_date_original?: string | null;
           equipment_id?: string;
           id?: string;
+          interval_label?: string | null;
           interval_months?: number | null;
           is_active?: boolean;
           issue_date?: string | null;
           laboratory?: string | null;
+          monitoring_measurements?: Json | null;
           notes?: string | null;
           reported_due_date?: string | null;
           resolution_note?: string | null;
           result?: string | null;
+          significant_no?: string | null;
+          significant_yes?: string | null;
           source_import_row_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -198,6 +225,13 @@ export type Database = {
             columns: ["equipment_id", "branch_code"];
             isOneToOne: false;
             referencedRelation: "equipment";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "calibrations_equipment_id_branch_code_fkey";
+            columns: ["equipment_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "equipment_monitoring_records";
             referencedColumns: ["id", "branch_code"];
           },
           {
@@ -487,6 +521,13 @@ export type Database = {
             foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
             columns: ["portfolio_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
           },
@@ -509,6 +550,13 @@ export type Database = {
             columns: ["previous_certificate_id"];
             isOneToOne: false;
             referencedRelation: "client_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
             referencedColumns: ["id"];
           },
           {
@@ -635,6 +683,7 @@ export type Database = {
           industry_sector: string | null;
           is_active: boolean;
           is_example: boolean;
+          marketing_contact_id: string | null;
           name: string;
           portfolio_id: string | null;
           site_location: string | null;
@@ -658,6 +707,7 @@ export type Database = {
           industry_sector?: string | null;
           is_active?: boolean;
           is_example?: boolean;
+          marketing_contact_id?: string | null;
           name: string;
           portfolio_id?: string | null;
           site_location?: string | null;
@@ -681,6 +731,7 @@ export type Database = {
           industry_sector?: string | null;
           is_active?: boolean;
           is_example?: boolean;
+          marketing_contact_id?: string | null;
           name?: string;
           portfolio_id?: string | null;
           site_location?: string | null;
@@ -706,6 +757,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "branches";
             referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "clients_marketing_contact_branch_fk";
+            columns: ["marketing_contact_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "marketing_contacts";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "clients_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
           },
           {
             foreignKeyName: "clients_portfolio_id_branch_code_fkey";
@@ -889,6 +954,13 @@ export type Database = {
             foreignKeyName: "employee_portfolio_assignments_portfolio_id_branch_code_fkey";
             columns: ["portfolio_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "employee_portfolio_assignments_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
           },
@@ -900,10 +972,13 @@ export type Database = {
           branch_code: string;
           brand: string | null;
           client_id: string | null;
+          color: string | null;
           created_at: string;
           created_by: string | null;
           id: string;
           is_active: boolean;
+          item_condition: string | null;
+          item_status: string | null;
           location: string | null;
           measurement_range: string | null;
           model: string | null;
@@ -913,6 +988,7 @@ export type Database = {
           portfolio_id: string | null;
           responsible_employee_id: string | null;
           serial: string | null;
+          specification_size: string | null;
           tag: string | null;
           unit: string | null;
           updated_at: string;
@@ -926,19 +1002,23 @@ export type Database = {
           branch_code?: string;
           brand?: string | null;
           client_id?: string | null;
+          color?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
           is_active?: boolean;
+          item_condition?: string | null;
+          item_status?: string | null;
           location?: string | null;
           measurement_range?: string | null;
           model?: string | null;
           name: string;
           notes?: string | null;
-          ownership: string;
+          ownership?: string;
           portfolio_id?: string | null;
           responsible_employee_id?: string | null;
           serial?: string | null;
+          specification_size?: string | null;
           tag?: string | null;
           unit?: string | null;
           updated_at?: string;
@@ -952,10 +1032,13 @@ export type Database = {
           branch_code?: string;
           brand?: string | null;
           client_id?: string | null;
+          color?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
           is_active?: boolean;
+          item_condition?: string | null;
+          item_status?: string | null;
           location?: string | null;
           measurement_range?: string | null;
           model?: string | null;
@@ -965,6 +1048,7 @@ export type Database = {
           portfolio_id?: string | null;
           responsible_employee_id?: string | null;
           serial?: string | null;
+          specification_size?: string | null;
           tag?: string | null;
           unit?: string | null;
           updated_at?: string;
@@ -986,6 +1070,13 @@ export type Database = {
             columns: ["client_id", "branch_code"];
             isOneToOne: false;
             referencedRelation: "clients";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
             referencedColumns: ["id", "branch_code"];
           },
           {
@@ -1123,6 +1214,38 @@ export type Database = {
           },
           {
             foreignKeyName: "import_rows_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
+      marketing_contacts: {
+        Row: {
+          branch_code: string;
+          created_at: string;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+        };
+        Insert: {
+          branch_code: string;
+          created_at?: string;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+        };
+        Update: {
+          branch_code?: string;
+          created_at?: string;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "marketing_contacts_branch_code_fkey";
             columns: ["branch_code"];
             isOneToOne: false;
             referencedRelation: "branches";
@@ -1480,6 +1603,13 @@ export type Database = {
             foreignKeyName: "portfolio_aliases_portfolio_id_branch_code_fkey";
             columns: ["portfolio_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "portfolio_aliases_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
           },
@@ -1500,6 +1630,7 @@ export type Database = {
           created_by: string | null;
           id: string;
           is_active: boolean;
+          marketing_contact_id: string | null;
           name: string;
           updated_at: string;
           updated_by: string | null;
@@ -1511,6 +1642,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           is_active?: boolean;
+          marketing_contact_id?: string | null;
           name: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -1522,6 +1654,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           is_active?: boolean;
+          marketing_contact_id?: string | null;
           name?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -1533,6 +1666,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "branches";
             referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "portfolios_marketing_contact_branch_fk";
+            columns: ["marketing_contact_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "marketing_contacts";
+            referencedColumns: ["id", "branch_code"];
           },
         ];
       };
@@ -1612,6 +1752,117 @@ export type Database = {
           },
         ];
       };
+      renewal_communications: {
+        Row: {
+          branch_code: string;
+          certificate_id: string;
+          channel: string;
+          client_id: string;
+          created_at: string;
+          created_by: string;
+          details: Json;
+          document_id: string | null;
+          id: string;
+          kind: string;
+          note: string;
+          pic_name: string;
+          recipient_email: string | null;
+          stage: string;
+          subject: string | null;
+        };
+        Insert: {
+          branch_code: string;
+          certificate_id: string;
+          channel: string;
+          client_id: string;
+          created_at?: string;
+          created_by?: string;
+          details?: Json;
+          document_id?: string | null;
+          id?: string;
+          kind: string;
+          note: string;
+          pic_name: string;
+          recipient_email?: string | null;
+          stage: string;
+          subject?: string | null;
+        };
+        Update: {
+          branch_code?: string;
+          certificate_id?: string;
+          channel?: string;
+          client_id?: string;
+          created_at?: string;
+          created_by?: string;
+          details?: Json;
+          document_id?: string | null;
+          id?: string;
+          kind?: string;
+          note?: string;
+          pic_name?: string;
+          recipient_email?: string | null;
+          stage?: string;
+          subject?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "renewal_communications_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "renewal_communications_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "client_certificate_display_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_communications_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "client_certificate_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_communications_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "client_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_communications_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_communications_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_communications_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_communications_document_id_fkey";
+            columns: ["document_id"];
+            isOneToOne: false;
+            referencedRelation: "operational_documents";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       renewal_events: {
         Row: {
           branch_code: string;
@@ -1660,6 +1911,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "operational_documents";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_events_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
+            referencedColumns: ["opportunity_id"];
           },
           {
             foreignKeyName: "renewal_events_opportunity_id_fkey";
@@ -1729,6 +1987,13 @@ export type Database = {
             columns: ["certificate_id"];
             isOneToOne: true;
             referencedRelation: "client_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "renewal_opportunities_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: true;
+            referencedRelation: "renewal_board_display_records";
             referencedColumns: ["id"];
           },
           {
@@ -2022,6 +2287,85 @@ export type Database = {
       };
     };
     Views: {
+      calibration_monitoring_records: {
+        Row: {
+          branch_code: string | null;
+          calculated_due_date: string | null;
+          calculation_base: string | null;
+          calibration_date: string | null;
+          calibration_date_original: string | null;
+          calibration_external: string | null;
+          calibration_internal: string | null;
+          certificate_number: string | null;
+          correction_factor: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          date_basis: string | null;
+          date_source: string | null;
+          days_remaining: number | null;
+          due_date: string | null;
+          due_date_original: string | null;
+          equipment_id: string | null;
+          equipment_name: string | null;
+          id: string | null;
+          interval_label: string | null;
+          interval_months: number | null;
+          is_active: boolean | null;
+          issue_date: string | null;
+          laboratory: string | null;
+          monitoring_measurements: Json | null;
+          notes: string | null;
+          reported_due_date: string | null;
+          resolution_note: string | null;
+          result: string | null;
+          significant_no: string | null;
+          significant_yes: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          validity_status: string | null;
+          verification_note: string | null;
+          verification_status: string | null;
+          verified_at: string | null;
+          verified_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calibrations_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "calibrations_equipment_id_branch_code_fkey";
+            columns: ["equipment_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "equipment";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "calibrations_equipment_id_branch_code_fkey";
+            columns: ["equipment_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "equipment_monitoring_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "calibrations_equipment_id_branch_code_fkey";
+            columns: ["equipment_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "equipment_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "calibrations_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       calibration_records: {
         Row: {
           branch_code: string | null;
@@ -2073,6 +2417,13 @@ export type Database = {
             foreignKeyName: "calibrations_equipment_id_branch_code_fkey";
             columns: ["equipment_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "equipment_monitoring_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "calibrations_equipment_id_branch_code_fkey";
+            columns: ["equipment_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "equipment_records";
             referencedColumns: ["id", "branch_code"];
           },
@@ -2110,6 +2461,7 @@ export type Database = {
           is_active: boolean | null;
           is_example: boolean | null;
           issue_date: string | null;
+          marketing_contact_id: string | null;
           notes: string | null;
           object_serial: string | null;
           object_type: string | null;
@@ -2163,6 +2515,13 @@ export type Database = {
             foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
             columns: ["portfolio_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
           },
@@ -2185,6 +2544,13 @@ export type Database = {
             columns: ["previous_certificate_id"];
             isOneToOne: false;
             referencedRelation: "client_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
             referencedColumns: ["id"];
           },
           {
@@ -2285,6 +2651,13 @@ export type Database = {
             foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
             columns: ["portfolio_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
           },
@@ -2313,6 +2686,13 @@ export type Database = {
             foreignKeyName: "client_certificates_previous_certificate_id_fkey";
             columns: ["previous_certificate_id"];
             isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
             referencedRelation: "renewal_board_records";
             referencedColumns: ["id"];
           },
@@ -2326,6 +2706,101 @@ export type Database = {
           {
             foreignKeyName: "clients_account_manager_id_fkey";
             columns: ["account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      equipment_monitoring_records: {
+        Row: {
+          asset_id: string | null;
+          branch_code: string | null;
+          brand: string | null;
+          brand_type: string | null;
+          calibration_date_original: string | null;
+          calibration_external: string | null;
+          calibration_internal: string | null;
+          client_id: string | null;
+          color: string | null;
+          correction_factor: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          due_date_original: string | null;
+          eligibility_status: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          item_condition: string | null;
+          item_status: string | null;
+          latest_calibration_date: string | null;
+          latest_calibration_id: string | null;
+          latest_due_date: string | null;
+          location: string | null;
+          measurement_range: string | null;
+          model: string | null;
+          monitoring_certificate: string | null;
+          monitoring_interval: string | null;
+          monitoring_laboratory: string | null;
+          monitoring_measurements: Json | null;
+          name: string | null;
+          notes: string | null;
+          ownership: string | null;
+          portfolio_code: string | null;
+          portfolio_id: string | null;
+          portfolio_name: string | null;
+          responsible_employee_id: string | null;
+          serial: string | null;
+          significant_no: string | null;
+          significant_yes: string | null;
+          specification_size: string | null;
+          tag: string | null;
+          unit: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          validity_status: string | null;
+          verification_status: string | null;
+          verified_at: string | null;
+          verified_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "equipment_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "equipment_client_id_branch_code_fkey";
+            columns: ["client_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolios";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_responsible_employee_id_branch_code_fkey";
+            columns: ["responsible_employee_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "employee_directory";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_verified_by_fkey";
+            columns: ["verified_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
@@ -2376,6 +2851,13 @@ export type Database = {
             columns: ["client_id", "branch_code"];
             isOneToOne: false;
             referencedRelation: "clients";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "equipment_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
             referencedColumns: ["id", "branch_code"];
           },
           {
@@ -2548,6 +3030,178 @@ export type Database = {
           },
         ];
       };
+      portfolio_pic_records: {
+        Row: {
+          branch_code: string | null;
+          code: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          marketing_contact_id: string | null;
+          marketing_pic_name: string | null;
+          name: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "portfolios_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "portfolios_marketing_contact_branch_fk";
+            columns: ["marketing_contact_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "marketing_contacts";
+            referencedColumns: ["id", "branch_code"];
+          },
+        ];
+      };
+      renewal_board_display_records: {
+        Row: {
+          account_manager_id: string | null;
+          account_manager_name: string | null;
+          branch_code: string | null;
+          capacity: string | null;
+          certificate_number: string | null;
+          certificate_type_id: string | null;
+          certificate_type_name: string | null;
+          client_id: string | null;
+          client_name: string | null;
+          contract_reference: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          days_remaining: number | null;
+          example_am_label: string | null;
+          expiry_date: string | null;
+          id: string | null;
+          inspection_date: string | null;
+          inspector_employee_id: string | null;
+          installation_location: string | null;
+          interval_months: number | null;
+          is_active: boolean | null;
+          is_example: boolean | null;
+          issue_date: string | null;
+          marketing_contact_id: string | null;
+          notes: string | null;
+          object_serial: string | null;
+          object_type: string | null;
+          opportunity_id: string | null;
+          order_reference: string | null;
+          portfolio_id: string | null;
+          previous_certificate_id: string | null;
+          previous_order_value: number | null;
+          previous_order_value_text: string | null;
+          renewal_status: string | null;
+          scope_portfolio_id: string | null;
+          stage: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          validity_status: string | null;
+          verification_note: string | null;
+          verification_status: string | null;
+          verified_at: string | null;
+          verified_by: string | null;
+          work_area_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_certificates_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "client_certificates_certificate_type_id_branch_code_fkey";
+            columns: ["certificate_type_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "certificate_types";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_client_id_branch_code_fkey";
+            columns: ["client_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_inspector_employee_id_branch_code_fkey";
+            columns: ["inspector_employee_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "employee_directory";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
+            referencedRelation: "portfolios";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "client_certificate_display_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "client_certificate_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "client_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "renewal_board_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey";
+            columns: ["account_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       renewal_board_records: {
         Row: {
           account_manager_id: string | null;
@@ -2626,6 +3280,13 @@ export type Database = {
             foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
             columns: ["portfolio_id", "branch_code"];
             isOneToOne: false;
+            referencedRelation: "portfolio_pic_records";
+            referencedColumns: ["id", "branch_code"];
+          },
+          {
+            foreignKeyName: "client_certificates_portfolio_id_branch_code_fkey";
+            columns: ["portfolio_id", "branch_code"];
+            isOneToOne: false;
             referencedRelation: "portfolios";
             referencedColumns: ["id", "branch_code"];
           },
@@ -2654,6 +3315,13 @@ export type Database = {
             foreignKeyName: "client_certificates_previous_certificate_id_fkey";
             columns: ["previous_certificate_id"];
             isOneToOne: false;
+            referencedRelation: "renewal_board_display_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_certificates_previous_certificate_id_fkey";
+            columns: ["previous_certificate_id"];
+            isOneToOne: false;
             referencedRelation: "renewal_board_records";
             referencedColumns: ["id"];
           },
@@ -2676,12 +3344,39 @@ export type Database = {
     };
     Functions: {
       commit_import: { Args: { batch: string }; Returns: number };
+      create_equipment_with_calibration: {
+        Args: { asset: Json; b: string; calibration?: Json };
+        Returns: string;
+      };
       operational_summary: {
         Args: { b: string; filters?: Json };
         Returns: Json;
       };
+      pipeline_search_totals: {
+        Args: { b: string; include_examples?: boolean; search_text?: string };
+        Returns: Json;
+      };
       pipeline_totals: {
         Args: { b: string; include_examples?: boolean };
+        Returns: Json;
+      };
+      record_renewal_followup: {
+        Args: {
+          cert: string;
+          details: Json;
+          doc?: string;
+          note: string;
+          target: string;
+        };
+        Returns: string;
+      };
+      renewal_board_page: {
+        Args: {
+          b: string;
+          include_examples?: boolean;
+          search_text?: string;
+          stage_limits?: Json;
+        };
         Returns: Json;
       };
       review_import: {

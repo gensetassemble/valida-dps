@@ -7,6 +7,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import {
   entityContext,
   getRecord,
+  referenceLabels,
   listRecords,
   type QueryParams,
 } from "./server";
@@ -23,12 +24,12 @@ export async function MasterTable({
   const data = await listRecords(
     context.entity,
     context.branch,
-    params,
+    { ...params, page: "1" },
     parent,
   );
   return (
     <DataTable
-      key={`${key}:${context.branch}:${JSON.stringify(params)}:${parent?.id || ""}`}
+      key={`${key}:${context.branch}:${parent?.id || ""}`}
       entity={context.entity}
       branch={context.branch}
       data={data}
@@ -99,6 +100,7 @@ export async function DetailPage({
   const { entity, branch } = await entityContext(key, params.branch);
   const record = await getRecord(entity, branch, id);
   if (!record) notFound();
+  const labels = await referenceLabels(entity, branch, record);
   return (
     <>
       <Link
@@ -120,11 +122,17 @@ export async function DetailPage({
                 column}
             </p>
             <p className="mt-1 break-words text-sm font-semibold">
-              {typeof record[column] === "boolean"
-                ? record[column]
-                  ? "Aktif"
-                  : "Nonaktif"
-                : String(record[column] ?? "—")}
+              {column === "npp" && !record[column]
+                ? "Non-NPP"
+                : labels[column] ||
+                  entity.fields
+                    .find((f) => f.key === column)
+                    ?.options?.find((o) => o.value === record[column])?.label ||
+                  (typeof record[column] === "boolean"
+                    ? record[column]
+                      ? "Aktif"
+                      : "Nonaktif"
+                    : String(record[column] ?? "—"))}
             </p>
           </div>
         ))}

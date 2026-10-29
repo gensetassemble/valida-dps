@@ -19,7 +19,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Menu,
-  LogOut,
   X,
   ChevronRight,
 } from "lucide-react";
@@ -30,7 +29,7 @@ import {
   type Role,
   type Scope,
 } from "@/lib/auth/permissions";
-import { logout } from "@/app/(auth)/actions";
+import { LogoutButton } from "@/components/shared/logout-button";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -416,17 +415,7 @@ export function AppShell({
                 {initials}
               </span>
             </Link>
-            <form action={logout}>
-              <Button
-                type="submit"
-                size="icon"
-                variant="ghost"
-                aria-label="Keluar"
-                title="Keluar"
-              >
-                <LogOut />
-              </Button>
-            </form>
+            <LogoutButton />
           </div>
         </header>
         <main

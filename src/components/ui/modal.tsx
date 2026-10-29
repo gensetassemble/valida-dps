@@ -9,12 +9,14 @@ export function Modal({
   title,
   description,
   children,
+  size = "default",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
   children: ReactNode;
+  size?: "default" | "large";
 }) {
   const previousFocus = useRef<HTMLElement | null>(null);
   return (
@@ -34,7 +36,10 @@ export function Modal({
               previousFocus.current.focus();
             }
           }}
-          className="fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-white p-5 shadow-xl"
+          className={
+            "fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-white p-5 shadow-xl " +
+            (size === "large" ? "max-w-[1400px] sm:w-[92vw]" : "max-w-2xl")
+          }
         >
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>

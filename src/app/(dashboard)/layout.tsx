@@ -2,8 +2,10 @@ import { AppShell } from "@/components/app-shell/app-shell";
 import { requireActiveUser } from "@/lib/auth/guards";
 export default async function DashboardLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
 }) {
   const { user, profile, scopes, branches } = await requireActiveUser();
   return (
@@ -17,6 +19,7 @@ export default async function DashboardLayout({
       }}
     >
       {children}
+      {modal}
     </AppShell>
   );
 }

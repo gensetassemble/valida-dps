@@ -1,4 +1,6 @@
+import { ScrollMore } from "@/components/ui/scroll-more";
 import { AccessDenied } from "@/components/ui/access-denied";
+import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -82,7 +84,7 @@ export default async function Page({
     q
       .order("source_row")
       .order("id")
-      .range((page - 1) * 20, page * 20 - 1),
+      .range(0, page * 20 - 1),
     Promise.all(
       ["pending", "approved", "rejected", "committed"].map(async (decision) => {
         const { count } = await c.db
@@ -174,7 +176,7 @@ export default async function Page({
           <Button disabled={!stat.approved}>Impor Baris yang Disetujui</Button>
         </ReviewForm>
       </Card>
-      <form className="mb-5 flex flex-wrap gap-3">
+      <AutoFilterForm className="mb-5 flex flex-wrap gap-3">
         <input type="hidden" name="branch" value={c.branch} />
         <label className="text-xs">
           Keputusan
@@ -211,10 +213,7 @@ export default async function Page({
             ))}
           </select>
         </label>
-        <Button variant="outline" size="sm">
-          Filter review
-        </Button>
-      </form>
+      </AutoFilterForm>
       <div className="space-y-4">
         {rows?.map((row) => {
           const n = row.normalized_values as Record<string, string>;
@@ -332,23 +331,14 @@ export default async function Page({
       {!rows?.length && (
         <Card className="p-5">Tidak ada baris sesuai filter.</Card>
       )}
-      <div className="mt-5 flex items-center justify-between text-xs">
-        <span>
-          {count || 0} baris sesuai filter · halaman {page}
-        </span>
-        <div className="flex gap-4">
-          {page > 1 && (
-            <Link className="underline" href={pageHref(page - 1)}>
-              Sebelumnya
-            </Link>
-          )}
-          {page * 20 < (count || 0) && (
-            <Link className="underline" href={pageHref(page + 1)}>
-              Berikutnya
-            </Link>
-          )}
-        </div>
-      </div>
+      <p className="mt-4 text-xs">
+        {rows?.length || 0} dari {count || 0} baris sesuai filter
+      </p>
+      <ScrollMore
+        href={pageHref(page + 1)}
+        shown={rows?.length || 0}
+        total={count || 0}
+      />
     </>
   );
 }

@@ -15,7 +15,7 @@ import { parseSource, checkZip } from "@/features/imports/parser";
 import { boundedForm } from "@/lib/http/bounded-form";
 describe("WITA validity and lifetime", () => {
   it.each([
-    [-1, "Kedaluwarsa"],
+    [-1, "Expired"],
     [0, "Kritis"],
     [30, "Kritis"],
     [31, "Perhatian"],

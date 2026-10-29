@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
@@ -14,6 +15,11 @@ import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
 import { formatBusinessDate } from "@/lib/format";
+import { IntervalInput } from "./interval-input";
+import {
+  initialCalibrationFields,
+  measurementKeys,
+} from "@/features/operations/monitoring";
 type Option = { value: string; label: string };
 function Lookup({
   entity,
@@ -161,7 +167,25 @@ export function RecordForm({
   onSaved: () => void;
 }) {
   const editing = !!row;
-  const formFields = entity.fields.map((field) =>
+  const multipleParameters =
+    entity.key === "riwayat-kalibrasi" &&
+    Array.isArray(row?.monitoring_measurements) &&
+    row.monitoring_measurements.length > 1;
+  const initialEquipment = entity.key === "kalibrasi-alat" && !editing;
+  const equipmentIdentity = entity.fields.filter((f) =>
+    ["name", "portfolio_id"].includes(f.key),
+  );
+  const formFields = (
+    initialEquipment
+      ? [
+          ...equipmentIdentity,
+          ...initialCalibrationFields,
+          ...entity.fields.filter(
+            (f) => !["name", "portfolio_id"].includes(f.key),
+          ),
+        ]
+      : entity.fields
+  ).map((field) =>
     entity.key === "penugasan" && !isAdmin && field.key === "assignment_type"
       ? {
           ...field,
@@ -169,7 +193,10 @@ export function RecordForm({
             (option) => option.value === "personnel",
           ),
         }
-      : field,
+      : multipleParameters &&
+          (measurementKeys as readonly string[]).includes(field.key)
+        ? { ...field, label: field.label + " (parameter 1)" }
+        : field,
   );
   const editableFields = formFields.filter(
     (field) => !editing || (field.key !== entity.idKey && !field.immutable),
@@ -189,23 +216,40 @@ export function RecordForm({
     control,
     handleSubmit,
     setError,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<Record<string, unknown>>({
     defaultValues: defaults,
     resolver: zodResolver(recordSchema(entity, editing)),
   });
   const [error, setFailure] = useState<string>();
-  const [calibrationDate, issueDate, months, calculationBase] = useWatch({
+  const initialEnabled = useWatch({ control, name: "initial_enabled" });
+  const calibrationDate = useWatch({
     control,
-    name: [
-      "calibration_date",
-      "issue_date",
-      "interval_months",
-      "calculation_base",
-    ],
+    name: initialEquipment ? "initial_calibration_date" : "calibration_date",
   });
+  const issueDate = useWatch({ control, name: "issue_date" });
+  const months = useWatch({
+    control,
+    name: initialEquipment ? "initial_interval_months" : "interval_months",
+  });
+  const calculationBase = useWatch({ control, name: "calculation_base" });
+  const validityKind = useWatch({ control, name: "validity_kind" });
   const baseDate =
-    calculationBase === "issue_date" ? issueDate : calibrationDate;
+    ["sertifikat-klien", "kompetensi-personil"].includes(entity.key) ||
+    calculationBase === "issue_date"
+      ? issueDate
+      : calibrationDate;
+  const endField = initialEquipment
+    ? "initial_due_date"
+    : entity.key === "riwayat-kalibrasi"
+      ? "due_date"
+      : ["sertifikat-klien", "kompetensi-personil"].includes(entity.key)
+        ? "expiry_date"
+        : null;
+  const lifetime =
+    entity.key === "kompetensi-personil" && validityKind === "lifetime";
   const calculated =
     typeof baseDate === "string" &&
     validDate(baseDate) &&
@@ -214,6 +258,40 @@ export function RecordForm({
     Number(months) <= 600
       ? addMonths(baseDate, Number(months))
       : null;
+  const [automaticEnd, setAutomaticEnd] = useState(() => {
+    if (!editing || !endField || !row?.[endField]) return true;
+    const base = String(
+      row[
+        ["sertifikat-klien", "kompetensi-personil"].includes(entity.key) ||
+        row.calculation_base === "issue_date"
+          ? "issue_date"
+          : "calibration_date"
+      ] || "",
+    );
+    return (
+      validDate(base) &&
+      Number(row.interval_months) > 0 &&
+      Number(row.interval_months) <= 600 &&
+      addMonths(base, Number(row.interval_months)) === row[endField]
+    );
+  });
+  useEffect(() => {
+    if (lifetime) {
+      if (getValues("expiry_date")) setValue("expiry_date", "");
+      if (getValues("interval_months")) setValue("interval_months", "");
+      return;
+    }
+    if (
+      automaticEnd &&
+      endField &&
+      calculated &&
+      getValues(endField) !== calculated
+    )
+      setValue(endField, calculated, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+  }, [automaticEnd, endField, calculated, lifetime, getValues, setValue]);
   const [confirm, setConfirm] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -265,8 +343,42 @@ export function RecordForm({
           Perubahan dicatat pada audit. Identitas dan relasi induk tidak
           dipindahkan melalui formulir ubah.
         </div>
+        {multipleParameters && (
+          <p className="rounded-lg bg-slate-50 p-3 text-xs">
+            Peristiwa ini memiliki beberapa parameter. Bidang bertanda parameter
+            1 mengubah parameter pertama; parameter lainnya tetap tersimpan dan
+            dapat dilihat pada detail peristiwa.
+          </p>
+        )}
+        {endField && !lifetime && (!initialEquipment || !!initialEnabled) && (
+          <label className="block max-w-sm space-y-1 text-xs font-semibold">
+            Tanggal berakhir otomatis
+            <select
+              value={automaticEnd ? "true" : "false"}
+              onChange={(e) => setAutomaticEnd(e.target.value === "true")}
+              className="h-10 w-full rounded-lg border border-input bg-white px-3"
+            >
+              <option value="true">Ya — tanggal awal + interval</option>
+              <option value="false">
+                Tidak — gunakan tanggal pada dokumen
+              </option>
+            </select>
+          </label>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           {formFields.map((field) => {
+            if (
+              lifetime &&
+              ["interval_months", "expiry_date"].includes(field.key)
+            )
+              return null;
+            if (
+              initialEquipment &&
+              field.key.startsWith("initial_") &&
+              field.key !== "initial_enabled" &&
+              !initialEnabled
+            )
+              return null;
             const immutable =
               editing && (field.key === entity.idKey || field.immutable);
             const locked =
@@ -318,18 +430,21 @@ export function RecordForm({
                     control={control}
                     name={field.key}
                     render={({ field: input }) => (
-                      <div className="flex h-10 items-center gap-2 rounded-lg border border-input px-3 text-xs">
-                        <input
-                          {...common}
-                          type="checkbox"
-                          checked={!!input.value}
-                          onChange={(event) =>
-                            input.onChange(event.target.checked)
-                          }
-                          className="size-4 accent-[#16845a]"
-                        />
-                        <span aria-hidden>Ya</span>
-                      </div>
+                      <select
+                        {...common}
+                        value={input.value ? "true" : "false"}
+                        onChange={(event) =>
+                          input.onChange(event.target.value === "true")
+                        }
+                        className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+                      >
+                        <option value="true">
+                          {field.key === "is_active" ? "Aktif" : "Ya"}
+                        </option>
+                        <option value="false">
+                          {field.key === "is_active" ? "Nonaktif" : "Tidak"}
+                        </option>
+                      </select>
                     )}
                   />
                 ) : field.kind === "lookup" ? (
@@ -347,6 +462,37 @@ export function RecordForm({
                       />
                     )}
                   />
+                ) : field.kind === "integer" &&
+                  /interval|validity_months/.test(field.key) ? (
+                  <Controller
+                    control={control}
+                    name={field.key}
+                    render={({ field: input }) => (
+                      <IntervalInput
+                        id={field.key}
+                        value={input.value}
+                        onChange={input.onChange}
+                        invalid={!!message}
+                        describedBy={common["aria-describedby"]}
+                      />
+                    )}
+                  />
+                ) : field.kind === "combobox" ? (
+                  <>
+                    <Input
+                      {...common}
+                      {...register(field.key)}
+                      list={field.key + "-choices"}
+                      maxLength={field.max || 200}
+                    />
+                    <datalist id={field.key + "-choices"}>
+                      {field.options?.map((option) => (
+                        <option value={option.value} key={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </datalist>
+                  </>
                 ) : field.kind === "select" ? (
                   <select
                     {...common}
@@ -382,22 +528,46 @@ export function RecordForm({
                     }
                     {...register(field.key)}
                     maxLength={field.max || 254}
+                    onInput={
+                      field.kind === "date"
+                        ? (event) =>
+                            setValue(field.key, event.currentTarget.value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            })
+                        : undefined
+                    }
+                    readOnly={field.key === endField && automaticEnd}
                   />
                 )}
               </FormField>
             );
           })}
         </div>
-        {entity.key === "riwayat-kalibrasi" && (
+        {entity.key === "kalibrasi-alat" && editing && (
+          <Link
+            className="block text-xs font-semibold underline"
+            href={"/kalibrasi-alat/" + String(row?.id) + "?branch=" + branch}
+          >
+            Kelola tanggal dan riwayat kalibrasi alat →
+          </Link>
+        )}
+        {endField && !lifetime && (!initialEquipment || !!initialEnabled) && (
           <p className="rounded-lg border border-border bg-slate-50 p-3 text-xs">
             Tanggal hasil perhitungan kalender:{" "}
+            <span className="block text-[11px] text-muted-foreground">
+              {typeof baseDate === "string" && validDate(baseDate)
+                ? formatBusinessDate(baseDate)
+                : "Tanggal awal belum diisi"}{" "}
+              + {String(months || "—")} bulan
+            </span>
             <strong>
               {calculated
                 ? formatBusinessDate(calculated)
                 : "Pilih tanggal dasar dan interval positif."}
             </strong>
-            . Tanggal ini digunakan bila tanggal akhir dikosongkan. Perbedaan
-            dengan dokumen harus dijelaskan sebelum verifikasi.
+            . Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin
+            tanggal dokumen bila tersedia.
           </p>
         )}
         {error && (

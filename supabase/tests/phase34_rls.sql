@@ -5,6 +5,16 @@ set local search_path=public,extensions;
 select plan(1);
 create function pg_temp.assert_true(v boolean,label text) returns void language plpgsql as $$
 begin if v is distinct from true then raise exception 'FAIL: %',label; end if; end $$;
+
+create function pg_temp.followup(cert uuid,target text,note text,doc uuid default null) returns uuid language plpgsql as $$
+declare details jsonb;pic public.client_contacts;
+begin
+ select x.* into pic from public.client_contacts x join public.client_certificates c on c.client_id=x.client_id where c.id=cert limit 1;
+ details:=jsonb_build_object('pic_name',coalesce(pic.name,'[CONTOH] PIC'),'channel','phone','confirmed',true,'document_number','[CONTOH] Document','document_date',(now() at time zone 'Asia/Makassar')::date,'follow_up_date',(now() at time zone 'Asia/Makassar')::date+7,'reason','[CONTOH] Explicit closure reason');
+ if pic.id is not null then details:=details||jsonb_build_object('contact_id',pic.id);end if;
+ return public.record_renewal_followup(cert,target,note,details,doc);
+end $$;
+
 insert into public.branches(code,name) values('TEST','[CONTOH] Cabang Uji');
 insert into public.work_areas(id,name,branch_code) values('80000000-0000-4000-8000-000000000001','[CONTOH] Wilayah Cabang Lain','TEST');
 insert into public.portfolios(id,code,name,branch_code) values
@@ -117,19 +127,19 @@ end $$;
 
 -- Gate-protected commercial flow; a card cannot jump straight to PO.
 do $$ begin
- begin perform public.transition_renewal('60000000-0000-4000-8000-000000000001','po_received','[CONTOH] Bypass test',null);raise exception 'FAIL: kanban jump';exception when raise_exception then if sqlerrm not like 'Transisi ditolak%' then raise;end if;end;
- begin perform public.transition_renewal('60000000-0000-4000-8000-000000000001','contacted','[CONTOH] Contact test',null);raise exception 'FAIL: unverified PIC';exception when raise_exception then if sqlerrm not like 'PIC utama%' then raise;end if;end;
+ begin perform pg_temp.followup('60000000-0000-4000-8000-000000000001','po_received','[CONTOH] Bypass test',null);raise exception 'FAIL: kanban jump';exception when raise_exception then if sqlerrm not like 'Transisi ditolak%' then raise;end if;end;
+ begin perform pg_temp.followup('60000000-0000-4000-8000-000000000001','contacted','[CONTOH] Contact test',null);raise exception 'FAIL: unverified PIC';exception when raise_exception then if sqlerrm not like 'Select verified%' then raise;end if;end;
 end $$;
 update public.client_contacts set is_primary=true,verification_status='verified' where client_id='50000000-0000-4000-8000-000000000001';
-select public.transition_renewal('60000000-0000-4000-8000-000000000001','contacted','[CONTOH] Kontak telah dicatat oleh penguji.',null);
+select pg_temp.followup('60000000-0000-4000-8000-000000000001','contacted','[CONTOH] Kontak telah dicatat oleh penguji.',null);
 do $$ begin
- begin perform public.transition_renewal('60000000-0000-4000-8000-000000000001','offered','[CONTOH] Tidak ada PDF',null);raise exception 'FAIL: no quotation PDF';exception when raise_exception then if sqlerrm not like 'PDF penawaran%' then raise;end if;end;
+ begin perform pg_temp.followup('60000000-0000-4000-8000-000000000001','offered','[CONTOH] Tidak ada PDF',null);raise exception 'FAIL: no quotation PDF';exception when raise_exception then if sqlerrm not like 'PDF penawaran%' then raise;end if;end;
  begin update public.client_certificates set previous_certificate_id=id where id='60000000-0000-4000-8000-000000000001';raise exception 'FAIL: self history';exception when check_violation then null;end;
 end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000009',true);
 do $$ begin begin insert into public.personnel_correction_requests(certificate_id,branch_code,message) select id,'DPS','[CONTOH] Head may not mutate.' from public.personnel_certificates where employee_id='30000000-0000-4000-8000-000000000008' limit 1;raise exception 'FAIL: head correction write';exception when insufficient_privilege then null;end;end $$;
 do $$ begin
- begin perform public.transition_renewal('60000000-0000-4000-8000-000000000001','deferred','[CONTOH] Head writes',null);raise exception 'FAIL: head kanban mutation';exception when insufficient_privilege then null;end;
+ begin perform pg_temp.followup('60000000-0000-4000-8000-000000000001','deferred','[CONTOH] Head writes',null);raise exception 'FAIL: head kanban mutation';exception when insufficient_privilege then null;end;
 end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
 select pg_temp.assert_true((select count(*)=1 from public.client_certificate_records),'read models preserve AM isolation');
@@ -148,10 +158,27 @@ insert into public.operational_documents(id,branch_code,domain,record_id,kind,ob
 insert into storage.objects(bucket_id,name) values
  ('certificate-documents','DPS/client/60000000-0000-4000-8000-000000000001/72000000-0000-4000-8000-000000000001.pdf'),
  ('certificate-documents','DPS/client/60000000-0000-4000-8000-000000000001/72000000-0000-4000-8000-000000000002.pdf');
-select public.transition_renewal('60000000-0000-4000-8000-000000000001','offered','[CONTOH] Gate accepts matching quotation metadata.','72000000-0000-4000-8000-000000000001');
-select public.transition_renewal('60000000-0000-4000-8000-000000000001','po_received','[CONTOH] Gate accepts matching PO metadata.','72000000-0000-4000-8000-000000000002');
+select pg_temp.followup('60000000-0000-4000-8000-000000000001','offered','[CONTOH] Gate accepts matching quotation metadata.','72000000-0000-4000-8000-000000000001');
+select pg_temp.followup('60000000-0000-4000-8000-000000000001','po_received','[CONTOH] Gate accepts matching PO metadata.','72000000-0000-4000-8000-000000000002');
 select pg_temp.assert_true((select count(*)=3 from public.renewal_events where opportunity_id=(select id from public.renewal_opportunities where certificate_id='60000000-0000-4000-8000-000000000001')),'valid gated transitions append three immutable events');
+
+-- Separate logging cannot advance status; failed initial calibration cannot leave an orphan asset.
+do $$ declare eid uuid;before_count integer;begin
+ select count(*) into before_count from public.equipment;
+ begin perform public.create_equipment_with_calibration('DPS',jsonb_build_object('name','[CONTOH] Atomic invalid asset','portfolio_id','40000000-0000-4000-8000-000000000001'),'{"calibration_date":"2026-10-20","due_date":"2026-10-19"}');raise exception 'FAIL: invalid calibration accepted';exception when check_violation then null;end;
+ perform pg_temp.assert_true((select count(*)=before_count from public.equipment),'invalid initial event rolls back asset');
+ eid:=public.create_equipment_with_calibration('DPS',jsonb_build_object('name','[CONTOH] Atomic asset','portfolio_id','40000000-0000-4000-8000-000000000001','color','Silver'),'{"calibration_date":"2026-10-20","due_date":"2027-10-20","certificate_number":"[CONTOH] INIT","correction_factor":"0\n4\n26"}');
+ perform pg_temp.assert_true(exists(select 1 from public.equipment_monitoring_records where id=eid and monitoring_certificate='[CONTOH] INIT' and latest_calibration_date='2026-10-20' and latest_due_date='2027-10-20' and color='Silver' and correction_factor=E'0\n4\n26' and ownership='internal'),'atomic create exposes all monitoring fields');
+ begin perform public.create_equipment_with_calibration('DPS','{"name":"[CONTOH] Spoofed asset","verification_status":"verified"}',null);raise exception 'FAIL: privileged field injection';exception when raise_exception then if sqlerrm not like 'Unexpected asset field%' then raise;end if;end;
+ begin perform public.transition_renewal('60000000-0000-4000-8000-000000000001','deferred','[CONTOH] Old API bypass',null);raise exception 'FAIL: old gate API allowed';exception when insufficient_privilege then null;end;
+end $$;
+select public.record_renewal_followup('60000000-0000-4000-8000-000000000001',null,'[CONTOH] Log only, no stage change.','{"pic_name":"[CONTOH] PIC","channel":"phone"}',null);
+select pg_temp.assert_true((select stage='po_received' from public.renewal_opportunities where certificate_id='60000000-0000-4000-8000-000000000001'),'logging does not move a closed card');
+select pg_temp.assert_true((select count(*)=1 from public.renewal_communications where kind='log' and certificate_id='60000000-0000-4000-8000-000000000001'),'separate log is persisted');
+select pg_temp.assert_true(not has_table_privilege(current_user,'public.renewal_communications','UPDATE') and not has_table_privilege(current_user,'public.renewal_communications','DELETE'),'logs are immutable for callers');
+
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000003',true);
+select pg_temp.assert_true((select count(*)=0 from public.renewal_communications where certificate_id='60000000-0000-4000-8000-000000000001'),'other AM cannot read contact logs');
 select pg_temp.assert_true((select count(*)=0 from public.operational_documents where record_id='60000000-0000-4000-8000-000000000001'),'other AM cannot read private document metadata');
 select pg_temp.assert_true((select count(*)=0 from storage.objects where name like 'DPS/client/60000000-0000-4000-8000-000000000001/%'),'other AM cannot download certificate objects');
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000008',true);

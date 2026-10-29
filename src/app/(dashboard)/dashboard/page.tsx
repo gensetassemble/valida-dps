@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { DeadlineDate } from "@/components/ui/deadline-date";
+import { ScrollMore } from "@/components/ui/scroll-more";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { activeBranch } from "@/lib/auth/permissions";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
@@ -16,6 +18,8 @@ type Item = {
   expiry_date: string;
   validity_status: string;
   is_example: boolean;
+  portfolio_code?: string | null;
+  location?: string | null;
 };
 type Summary = {
   total: number;
@@ -33,6 +37,16 @@ const routes: Record<string, string> = {
   personnel: "/kompetensi-personil",
   calibrations: "/kalibrasi-alat",
 };
+function EquipmentContext({ item }: { item: Item }) {
+  return item.domain === "calibrations" ? (
+    <span className="mt-1.5 block space-y-0.5 text-[10px] text-muted-foreground">
+      <span className="block">
+        Portofolio: <strong>{item.portfolio_code || "Belum dipetakan"}</strong>
+      </span>
+      <span className="block">Lokasi: {item.location || "Belum dicatat"}</span>
+    </span>
+  ) : null;
+}
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -44,11 +58,33 @@ export default async function DashboardPage({
     db = await masterClient();
   const { data, error } = await db.rpc("operational_summary", {
     b: branch,
-    filters: p,
+    filters: { ...p, scroll: "true" },
   });
   if (error)
     throw Error("Ringkasan belum dapat dimuat dalam cakupan yang diminta.");
   const s = data as Summary;
+  const equipmentIds = [
+    ...new Set(
+      [...(s.soon || []), ...(s.records || [])]
+        .filter((r) => r.domain === "calibrations")
+        .map((r) => r.id),
+    ),
+  ];
+  if (equipmentIds.length) {
+    const { data: equipment, error } = await db
+      .from("equipment_monitoring_records")
+      .select("id,portfolio_code,location,unit")
+      .eq("branch_code", branch)
+      .in("id", equipmentIds);
+    if (error) throw Error("Portofolio dan lokasi alat belum dapat dimuat.");
+    const byId = new Map((equipment || []).map((e) => [String(e.id), e]));
+    for (const item of [...(s.soon || []), ...(s.records || [])])
+      if (item.domain === "calibrations") {
+        const asset = byId.get(item.id);
+        item.portfolio_code = asset?.portfolio_code;
+        item.location = asset?.location || asset?.unit;
+      }
+  }
   const tabs = [
     ["all", "Semua"],
     ["clients", "Sertifikat Klien"],
@@ -124,7 +160,7 @@ export default async function DashboardPage({
       )}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          "Kedaluwarsa",
+          "Expired",
           "Kritis",
           "Perhatian",
           "Pantau",
@@ -179,7 +215,7 @@ export default async function DashboardPage({
               {s.lifetime_count || 0}
             </strong>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Terpisah dari bucket kedaluwarsa dan pengingat.
+              Terpisah dari bucket expired dan pengingat.
             </p>
           </Card>
         </Link>
@@ -208,7 +244,8 @@ export default async function DashboardPage({
           <div className="border-b border-border p-5">
             <h2 className="text-sm font-bold">Rekaman Sesuai Filter</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              {s.total} rekaman sesuai kewenangan. Maksimum 20 per halaman.
+              {s.total} rekaman sesuai kewenangan. Baris berikutnya dimuat saat
+              discroll.
             </p>
           </div>
           <div className="overflow-x-auto">
@@ -224,7 +261,10 @@ export default async function DashboardPage({
               <tbody>
                 {(s.records || []).map((r) => (
                   <tr key={r.domain + r.id} className="border-t border-border">
-                    <td className="p-4">{r.entity_name}</td>
+                    <td className="p-4">
+                      {r.entity_name}
+                      <EquipmentContext item={r} />
+                    </td>
                     <td className="p-4">
                       <Link
                         className="text-primary-hover underline"
@@ -235,7 +275,9 @@ export default async function DashboardPage({
                         {r.title || "Lihat rekaman"}
                       </Link>
                     </td>
-                    <td className="p-4">{formatBusinessDate(r.expiry_date)}</td>
+                    <td className="p-4">
+                      {<DeadlineDate value={r.expiry_date} />}
+                    </td>
                     <td className="p-4">
                       <StatusBadge value={r.validity_status} />
                     </td>
@@ -247,36 +289,18 @@ export default async function DashboardPage({
               <p className="p-5 text-sm">Belum ada data sesuai filter.</p>
             )}
           </div>
-          <div className="flex justify-end gap-4 border-t border-border p-4 text-xs">
-            {Number(p.page || 1) > 1 && (
-              <Link
-                href={
-                  "?" +
-                  new URLSearchParams({
-                    ...p,
-                    branch,
-                    page: String(Number(p.page) - 1),
-                  } as Record<string, string>)
-                }
-              >
-                Sebelumnya
-              </Link>
-            )}
-            {Number(p.page || 1) * 20 < s.total && (
-              <Link
-                href={
-                  "?" +
-                  new URLSearchParams({
-                    ...p,
-                    branch,
-                    page: String(Number(p.page || 1) + 1),
-                  } as Record<string, string>)
-                }
-              >
-                Berikutnya
-              </Link>
-            )}
-          </div>
+          <ScrollMore
+            shown={s.records?.length || 0}
+            total={Math.min(1000, s.total)}
+            href={
+              "?" +
+              new URLSearchParams({
+                ...p,
+                branch,
+                page: String(Number(p.page || 1) + 1),
+              } as Record<string, string>)
+            }
+          />
         </Card>
       )}
       <Card className="mt-6 overflow-hidden">
@@ -302,7 +326,10 @@ export default async function DashboardPage({
               <tbody>
                 {s.soon.map((r) => (
                   <tr key={r.domain + r.id} className="border-t border-border">
-                    <td className="p-4">{r.entity_name}</td>
+                    <td className="p-4">
+                      {r.entity_name}
+                      <EquipmentContext item={r} />
+                    </td>
                     <td className="p-4">
                       <Link
                         className="font-semibold text-primary-hover underline"
@@ -314,7 +341,9 @@ export default async function DashboardPage({
                         {r.is_example ? " [CONTOH]" : ""}
                       </Link>
                     </td>
-                    <td className="p-4">{formatBusinessDate(r.expiry_date)}</td>
+                    <td className="p-4">
+                      {<DeadlineDate value={r.expiry_date} />}
+                    </td>
                     <td className="p-4 tabular-nums">
                       {remainingDays(r.expiry_date)} hari
                     </td>

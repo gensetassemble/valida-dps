@@ -126,7 +126,6 @@ test.describe("Phase 02 authenticated development verification", () => {
     await page.getByRole("button", { name: "Konfirmasi perubahan" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
     await page.locator('select[name="active"]').selectOption("false");
-    await page.getByRole("button", { name: "Terapkan", exact: true }).click();
     await expect(
       page.getByRole("cell", {
         name: recordName("Wilayah Diperbarui"),
@@ -366,8 +365,8 @@ test.describe("Phase 02 authenticated development verification", () => {
       ).toHaveCount(1);
       await dialog.locator("#employee_id").selectOption(target.employeeId);
       await dialog
-        .getByRole("checkbox", { name: "Aktif", exact: true })
-        .check();
+        .getByRole("combobox", { name: "Aktif", exact: true })
+        .selectOption("true");
       await dialog.getByRole("button", { name: "Simpan perubahan" }).click();
       await page
         .getByRole("button", { name: "Setujui dan simpan", exact: true })
@@ -440,7 +439,9 @@ test.describe("Phase 02 authenticated development verification", () => {
       .getByRole("button", { name: "Konfirmasi perubahan", exact: true })
       .click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
-    await page.getByRole("button", { name: "Keluar", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Logout akun", exact: true })
+      .click();
     await login(page, "pending");
     await page.goto("/master-data/pegawai");
     await expect(
@@ -462,7 +463,9 @@ test.describe("Phase 02 authenticated development verification", () => {
       page.getByRole("button", { name: "Tambah pelanggan", exact: true }),
     ).toHaveCount(0);
     await expect(page.getByRole("button", { name: /^Ubah / })).toHaveCount(0);
-    await page.getByRole("button", { name: "Keluar", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Logout akun", exact: true })
+      .click();
     await expect(page).toHaveURL(/\/login/);
   });
 });

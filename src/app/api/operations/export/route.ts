@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
+import { addMonitoringSheets } from "@/features/operations/monitoring-export";
 import {
   entityContext,
   listRecords,
@@ -57,32 +58,36 @@ export async function GET(request: NextRequest) {
   }
   const book = new ExcelJS.Workbook();
   book.creator = "VALIDA";
-  const sheet = book.addWorksheet("Data sesuai akses");
-  sheet.columns = c.entity.columns.map((key) => ({
-    header: key,
-    key,
-    width: 24,
-  }));
-  sheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-  sheet.getRow(1).fill = {
-    type: "pattern",
-    pattern: "solid",
-    fgColor: { argb: "FF0B2545" },
-  };
-  for (const row of rows)
-    sheet.addRow(
-      Object.fromEntries(
-        c.entity.columns.map((k) => [
-          k,
-          row[k] === null ? "" : String(row[k] ?? ""),
-        ]),
-      ),
-    );
-  sheet.views = [{ state: "frozen", ySplit: 1 }];
-  sheet.autoFilter = {
-    from: "A1",
-    to: { row: 1, column: c.entity.columns.length },
-  };
+  if (c.entity.key === "kalibrasi-alat")
+    addMonitoringSheets(book, rows, c.branch);
+  else {
+    const sheet = book.addWorksheet("Data sesuai akses");
+    sheet.columns = c.entity.columns.map((key) => ({
+      header: key,
+      key,
+      width: 24,
+    }));
+    sheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF0B2545" },
+    };
+    for (const row of rows)
+      sheet.addRow(
+        Object.fromEntries(
+          c.entity.columns.map((k) => [
+            k,
+            row[k] === null ? "" : String(row[k] ?? ""),
+          ]),
+        ),
+      );
+    sheet.views = [{ state: "frozen", ySplit: 1 }];
+    sheet.autoFilter = {
+      from: "A1",
+      to: { row: 1, column: c.entity.columns.length },
+    };
+  }
   const bytes = await book.xlsx.writeBuffer();
   return new NextResponse(new Uint8Array(bytes), {
     headers: {

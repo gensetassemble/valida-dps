@@ -4,6 +4,8 @@ import { getSupabaseConfig } from "@/lib/env/public";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   response.headers.set("Cache-Control", "private, no-store");
+  // Logout expires this project's cookies itself; do not refresh a session first.
+  if (request.nextUrl.pathname === "/auth/logout") return response;
   const config = getSupabaseConfig();
   if (!config) return response;
   const supabase = createServerClient(config.url, config.key, {

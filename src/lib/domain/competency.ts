@@ -27,7 +27,7 @@ export function evaluateRequirements(
     const matching = certificates.filter((c) => c.certificate_type_id === type);
     const allowed = matching.some(
       (c) =>
-        !["Kedaluwarsa", "Perlu Verifikasi"].includes(
+        !["Expired", "Perlu Verifikasi"].includes(
           validity(
             c.expiry_date,
             c.verification_status === "verified",
@@ -49,9 +49,9 @@ export function evaluateRequirements(
                   true,
                   c.validity_kind === "lifetime",
                   today,
-                ) === "Kedaluwarsa",
+                ) === "Expired",
             )
-          ? "Kompetensi wajib terverifikasi kedaluwarsa"
+          ? "Kompetensi wajib terverifikasi expired"
           : "Belum ada bukti terverifikasi",
     };
   });

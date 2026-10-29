@@ -4,10 +4,10 @@ import { useState, type FormEvent } from "react";
 import { RecordForm } from "@/features/master-data/record-form";
 import type { EntityConfig } from "@/features/master-data/registry";
 import type { DataRow } from "@/features/master-data/server";
-import { submitCorrection, transitionRenewal } from "./actions";
+import { submitCorrection } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
+import { useModalRoute } from "@/components/ui/route-modal";
 export function OperationalForm(props: {
   entity: EntityConfig;
   branch: string;
@@ -17,10 +17,15 @@ export function OperationalForm(props: {
   isAdmin: boolean;
 }) {
   const router = useRouter();
+  const inModal = useModalRoute();
   return (
     <RecordForm
       {...props}
-      onSaved={() => router.push(props.entity.path + "?branch=" + props.branch)}
+      onSaved={() =>
+        inModal
+          ? router.back()
+          : router.push(props.entity.path + "?branch=" + props.branch)
+      }
     />
   );
 }
@@ -135,129 +140,5 @@ export function EvidenceForm({
         {message}
       </p>
     </form>
-  );
-}
-export function PipelineAction({
-  certificate,
-  branch,
-  stage,
-  documents,
-}: {
-  certificate: string;
-  branch: string;
-  stage: string;
-  documents: { id: string; kind: string; original_name: string }[];
-}) {
-  const [open, setOpen] = useState(false),
-    [message, setMessage] = useState(""),
-    [busy, setBusy] = useState(false);
-  const router = useRouter();
-  const next: Record<string, string> = {
-    uncontacted: "contacted",
-    contacted: "offered",
-    offered: "po_received",
-    deferred: "contacted",
-  };
-  if (!next[stage]) return null;
-  return (
-    <div className="mt-3">
-      <Button
-        size="sm"
-        variant="outline"
-        className="w-full whitespace-normal px-2 text-[10px]"
-        onClick={() => setOpen(true)}
-      >
-        Catat tindak lanjut
-      </Button>
-      <Modal
-        open={open}
-        onOpenChange={setOpen}
-        title="Tindak lanjut perpanjangan"
-        description="Periksa PIC, catatan kontak dan bukti dokumen sebelum mengubah tahap."
-      >
-        <form
-          className="mt-3 space-y-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            const f = new FormData(e.currentTarget);
-            try {
-              const r = await transitionRenewal({
-                certificate,
-                branch,
-                stage: f.get("stage"),
-                note: f.get("note"),
-                document: f.get("document") || null,
-              });
-              setMessage(r.error || "Tahap telah diperbarui.");
-              if (r.ok) {
-                setOpen(false);
-                router.refresh();
-              }
-            } catch {
-              setMessage("Perubahan belum tersimpan.");
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <label className="block text-xs">
-            Tahap tujuan
-            <select
-              name="stage"
-              className="mt-1 h-9 w-full rounded border border-input"
-            >
-              <option value={next[stage]}>
-                {
-                  (
-                    {
-                      contacted: "Dihubungi",
-                      offered: "Penawaran Terkirim",
-                      po_received: "PO Diterima",
-                    } as Record<string, string>
-                  )[next[stage]]
-                }
-              </option>
-              <option value="deferred">Ditunda</option>
-              <option value="not_renewed">Tidak Diperpanjang</option>
-            </select>
-          </label>
-          <label className="block text-xs">
-            Catatan kontak / alasan
-            <textarea
-              name="note"
-              minLength={8}
-              maxLength={2000}
-              required
-              className="mt-1 w-full rounded border border-input p-2"
-            />
-          </label>
-          <label className="block text-xs">
-            Bukti penawaran / PO
-            <select
-              name="document"
-              className="mt-1 h-9 w-full rounded border border-input"
-            >
-              <option value="">Belum dipilih</option>
-              {documents.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.kind} · {d.original_name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-xs">
-            <input type="checkbox" required /> Saya telah memeriksa bukti dan
-            menyetujui perubahan tahap.
-          </label>
-          <Button size="sm" disabled={busy}>
-            Simpan tindak lanjut
-          </Button>
-        </form>
-        <p role="status" className="mt-2 text-xs text-amber-900">
-          {message}
-        </p>
-      </Modal>
-    </div>
   );
 }

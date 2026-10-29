@@ -54,7 +54,8 @@ export default async function MasterOverview({
                   {entity.description}
                 </p>
                 <p className="border-t border-border pt-3 text-[11px] font-semibold text-primary-hover">
-                  {hasPermission(context.scopes, branch, entity.writeRoles)
+                  {!entity.readonly &&
+                  hasPermission(context.scopes, branch, entity.writeRoles)
                     ? "Kelola data"
                     : "Lihat data sesuai akses"}
                 </p>

@@ -20,6 +20,7 @@ export type QueryParams = {
   until?: string;
   client?: string;
   am?: string;
+  marketing?: string;
   portfolio?: string;
   type?: string;
   area?: string;
@@ -112,7 +113,7 @@ export function operationalFilterPairs(
   if (
     params.validity &&
     [
-      "Kedaluwarsa",
+      "Expired",
       "Kritis",
       "Perhatian",
       "Pantau",
@@ -127,6 +128,7 @@ export function operationalFilterPairs(
       ? {
           client: "client_id",
           am: "account_manager_id",
+          marketing: "marketing_contact_id",
           portfolio: "scope_portfolio_id",
           type: "certificate_type_id",
           area: "work_area_id",
@@ -147,7 +149,7 @@ export async function listRecords(
   branch: string,
   params: QueryParams = {},
   parent?: { field: string; id: string },
-  pageSize = 20,
+  pageSize = 40,
 ) {
   const db = await masterClient();
   const page = Math.max(
@@ -157,7 +159,9 @@ export async function listRecords(
   const size = Math.max(1, Math.min(1000, pageSize));
   const sort = [...entity.columns, entity.idKey].includes(params.sort || "")
     ? params.sort!
-    : entity.columns[0];
+    : entity.key === "kalibrasi-alat"
+      ? "portfolio_code"
+      : entity.columns[0];
   let query = db
     .from(entity.readTable || entity.table)
     .select("*", { count: "exact" });
@@ -206,6 +210,8 @@ export async function listRecords(
     ascending: params.dir !== "desc",
     nullsFirst: false,
   });
+  if (entity.key === "kalibrasi-alat" && sort !== "name")
+    query = query.order("name");
   if (sort !== entity.idKey)
     query = query.order(entity.idKey, { ascending: true });
   const { data, count, error } = await query.range(
@@ -238,7 +244,7 @@ export async function listRecords(
           .from(target.table)
           .select(`${target.idKey},${target.labelKey}`)
           .in(target.idKey, ids)
-          .limit(20);
+          .limit(1000);
         const visible = (data || []) as unknown as DataRow[];
         labels[field.key] = Object.fromEntries(
           visible.map((row) => [
@@ -275,6 +281,48 @@ export async function getRecord(
   if (data && typeof data.previous_order_value_text === "string")
     data.previous_order_value = data.previous_order_value_text;
   return data as DataRow | null;
+}
+export async function referenceLabels(
+  entity: EntityConfig,
+  branch: string,
+  row: DataRow,
+) {
+  const db = await masterClient();
+  const known: Record<string, unknown> = {
+    portfolio_id: row.portfolio_code || row.portfolio_name,
+    employee_id: row.employee_name,
+    client_id: row.client_name,
+    certificate_type_id: row.certificate_type_name,
+    equipment_id: row.equipment_name,
+    work_area_id: row.work_area_name,
+  };
+  return Object.fromEntries(
+    await Promise.all(
+      entity.fields
+        .filter((f) => f.kind === "lookup" && row[f.key])
+        .map(async (field) => {
+          if (known[field.key]) return [field.key, String(known[field.key])];
+          const target = getEntity(field.lookup!);
+          if (!target) return [field.key, "Referensi tidak tersedia"];
+          let query = db
+            .from(target.readTable || target.table)
+            .select(target.labelKey)
+            .eq(target.idKey, String(row[field.key]));
+          if (target.key !== "roles")
+            query = query.eq(
+              target.key === "cabang" ? "code" : "branch_code",
+              branch,
+            );
+          const { data } = await query.maybeSingle();
+          return [
+            field.key,
+            data
+              ? String((data as unknown as DataRow)[target.labelKey])
+              : "Referensi tidak tersedia",
+          ];
+        }),
+    ),
+  );
 }
 export function publicDatabaseError(code?: string) {
   if (code === "23505")

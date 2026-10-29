@@ -1,5 +1,10 @@
 import type { EntityConfig, Field } from "@/features/master-data/registry";
 import type { Role } from "@/lib/auth/permissions";
+import {
+  monitoringColumns,
+  monitoringAssetFields,
+  monitoringCalibrationFields,
+} from "./monitoring";
 const text = (key: string, label: string, required = false): Field => ({
   key,
   label,
@@ -182,8 +187,10 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
     ...common,
     key: "kalibrasi-alat",
     table: "equipment",
-    readTable: "equipment_records",
+    readTable: "equipment_monitoring_records",
     title: "Kalibrasi Alat",
+    description:
+      "Monitoring alat internal per portofolio. Tabel dan ekspor mengikuti parameter laporan kalibrasi/perijinan.",
     singular: "Alat",
     path: "/kalibrasi-alat",
     detail: "/kalibrasi-alat",
@@ -197,36 +204,23 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       text("brand", "Merek"),
       text("model", "Model"),
       text("serial", "Nomor seri"),
+      ...monitoringAssetFields,
       text("measurement_range", "Rentang ukur"),
       text("location", "Lokasi"),
-      ref("portfolio_id", "Portofolio", "portofolio", false),
-      text("unit", "Unit"),
-      select("ownership", "Kepemilikan", [
-        ["unknown", "Belum Dicatat"],
-        ["internal", "Internal"],
-        ["client", "Pelanggan"],
-      ]),
-      ref("client_id", "Pelanggan pemilik", "pelanggan", false),
+      ref("portfolio_id", "Portofolio", "portofolio"),
+      text("unit", "Sub unit kerja pemilik"),
       ref("responsible_employee_id", "Penanggung jawab", "pegawai", false),
       notes,
       active,
     ],
-    columns: [
-      "name",
-      "asset_id",
-      "tag",
-      "serial",
-      "latest_due_date",
-      "eligibility_status",
-      "is_active",
-    ],
+    columns: [...monitoringColumns.map(([key]) => key), "portfolio_code"],
     search: ["name", "asset_id", "tag", "serial", "brand", "location"],
   },
   "riwayat-kalibrasi": {
     ...common,
     key: "riwayat-kalibrasi",
     table: "calibrations",
-    readTable: "calibration_records",
+    readTable: "calibration_monitoring_records",
     title: "Riwayat Kalibrasi",
     singular: "Peristiwa kalibrasi",
     path: "/kalibrasi-alat",
@@ -237,6 +231,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
     fields: [
       ref("equipment_id", "Alat", "kalibrasi-alat", true, true),
       text("laboratory", "Laboratorium"),
+      ...monitoringCalibrationFields,
       text("certificate_number", "Nomor sertifikat"),
       date("calibration_date", "Tanggal kalibrasi"),
       date("issue_date", "Tanggal terbit"),

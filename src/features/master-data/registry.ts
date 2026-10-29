@@ -7,6 +7,7 @@ export type FieldKind =
   | "textarea"
   | "boolean"
   | "select"
+  | "combobox"
   | "lookup"
   | "date"
   | "integer"
@@ -100,6 +101,22 @@ const base = {
 };
 export const ENTITIES: Record<string, EntityConfig> = {
   ...OPERATIONAL_ENTITIES,
+  "am-marketing": {
+    ...base,
+    key: "am-marketing",
+    table: "marketing_contacts",
+    title: "AM / Marketing",
+    singular: "AM / Marketing",
+    path: "/master-data/am-marketing",
+    labelKey: "full_name",
+    readonly: true,
+    create: false,
+    description:
+      "Daftar AM/Marketing cabang yang ditetapkan organisasi. Identitas bisnis tidak otomatis memberikan akun login.",
+    fields: [text("full_name", "Nama AM / Marketing", true, 160), active],
+    columns: ["full_name", "is_active"],
+    search: ["full_name"],
+  },
   cabang: {
     ...base,
     key: "cabang",
@@ -137,6 +154,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     ...base,
     key: "portofolio",
     table: "portfolios",
+    readTable: "portfolio_pic_records",
     title: "Portofolio",
     singular: "Portofolio",
     path: "/master-data/portofolio",
@@ -147,8 +165,8 @@ export const ENTITIES: Record<string, EntityConfig> = {
       text("name", "Nama portofolio", true, 160),
       active,
     ],
-    columns: ["code", "name", "is_active"],
-    search: ["code", "name"],
+    columns: ["code", "name", "marketing_pic_name", "is_active"],
+    search: ["code", "name", "marketing_pic_name"],
   },
   alias: {
     ...base,
@@ -395,7 +413,15 @@ export const ENTITIES: Record<string, EntityConfig> = {
       text("site_location", "Lokasi situs"),
       lookup("work_area_id", "Wilayah kerja", "wilayah"),
       lookup("portfolio_id", "Portofolio", "portofolio"),
-      lookup("account_manager_id", "Account Manager", "pengguna"),
+      lookup("marketing_contact_id", "AM / Marketing", "am-marketing"),
+      {
+        ...lookup(
+          "account_manager_id",
+          "Akun AM yang diberi akses",
+          "pengguna",
+        ),
+        hint: "Akun login yang dapat mengelola pelanggan. Pilihan AM/Marketing di atas adalah penanggung jawab bisnis.",
+      },
       {
         ...text(
           "assignment_reason",
@@ -414,6 +440,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
       "name",
       "industry_sector",
       "work_area_id",
+      "marketing_contact_id",
       "account_manager_id",
       "verification_status",
       "is_active",
@@ -561,6 +588,7 @@ export const MASTER_KEYS = [
   "wilayah",
   "portofolio",
   "pegawai",
+  "am-marketing",
   "jenis-sertifikat",
   "layanan",
 ];

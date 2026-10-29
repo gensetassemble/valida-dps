@@ -1,5 +1,5 @@
 export type Validity =
-  | "Kedaluwarsa"
+  | "Expired"
   | "Kritis"
   | "Perhatian"
   | "Pantau"
@@ -38,7 +38,7 @@ export function validity(
   return n === null
     ? "Perlu Verifikasi"
     : n < 0
-      ? "Kedaluwarsa"
+      ? "Expired"
       : n <= 30
         ? "Kritis"
         : n <= 60
@@ -134,4 +134,15 @@ export function equipmentEligibility(
   )
     return "Hasil Belum Diisi";
   return "Layak Pakai";
+}
+
+export function deadlineTone(date: string, today = todayWita()) {
+  const days = remainingDays(date, today);
+  return days === null
+    ? "unknown"
+    : days < 0
+      ? "expired"
+      : days <= 90
+        ? "soon"
+        : "normal";
 }

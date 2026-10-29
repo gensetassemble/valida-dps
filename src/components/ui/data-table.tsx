@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
+import { DeadlineDate } from "./deadline-date";
+import { ScrollLoader } from "./scroll-loader";
+import { useScrollRecords } from "@/features/master-data/use-scroll-records";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Pencil,
   Plus,
@@ -21,10 +22,19 @@ import { EmptyState } from "./empty-state";
 import { Modal, ConfirmDialog } from "./modal";
 import { useToast } from "./toast";
 import { FilterBar } from "@/features/master-data/filter-bar";
-import { RecordForm } from "@/features/master-data/record-form";
+import dynamic from "next/dynamic";
+const RecordForm = dynamic(
+  () => import("@/features/master-data/record-form").then((m) => m.RecordForm),
+  { loading: () => <p className="p-4 text-xs">Memuat formulir…</p> },
+);
 import { setRecordsActive } from "@/features/master-data/actions";
 import type { EntityConfig } from "@/features/master-data/registry";
 import type { DataRow } from "@/features/master-data/server";
+import {
+  monitoringColumns,
+  monitoringHeaders,
+  monitoringValue,
+} from "@/features/operations/monitoring";
 import {
   formatBusinessDate,
   formatTimestamp,
@@ -40,6 +50,7 @@ type TableData = {
   dir: string;
 };
 const extraLabels: Record<string, string> = {
+  marketing_pic_name: "PIC Portofolio (AM / Marketing)",
   updated_at: "Diperbarui",
   granted_at: "Diberikan",
   revoked_at: "Dicabut",
@@ -64,7 +75,7 @@ const extraLabels: Record<string, string> = {
 export function DataTable({
   entity,
   branch,
-  data,
+  data: initialData,
   canWrite,
   userId,
   isAdmin,
@@ -78,9 +89,22 @@ export function DataTable({
   isAdmin: boolean;
   parent?: { field: string; id: string };
 }) {
+  const routeParams = useSearchParams();
+  const query = new URLSearchParams(routeParams.toString());
+  query.set("entity", entity.key);
+  query.set("branch", branch);
+  if (parent) {
+    query.set("parent_field", parent.field);
+    query.set("parent_id", parent.id);
+  }
+  const scrolling = useScrollRecords(initialData, query.toString());
+  const data = scrolling.data;
   const [editing, setEditing] = useState<DataRow | "new" | null>(null);
   const [viewing, setViewing] = useState<DataRow | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selection, setSelected] = useState<string[]>([]);
+  const selected = selection.filter((id) =>
+    data.rows.some((row) => String(row[entity.idKey]) === id),
+  );
   const [change, setChange] = useState<{
     ids: string[];
     active: boolean;
@@ -92,7 +116,6 @@ export function DataTable({
   const path = usePathname();
   const params = useSearchParams();
   const notify = useToast();
-  const pages = Math.max(1, Math.ceil(data.total / data.size));
   const displayColumns =
     entity.key === "sertifikat-klien"
       ? entity.columns.filter(
@@ -108,16 +131,23 @@ export function DataTable({
               "is_active",
             ].includes(column),
         )
-      : entity.columns;
+      : entity.key === "kalibrasi-alat"
+        ? monitoringColumns.map(([key]) => key)
+        : entity.columns;
   const mayBulk =
     canWrite &&
-    !["pengguna", "penugasan-peran", "penugasan", "cabang"].includes(
-      entity.key,
-    );
+    ![
+      "pengguna",
+      "penugasan-peran",
+      "penugasan",
+      "cabang",
+      "kalibrasi-alat",
+    ].includes(entity.key);
   function navigate(values: Record<string, string>) {
     const next = new URLSearchParams(params.toString());
+    next.delete("page");
     Object.entries(values).forEach(([key, value]) => next.set(key, value));
-    router.push(`${path}?${next}`);
+    router.replace(`${path}?${next}`, { scroll: false });
   }
   const labelFor = (field: string) =>
     (entity.key === "sertifikat-klien" && field === "client_name"
@@ -127,6 +157,29 @@ export function DataTable({
     extraLabels[field] ||
     field;
   function valueFor(row: DataRow, column: string) {
+    if (column === "npp" && !row.npp) return "Non-NPP";
+    if (entity.key === "kalibrasi-alat") {
+      const raw = monitoringValue(row, column);
+      if (column === "due_date" || column === "latest_due_date")
+        return <DeadlineDate value={raw} />;
+      const display =
+        column.endsWith("_date") && /^\d{4}-\d{2}-\d{2}$/.test(raw)
+          ? formatBusinessDate(raw)
+          : raw;
+      return (
+        <span
+          className="block min-w-20 max-w-64 whitespace-pre-wrap break-words"
+          title={display}
+        >
+          {display || "—"}
+          {column === "name" && (
+            <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">
+              Portofolio: {String(row.portfolio_code || "Belum dipetakan")}
+            </span>
+          )}
+        </span>
+      );
+    }
     const value = row[column];
     if (entity.key === "sertifikat-klien" && column === "client_name")
       return (
@@ -154,7 +207,11 @@ export function DataTable({
       column.endsWith("_until") ||
       column.endsWith("_date")
     )
-      return formatBusinessDate(String(value));
+      return /(?:expiry|due|valid_until|end_date)/.test(column) ? (
+        <DeadlineDate value={value} />
+      ) : (
+        formatBusinessDate(String(value))
+      );
     const field = entity.fields.find((field) => field.key === column);
     const display =
       data.labels[column]?.[String(value)] ||
@@ -194,7 +251,7 @@ export function DataTable({
         <FilterBar entity={entity} />
         {selected.length > 0 && mayBulk && (
           <div className="flex items-center justify-between gap-3 bg-emerald-50 px-4 py-3 text-xs">
-            <span>{selected.length} rekaman dipilih pada halaman ini.</span>
+            <span>{selected.length} rekaman dipilih yang ditampilkan.</span>
             <Button
               size="sm"
               variant="outline"
@@ -213,75 +270,98 @@ export function DataTable({
           >
             <table className="w-full min-w-[640px] border-collapse text-left text-xs">
               <thead className="border-b border-border bg-surface-muted text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="w-10 px-4 py-3" scope="col">
-                    No.
-                  </th>
-                  {mayBulk && (
-                    <th className="w-8 px-2 py-3" scope="col">
-                      <input
-                        type="checkbox"
-                        aria-label="Pilih semua pada halaman"
-                        checked={
-                          data.rows.length > 0 &&
-                          selected.length === data.rows.length
-                        }
-                        onChange={(event) =>
-                          setSelected(
-                            event.target.checked
-                              ? data.rows.map((row) =>
-                                  String(row[entity.idKey]),
-                                )
-                              : [],
-                          )
-                        }
-                        className="size-3.5 accent-[#16845a]"
-                      />
+                {entity.key === "kalibrasi-alat" ? (
+                  monitoringHeaders.map((cells, index) => (
+                    <tr key={index}>
+                      {cells.map(([col, label, colSpan, rowSpan]) => (
+                        <th
+                          key={col}
+                          colSpan={colSpan}
+                          rowSpan={rowSpan}
+                          scope={colSpan > 1 ? "colgroup" : "col"}
+                          className="min-w-16 border border-border px-2 py-2 text-center normal-case tracking-normal"
+                        >
+                          {label}
+                        </th>
+                      ))}
+                      {index === 0 && (
+                        <th rowSpan={3} scope="col" className="px-3">
+                          Tindakan
+                        </th>
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <th className="w-10 px-4 py-3" scope="col">
+                      No.
                     </th>
-                  )}
-                  {displayColumns.map((column) => (
-                    <th
-                      key={column}
-                      scope="col"
-                      aria-sort={
-                        data.sort === column
-                          ? data.dir === "asc"
-                            ? "ascending"
-                            : "descending"
-                          : "none"
-                      }
-                      className="whitespace-nowrap px-4 py-3"
-                    >
-                      <button
-                        onClick={() =>
-                          navigate({
-                            sort: column,
-                            dir:
-                              data.sort === column && data.dir === "asc"
-                                ? "desc"
-                                : "asc",
-                            page: "1",
-                          })
+                    {mayBulk && (
+                      <th className="w-8 px-2 py-3" scope="col">
+                        <input
+                          type="checkbox"
+                          aria-label="Pilih semua yang ditampilkan"
+                          checked={
+                            data.rows.length > 0 &&
+                            selected.length === data.rows.length
+                          }
+                          onChange={(event) =>
+                            setSelected(
+                              event.target.checked
+                                ? data.rows.map((row) =>
+                                    String(row[entity.idKey]),
+                                  )
+                                : [],
+                            )
+                          }
+                          className="size-3.5 accent-[#16845a]"
+                        />
+                      </th>
+                    )}
+                    {displayColumns.map((column) => (
+                      <th
+                        key={column}
+                        scope="col"
+                        aria-sort={
+                          data.sort === column
+                            ? data.dir === "asc"
+                              ? "ascending"
+                              : "descending"
+                            : "none"
                         }
-                        className="inline-flex items-center gap-1.5"
+                        className="whitespace-nowrap px-4 py-3"
                       >
-                        {labelFor(column)}
-                        {data.sort === column ? (
-                          data.dir === "asc" ? (
-                            <ArrowUp size={12} />
+                        <button
+                          onClick={() =>
+                            navigate({
+                              sort: column,
+                              dir:
+                                data.sort === column && data.dir === "asc"
+                                  ? "desc"
+                                  : "asc",
+                              page: "1",
+                            })
+                          }
+                          className="inline-flex items-center gap-1.5"
+                        >
+                          {labelFor(column)}
+                          {data.sort === column ? (
+                            data.dir === "asc" ? (
+                              <ArrowUp size={12} />
+                            ) : (
+                              <ArrowDown size={12} />
+                            )
                           ) : (
-                            <ArrowDown size={12} />
-                          )
-                        ) : (
-                          <ArrowUpDown size={12} className="opacity-60" />
-                        )}
-                      </button>
+                            <ArrowUpDown size={12} className="opacity-60" />
+                          )}
+                        </button>
+                      </th>
+                    ))}
+                    <th scope="col" className="px-4 py-3 text-right">
+                      Tindakan
                     </th>
-                  ))}
-                  <th scope="col" className="px-4 py-3 text-right">
-                    Tindakan
-                  </th>
-                </tr>
+                  </tr>
+                )}
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {data.rows.map((row, index) => {
@@ -297,7 +377,7 @@ export function DataTable({
                   return (
                     <tr key={id} className="hover:bg-surface-muted">
                       <td className="tnum px-4 py-3 text-muted-foreground">
-                        {(data.page - 1) * data.size + index + 1}
+                        {index + 1}
                       </td>
                       {mayBulk && (
                         <td className="px-2 py-3">
@@ -341,7 +421,14 @@ export function DataTable({
                             size="icon"
                             variant="ghost"
                             aria-label={`Lihat ${name}`}
-                            onClick={() => setViewing(row)}
+                            onClick={() =>
+                              entity.detail
+                                ? router.push(
+                                    `${entity.detail}/${id}?branch=${branch}`,
+                                    { scroll: false },
+                                  )
+                                : setViewing(row)
+                            }
                           >
                             <Eye size={15} />
                           </Button>
@@ -390,39 +477,20 @@ export function DataTable({
             }
           />
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-[11px] text-muted-foreground">
-          <p className="tnum">
-            {data.total
-              ? `${(data.page - 1) * data.size + 1}–${Math.min(data.page * data.size, data.total)}`
-              : "0"}{" "}
-            dari {data.total} rekaman
+        <div className="border-t border-border px-4 py-3 text-[11px] text-muted-foreground">
+          <p>
+            {data.rows.length} dari {data.total} rekaman
           </p>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={data.page <= 1}
-              onClick={() => navigate({ page: String(data.page - 1) })}
-              aria-label="Halaman sebelumnya"
-            >
-              <ChevronLeft size={14} />
-            </Button>
-            <span className="tnum">
-              Halaman {data.page} / {pages}
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={data.page >= pages}
-              onClick={() => navigate({ page: String(data.page + 1) })}
-              aria-label="Halaman berikutnya"
-            >
-              <ChevronRight size={14} />
-            </Button>
-          </div>
+          <ScrollLoader
+            hasMore={data.rows.length < data.total}
+            busy={scrolling.busy}
+            error={scrolling.error}
+            load={scrolling.load}
+          />
         </div>
       </Card>
       <Modal
+        size="large"
         open={!!editing}
         onOpenChange={(open) => {
           if (!open) setEditing(null);
@@ -444,6 +512,7 @@ export function DataTable({
         )}
       </Modal>
       <Modal
+        size="large"
         open={!!viewing}
         onOpenChange={(open) => {
           if (!open) setViewing(null);
