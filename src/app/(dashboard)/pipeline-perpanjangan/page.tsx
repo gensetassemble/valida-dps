@@ -11,6 +11,7 @@ import {
 import { PipelineAction } from "@/features/operations/forms";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
 import { remainingDays } from "@/lib/domain/validity";
+const BOARD_PAGE_SIZE = 1;
 const stages = [
   ["uncontacted", "Belum Dihubungi", "border-t-slate-400"],
   ["contacted", "Dihubungi", "border-t-blue-500"],
@@ -19,16 +20,38 @@ const stages = [
   ["deferred", "Ditunda", "border-t-purple-500"],
   ["not_renewed", "Tidak Diperpanjang", "border-t-pink-500"],
 ];
+function remainingText(value: unknown) {
+  const days = typeof value === "string" ? remainingDays(value) : null;
+  return days === null
+    ? "Tanggal belum diketahui"
+    : days < 0
+      ? Math.abs(days) + " hari lewat"
+      : days + " hari lagi";
+}
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ branch?: string; examples?: string }>;
+  searchParams: Promise<{
+    branch?: string;
+    examples?: string;
+    [key: string]: string | undefined;
+  }>;
 }) {
   const p = await searchParams,
     c = await pageEntityContext("sertifikat-klien", p.branch),
     db = await masterClient(),
     include = p.examples !== "false";
   if (!c) return <AccessDenied />;
+  const pageFor = (stage: string) =>
+    Math.min(1000, Math.max(1, Math.floor(Number(p["page_" + stage]) || 1)));
+  const pageLink = (stage: string, page: number) => {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(p))
+      if (value) query.set(key, value);
+    query.set("branch", c.branch);
+    query.set("page_" + stage, String(page));
+    return "?" + query;
+  };
   const [{ data: totals, error }, columns] = await Promise.all([
     db.rpc("pipeline_totals", { b: c.branch, include_examples: include }),
     Promise.all(
@@ -42,7 +65,10 @@ export default async function Page({
         const { data, error } = await q
           .order("expiry_date", { nullsFirst: false })
           .order("id")
-          .limit(20);
+          .range(
+            (pageFor(stage) - 1) * BOARD_PAGE_SIZE,
+            pageFor(stage) * BOARD_PAGE_SIZE - 1,
+          );
         if (error) throw Error("Kolom kanban belum dapat dimuat.");
         return (data || []) as DataRow[];
       }),
@@ -68,18 +94,20 @@ export default async function Page({
     <>
       <PageHeader
         title="Pipeline Perpanjangan"
-        description="Kanban tindak lanjut Account Manager dengan gerbang PIC, catatan kontak dan bukti PDF penawaran/PO."
+        description="Antrean AM untuk sertifikat yang berakhir dalam 90 hari, sudah kedaluwarsa, atau sudah memiliki riwayat tindak lanjut."
       />
-      <Card className="mb-5 p-5">
+      <Card className="mb-4 p-4">
         <div className="flex flex-wrap justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold">
-              Setiap perpindahan tahap diperiksa server
+              Mulai sebelum jatuh tempo, lanjutkan sampai selesai
             </h2>
             <p className="mt-2 max-w-3xl text-xs leading-6 text-muted-foreground">
-              Aktivitas dicatat berdasarkan bukti dan konfirmasi pengguna.
-              Aplikasi ini tidak mengirim email. Kepala Cabang memiliki akses
-              baca; AM mengikuti penugasan pelanggan saat ini.
+              H−90 / kedaluwarsa → hubungi PIC → catat penawaran PDF →
+              konfirmasi PO PDF. PO diterima belum memperpanjang sertifikat:
+              masukkan generasi baru setelah terbit. Riwayat tindak lanjut tetap
+              tampil. Setiap tahap menampilkan kartu terdekat; gunakan halaman
+              untuk kartu lainnya.
             </p>
           </div>
           <Link
@@ -103,18 +131,19 @@ export default async function Page({
         )}
       </Card>
       <div
-        className="overflow-x-auto pb-4"
-        tabIndex={0}
+        className="min-w-0 pb-3"
         role="region"
         aria-label="Papan pipeline perpanjangan"
       >
-        <div className="grid min-w-[1320px] grid-cols-6 gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {stages.map(([stage, label, color], index) => (
             <Card
               key={stage}
-              className={"min-h-[450px] border-t-4 bg-slate-50 p-3 " + color}
+              className={
+                "min-h-[220px] min-w-0 border-t-4 bg-slate-50 p-2.5 " + color
+              }
             >
-              <div className="mb-4 border-b border-border pb-3">
+              <div className="mb-3 border-b border-border pb-2">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-xs font-bold">{label}</h2>
                   <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] tabular-nums">
@@ -130,10 +159,11 @@ export default async function Page({
                   columns[index].map((row) => (
                     <article
                       key={String(row.id)}
-                      className="rounded-lg border border-border bg-white p-3 shadow-sm"
+                      className="min-w-0 rounded-lg border border-border bg-white p-2.5 shadow-sm"
                     >
                       <Link
-                        className="text-xs font-bold text-brand-navy hover:underline"
+                        className="line-clamp-2 break-words text-xs font-bold leading-4 text-brand-navy hover:underline"
+                        title={String(row.client_name)}
                         href={
                           "/sertifikat-klien/" + row.id + "?branch=" + c.branch
                         }
@@ -145,13 +175,19 @@ export default async function Page({
                           [CONTOH]
                         </span>
                       )}
-                      <p className="mt-1 break-all text-[10px] text-muted-foreground">
+                      <p
+                        title={String(row.certificate_number || "")}
+                        className="mt-1 truncate text-[10px] text-muted-foreground"
+                      >
                         {String(row.certificate_number || "Nomor belum diisi")}
                       </p>
-                      <p className="my-3 text-xs">
+                      <p
+                        title={String(row.certificate_type_name)}
+                        className="my-2 line-clamp-1 text-[10px]"
+                      >
                         {String(row.certificate_type_name)}
                       </p>
-                      <div className="space-y-2 border-y border-border py-3 text-[11px]">
+                      <div className="space-y-1 border-y border-border py-2 text-[10px]">
                         <p>
                           Jatuh tempo:{" "}
                           <strong>
@@ -160,14 +196,17 @@ export default async function Page({
                             )}
                           </strong>
                         </p>
-                        <p>
-                          {row.expiry_date
-                            ? remainingDays(String(row.expiry_date)) + " hari"
-                            : "Tanggal belum diketahui"}
-                        </p>
+                        <p>{remainingText(row.expiry_date)}</p>
                         <StatusBadge value={String(row.validity_status)} />
                       </div>
-                      <p className="mt-3 text-[11px] text-muted-foreground">
+                      <p
+                        className="mt-2 truncate text-[10px] text-muted-foreground"
+                        title={String(
+                          row.example_am_label ||
+                            c.profile.full_name ||
+                            "AM terdaftar",
+                        )}
+                      >
                         {String(
                           row.example_am_label ||
                             (row.account_manager_id === c.user.id
@@ -176,7 +215,7 @@ export default async function Page({
                             "AM belum ditugaskan",
                         )}
                       </p>
-                      <p className="mt-2 font-semibold text-primary-hover tabular-nums">
+                      <p className="mt-2 break-words text-xs font-semibold text-primary-hover tabular-nums">
                         {formatRupiah(
                           String(
                             row.previous_order_value_text ||
@@ -207,11 +246,31 @@ export default async function Page({
                   </p>
                 )}
               </div>
-              {(summary[stage]?.count || 0) > 20 && (
-                <p className="mt-3 text-[11px]">
-                  20 kartu terdekat dari {summary[stage].count}; persempit
-                  melalui daftar sertifikat.
-                </p>
+              {(summary[stage]?.count || 0) > BOARD_PAGE_SIZE && (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                  {pageFor(stage) > 1 && (
+                    <Link
+                      className="underline"
+                      aria-label={"Halaman sebelumnya " + label}
+                      href={pageLink(stage, pageFor(stage) - 1)}
+                    >
+                      Sebelumnya
+                    </Link>
+                  )}
+                  <span>
+                    {pageFor(stage)} /{" "}
+                    {Math.ceil(summary[stage].count / BOARD_PAGE_SIZE)}
+                  </span>
+                  {pageFor(stage) * BOARD_PAGE_SIZE < summary[stage].count && (
+                    <Link
+                      className="underline"
+                      aria-label={"Halaman berikutnya " + label}
+                      href={pageLink(stage, pageFor(stage) + 1)}
+                    >
+                      Berikutnya
+                    </Link>
+                  )}
+                </div>
               )}
             </Card>
           ))}

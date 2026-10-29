@@ -43,7 +43,16 @@ export async function GET(request: NextRequest) {
         },
         { status: 413 },
       );
-    rows.push(...data.rows);
+    rows.push(
+      ...data.rows.map((row) =>
+        Object.fromEntries(
+          Object.entries(row).map(([key, value]) => [
+            key,
+            data.labels[key]?.[String(value)] || value,
+          ]),
+        ),
+      ),
+    );
     if (rows.length >= data.total || !data.rows.length) break;
   }
   const book = new ExcelJS.Workbook();

@@ -92,7 +92,7 @@ export async function OperationEditor({
     <>
       <PageHeader
         title={(id ? "Ubah " : "Tambah ") + c.entity.singular}
-        description="Identitas induk tetap dipertahankan. Pilih Terverifikasi hanya setelah bukti diperiksa."
+        description="Identitas induk tetap dipertahankan. Masa berlaku langsung dihitung dari tanggal yang dicatat."
       />
       <Card className="max-w-4xl p-5">
         <OperationalForm
@@ -182,7 +182,6 @@ export async function OperationDetail({
         {row.eligibility_status ? (
           <StatusBadge value={String(row.eligibility_status)} />
         ) : null}
-        <StatusBadge value={String(row.verification_status)} />
         {c.canWrite && (
           <Button asChild variant="outline" size="sm">
             <Link
@@ -349,8 +348,8 @@ export async function OperationDetail({
               </p>
             )}
             <p className="mt-2 text-xs text-muted-foreground">
-              Folder adalah referensi sumber dan tidak membuktikan dokumen telah
-              diverifikasi.
+              Folder merupakan referensi arsip. Hak akses dokumen mengikuti
+              pengaturan pemilik folder.
             </p>
             {(hasPermission(c.scopes, c.branch, ["admin", "hrga"]) ||
               (hasPermission(c.scopes, c.branch, ["inspector"]) &&

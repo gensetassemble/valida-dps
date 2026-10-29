@@ -3,6 +3,7 @@ vi.mock("server-only", () => ({}));
 import ExcelJS from "exceljs";
 import {
   validity,
+  operationalValidity,
   remainingDays,
   todayWita,
   addMonths,
@@ -52,6 +53,15 @@ describe("WITA validity and lifetime", () => {
   );
 });
 describe("Calibration eligibility", () => {
+  it("tracks supplied dates immediately without a review stage", () => {
+    expect(operationalValidity("2026-10-29", false, "2026-10-29")).toBe(
+      "Kritis",
+    );
+    expect(operationalValidity("2030-01-01", false, "2026-10-29")).toBe("Aman");
+    expect(operationalValidity(null, true)).toBe("Berlaku Seumur Hidup");
+    expect(operationalValidity(null)).toBe("Tanggal Belum Diisi");
+    expect(operationalValidity("invalid")).toBe("Tanggal Belum Diisi");
+  });
   const event = {
     id: "1",
     calibration_date: "2026-01-01",
@@ -60,11 +70,11 @@ describe("Calibration eligibility", () => {
     result: "layak",
     due_date: "2027-01-01",
   };
-  it("requires verified result and future/current due date", () => {
+  it("requires a recorded result and future/current due date", () => {
     expect(equipmentEligibility([event], "2026-10-29")).toBe("Layak Pakai");
     expect(
       equipmentEligibility([{ ...event, result: null }], "2026-10-29"),
-    ).toBe("Perlu Verifikasi");
+    ).toBe("Hasil Belum Diisi");
     expect(
       equipmentEligibility([{ ...event, result: "tidak_layak" }], "2026-10-29"),
     ).toBe("Tidak Layak Pakai");
@@ -75,7 +85,7 @@ describe("Calibration eligibility", () => {
       ),
     ).toBe("Tidak Layak Pakai");
   });
-  it("newer unverified events cannot clear an asset", () => {
+  it("a latest event with missing result cannot clear an asset", () => {
     expect(
       equipmentEligibility(
         [
@@ -85,22 +95,26 @@ describe("Calibration eligibility", () => {
             id: "2",
             calibration_date: "2026-10-28",
             verification_status: "pending",
+            result: null,
           },
         ],
         "2026-10-29",
       ),
-    ).toBe("Kalibrasi Terbaru Belum Diverifikasi");
+    ).toBe("Hasil Belum Diisi");
   });
   it("ties are deterministic and invalid dates do not clear", () => {
     expect(
       equipmentEligibility(
-        [event, { ...event, id: "2", verification_status: "pending" }],
+        [
+          event,
+          { ...event, id: "2", verification_status: "pending", result: null },
+        ],
         "2026-10-29",
       ),
-    ).toBe("Kalibrasi Terbaru Belum Diverifikasi");
+    ).toBe("Hasil Belum Diisi");
     expect(
       equipmentEligibility([{ ...event, due_date: "invalid" }], "2026-10-29"),
-    ).toBe("Perlu Verifikasi");
+    ).toBe("Tanggal Belum Diisi");
   });
 });
 describe("Source normalization and private imports", () => {

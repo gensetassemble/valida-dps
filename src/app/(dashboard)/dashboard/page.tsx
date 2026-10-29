@@ -129,7 +129,7 @@ export default async function DashboardPage({
           "Perhatian",
           "Pantau",
           "Aman",
-          "Perlu Verifikasi",
+          "Tanggal Belum Diisi",
           "Berlaku Seumur Hidup",
         ].map((status) => (
           <Link
@@ -162,8 +162,8 @@ export default async function DashboardPage({
               : "Belum ada data"}
           </strong>
           <p className="mt-3 text-[11px] text-muted-foreground">
-            Sertifikat klien terverifikasi yang berakhir dalam 90 hari; data
-            contoh dikecualikan.
+            Sertifikat klien yang berakhir dalam 90 hari; data contoh
+            dikecualikan.
           </p>
         </Card>
       </div>
@@ -174,9 +174,7 @@ export default async function DashboardPage({
           }
         >
           <Card className="p-4">
-            <p className="text-xs font-semibold">
-              Kompetensi seumur hidup · seluruh status verifikasi
-            </p>
+            <p className="text-xs font-semibold">Kompetensi seumur hidup</p>
             <strong className="mt-2 block text-2xl tabular-nums">
               {s.lifetime_count || 0}
             </strong>
@@ -286,7 +284,7 @@ export default async function DashboardPage({
           <h2 className="text-sm font-bold">Segera Berakhir</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             20 rekaman terdekat dalam 90 hari kalender. Lifetime dan tanggal
-            belum diverifikasi tidak masuk daftar ini.
+            belum diisi tidak masuk daftar ini.
           </p>
         </div>
         {s.soon.length ? (
@@ -330,7 +328,7 @@ export default async function DashboardPage({
           </div>
         ) : (
           <div className="p-8 text-center text-sm text-muted-foreground">
-            Belum ada data terverifikasi yang segera berakhir dalam cakupan ini.
+            Belum ada data yang segera berakhir dalam cakupan ini.
           </div>
         )}
       </Card>

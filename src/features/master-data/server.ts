@@ -103,8 +103,9 @@ export function operationalFilterPairs(
     [
       "Layak Pakai",
       "Tidak Layak Pakai",
-      "Perlu Verifikasi",
-      "Kalibrasi Terbaru Belum Diverifikasi",
+      "Hasil Belum Diisi",
+      "Tanggal Belum Diisi",
+      "Belum Ada Kalibrasi",
     ].includes(params.eligibility || "")
   )
     pairs.push(["eligibility_status", params.eligibility!]);
@@ -116,7 +117,7 @@ export function operationalFilterPairs(
       "Perhatian",
       "Pantau",
       "Aman",
-      "Perlu Verifikasi",
+      "Tanggal Belum Diisi",
       "Berlaku Seumur Hidup",
     ].includes(params.validity)
   )

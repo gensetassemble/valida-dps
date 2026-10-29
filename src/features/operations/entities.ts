@@ -30,11 +30,6 @@ const select = (
   required: true,
   options: values.map(([value, label]) => ({ value, label })),
 });
-const verification = select("verification_status", "Verifikasi dokumen", [
-  ["pending", "Menunggu Verifikasi"],
-  ["verified", "Terverifikasi"],
-  ["rejected", "Ditolak"],
-]);
 const interval: Field = {
   key: "interval_months",
   label: "Interval (bulan)",
@@ -106,12 +101,12 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
         false,
         true,
       ),
-      verification,
       notes,
       active,
     ],
     columns: [
       "client_name",
+      "portfolio_id",
       "certificate_type_name",
       "certificate_number",
       "object_type",
@@ -126,7 +121,6 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       "order_reference",
       "branch_code",
       "validity_status",
-      "verification_status",
       "is_active",
     ],
     search: [
@@ -164,7 +158,6 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       interval,
       date("expiry_date", "Tanggal berakhir"),
       { key: "source_folder_url", label: "Folder Google Drive", kind: "url" },
-      verification,
       notes,
       active,
     ],
@@ -175,7 +168,6 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       "certificate_number",
       "expiry_date",
       "validity_status",
-      "verification_status",
       "is_active",
     ],
     search: [
@@ -210,12 +202,12 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       ref("portfolio_id", "Portofolio", "portofolio", false),
       text("unit", "Unit"),
       select("ownership", "Kepemilikan", [
+        ["unknown", "Belum Dicatat"],
         ["internal", "Internal"],
         ["client", "Pelanggan"],
       ]),
       ref("client_id", "Pelanggan pemilik", "pelanggan", false),
       ref("responsible_employee_id", "Penanggung jawab", "pegawai", false),
-      verification,
       notes,
       active,
     ],
@@ -226,7 +218,6 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       "serial",
       "latest_due_date",
       "eligibility_status",
-      "verification_status",
       "is_active",
     ],
     search: ["name", "asset_id", "tag", "serial", "brand", "location"],
@@ -274,7 +265,6 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
           { value: "tidak_layak", label: "Tidak layak" },
         ],
       },
-      verification,
       notes,
       active,
     ],
@@ -285,7 +275,6 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       "due_date",
       "result",
       "validity_status",
-      "verification_status",
       "is_active",
     ],
     search: ["certificate_number", "equipment_name", "laboratory"],

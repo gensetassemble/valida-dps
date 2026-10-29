@@ -4,6 +4,8 @@ Sumber otoritatif adalah migrasi SQL berurutan; tipe database dihasilkan dari de
 
 Pembaruan 29 Oktober 2026 menambahkan Super Admin (IT Officer), Tester, Kepala Bidang dan Kepala UP. IT Officer mewarisi administrasi hanya pada cabang yang ditugaskan; tiga peran lain mewarisi baca bisnis seluruh DPS sesuai arahan pengguna. PTK memakai hak PJ Peralatan/Kalibrasi yang sudah ada. [Rincian akun contoh dan verifikasi](development-accounts.md).
 
+Instruksi selanjutnya mengimpor data operasional dan menghapus tahap Perlu Verifikasi dari tampilan bisnis. Status tanggal kini dihitung langsung; identitas/login dan RLS tetap terpisah. [Keadaan data, kebijakan terbaru dan hasil uji](operational-import-report.md) menggantikan uraian historis yang menyatakan seluruh sumber masih ditahan.
+
 ## Perluasan operasional tahap 03+04
 
 | Entitas | Perilaku dan relasi tambahan |

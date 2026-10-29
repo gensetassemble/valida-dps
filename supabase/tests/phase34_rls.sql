@@ -105,7 +105,7 @@ insert into public.calibrations(id,equipment_id,calibration_date,due_date,result
 select pg_temp.assert_true((select eligibility_status='Layak Pakai' from public.equipment_records where id='70000000-0000-4000-8000-000000000001'),'verified result and due date clear asset');
 insert into public.calibrations(id,equipment_id,calibration_date,due_date,verification_status)
  values('71000000-0000-4000-8000-000000000002','70000000-0000-4000-8000-000000000001',(now() at time zone 'Asia/Makassar')::date,(now() at time zone 'Asia/Makassar')::date+120,'pending');
-select pg_temp.assert_true((select eligibility_status='Kalibrasi Terbaru Belum Diverifikasi' from public.equipment_records where id='70000000-0000-4000-8000-000000000001'),'newer pending calibration cannot clear asset');
+select pg_temp.assert_true((select eligibility_status='Hasil Belum Diisi' from public.equipment_records where id='70000000-0000-4000-8000-000000000001'),'newer calibration with missing result cannot clear asset');
 update public.calibrations set result='tidak_layak' where id='71000000-0000-4000-8000-000000000001';
 select pg_temp.assert_true((select eligibility_status='Tidak Layak Pakai' from public.equipment_records where id='70000000-0000-4000-8000-000000000001'),'known failed verified result blocks asset even with pending latest event');
 insert into public.calibrations(equipment_id,calibration_date,interval_months,calculation_base)

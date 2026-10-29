@@ -5,6 +5,7 @@ export type Validity =
   | "Pantau"
   | "Aman"
   | "Perlu Verifikasi"
+  | "Tanggal Belum Diisi"
   | "Berlaku Seumur Hidup";
 export function todayWita(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -89,9 +90,17 @@ export function validityLabel(
   lifetime = false,
   today = todayWita(),
 ) {
-  return lifetime && !verified
-    ? "Tanpa Kedaluwarsa (perlu verifikasi dokumen)"
-    : validity(date, verified, lifetime, today);
+  // Review metadata is retained for compatibility, but is no longer a display stage.
+  void verified;
+  return operationalValidity(date, lifetime, today);
+}
+export function operationalValidity(
+  date: string | null,
+  lifetime = false,
+  today = todayWita(),
+): Validity {
+  const value = validity(date, true, lifetime, today);
+  return value === "Perlu Verifikasi" ? "Tanggal Belum Diisi" : value;
 }
 export function equipmentEligibility(
   events: Calibration[],
@@ -104,21 +113,25 @@ export function equipmentEligibility(
       b.id.localeCompare(a.id),
   );
   const latest = sorted[0],
-    verified = sorted.find((e) => e.verification_status === "verified");
+    known = sorted.find((e) => e.result !== null);
   if (
-    verified &&
-    (verified.result === "tidak_layak" ||
-      (verified.due_date && remainingDays(verified.due_date, today)! < 0))
+    known &&
+    (known.result === "tidak_layak" ||
+      (known.due_date && remainingDays(known.due_date, today)! < 0))
   )
     return "Tidak Layak Pakai";
-  if (latest && latest.verification_status !== "verified")
-    return "Kalibrasi Terbaru Belum Diverifikasi";
+  if (!latest) return "Belum Ada Kalibrasi";
+  if (latest.due_date && remainingDays(latest.due_date, today)! < 0)
+    return "Tidak Layak Pakai";
+  if (!latest.due_date || remainingDays(latest.due_date, today) === null)
+    return "Tanggal Belum Diisi";
+  if (!latest.result) return "Hasil Belum Diisi";
   if (
     !latest ||
     latest.result !== "layak" ||
     !latest.due_date ||
     remainingDays(latest.due_date, today) === null
   )
-    return "Perlu Verifikasi";
+    return "Hasil Belum Diisi";
   return "Layak Pakai";
 }

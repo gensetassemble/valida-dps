@@ -44,7 +44,5 @@ it("requires every verified mapping while accepting a verified lifetime per reco
     ).allowed,
   ).toBe(false);
 });
-it("labels an unverified lifetime record distinctly without safe clearance", () =>
-  expect(validityLabel(null, false, true)).toBe(
-    "Tanpa Kedaluwarsa (perlu verifikasi dokumen)",
-  ));
+it("displays the supplied lifetime kind without a review stage", () =>
+  expect(validityLabel(null, false, true)).toBe("Berlaku Seumur Hidup"));

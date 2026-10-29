@@ -136,8 +136,14 @@ export function recordSchema(entity: EntityConfig, editing = false) {
           fail(end, "Tanggal akhir tidak boleh mendahului tanggal awal.");
       if (values.ownership === "client" && !values.client_id)
         fail("client_id", "Pilih pelanggan pemilik alat.");
-      if (values.ownership === "internal" && values.client_id)
-        fail("client_id", "Alat internal tidak mempunyai pelanggan pemilik.");
+      if (
+        ["internal", "unknown"].includes(String(values.ownership)) &&
+        values.client_id
+      )
+        fail(
+          "client_id",
+          "Pelanggan pemilik hanya diisi untuk kepemilikan Pelanggan.",
+        );
       if (
         entity.key === "kompetensi-personil" &&
         values.verification_status === "verified" &&

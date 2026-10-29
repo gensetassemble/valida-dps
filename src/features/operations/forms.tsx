@@ -7,6 +7,7 @@ import type { DataRow } from "@/features/master-data/server";
 import { submitCorrection, transitionRenewal } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 export function OperationalForm(props: {
   entity: EntityConfig;
   branch: string;
@@ -160,10 +161,20 @@ export function PipelineAction({
   if (!next[stage]) return null;
   return (
     <div className="mt-3">
-      <Button size="sm" variant="outline" onClick={() => setOpen(!open)}>
-        {open ? "Tutup" : "Catat tindak lanjut"}
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-full whitespace-normal px-2 text-[10px]"
+        onClick={() => setOpen(true)}
+      >
+        Catat tindak lanjut
       </Button>
-      {open && (
+      <Modal
+        open={open}
+        onOpenChange={setOpen}
+        title="Tindak lanjut perpanjangan"
+        description="Periksa PIC, catatan kontak dan bukti dokumen sebelum mengubah tahap."
+      >
         <form
           className="mt-3 space-y-2"
           onSubmit={async (e) => {
@@ -243,10 +254,10 @@ export function PipelineAction({
             Simpan tindak lanjut
           </Button>
         </form>
-      )}
-      <p role="status" className="mt-2 text-xs text-amber-900">
-        {message}
-      </p>
+        <p role="status" className="mt-2 text-xs text-amber-900">
+          {message}
+        </p>
+      </Modal>
     </div>
   );
 }

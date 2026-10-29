@@ -93,6 +93,22 @@ export function DataTable({
   const params = useSearchParams();
   const notify = useToast();
   const pages = Math.max(1, Math.ceil(data.total / data.size));
+  const displayColumns =
+    entity.key === "sertifikat-klien"
+      ? entity.columns.filter(
+          (column) =>
+            ![
+              "work_area_name",
+              "interval_months",
+              "previous_order_value",
+              "account_manager_name",
+              "order_reference",
+              "branch_code",
+              "verification_status",
+              "is_active",
+            ].includes(column),
+        )
+      : entity.columns;
   const mayBulk =
     canWrite &&
     !["pengguna", "penugasan-peran", "penugasan", "cabang"].includes(
@@ -104,18 +120,24 @@ export function DataTable({
     router.push(`${path}?${next}`);
   }
   const labelFor = (field: string) =>
+    (entity.key === "sertifikat-klien" && field === "client_name"
+      ? "Pelanggan & wilayah"
+      : null) ||
     entity.fields.find((item) => item.key === field)?.label ||
     extraLabels[field] ||
     field;
   function valueFor(row: DataRow, column: string) {
     const value = row[column];
-    if (
-      column === "validity_status" &&
-      row.validity_kind === "lifetime" &&
-      row.verification_status !== "verified"
-    )
+    if (entity.key === "sertifikat-klien" && column === "client_name")
       return (
-        <StatusBadge value="Tanpa Kedaluwarsa (perlu verifikasi dokumen)" />
+        <div className="max-w-56">
+          <span className="block font-semibold text-brand-navy">
+            {String(value || "—")}
+          </span>
+          <span className="mt-1 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            {String(row.work_area_name || "Wilayah belum dipetakan")}
+          </span>
+        </div>
       );
     if (value === null || value === undefined || value === "")
       return <span className="text-muted-foreground">—</span>;
@@ -217,7 +239,7 @@ export function DataTable({
                       />
                     </th>
                   )}
-                  {entity.columns.map((column) => (
+                  {displayColumns.map((column) => (
                     <th
                       key={column}
                       scope="col"
@@ -294,7 +316,7 @@ export function DataTable({
                           />
                         </td>
                       )}
-                      {entity.columns.map((column) => (
+                      {displayColumns.map((column) => (
                         <td
                           key={column}
                           className="whitespace-nowrap px-4 py-3 font-medium"

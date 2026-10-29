@@ -137,12 +137,6 @@ test.describe("Phase 03+04 development operations", () => {
     const link = page.getByRole("link", { name: certNumber, exact: true });
     await expect(link).toBeVisible();
     certId = (await link.getAttribute("href"))!.split("/")[2].split("?")[0];
-    await expect(
-      page.getByRole("row").filter({ hasText: certNumber }).getByRole("cell", {
-        name: "Rp 900.719.925.474.099.312,34",
-        exact: true,
-      }),
-    ).toBeVisible();
     const [download] = await Promise.all([
       page.waitForEvent("download"),
       page.getByRole("link", { name: "Ekspor XLSX sesuai filter" }).click(),
@@ -153,6 +147,9 @@ test.describe("Phase 03+04 development operations", () => {
     await link.click();
     await expect(
       page.getByRole("heading", { name: certNumber, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Rp 900.719.925.474.099.312,34", { exact: true }),
     ).toBeVisible();
     await page.getByRole("link", { name: "Ubah rekaman", exact: true }).click();
     await page
@@ -209,9 +206,6 @@ test.describe("Phase 03+04 development operations", () => {
         await page
           .getByLabel("Tanggal berakhir", { exact: true })
           .fill("2030-07-28");
-      await page
-        .getByLabel("Verifikasi dokumen", { exact: true })
-        .selectOption("verified");
       await save(page);
       await expect(page).toHaveURL(/\/kompetensi-personil\?/);
     }
@@ -238,9 +232,6 @@ test.describe("Phase 03+04 development operations", () => {
     await page
       .getByLabel("ID aset", { exact: true })
       .fill("E2E-" + run + "-" + attempt);
-    await page
-      .getByLabel("Verifikasi dokumen", { exact: true })
-      .selectOption("verified");
     await save(page);
     await expect(page).toHaveURL(/\/kalibrasi-alat\?/);
     const asset = page.getByRole("link", { name: name("Alat"), exact: true });
@@ -264,15 +255,12 @@ test.describe("Phase 03+04 development operations", () => {
         await page
           .getByLabel("Keterangan sumber tanggal", { exact: true })
           .fill("[CONTOH] Interval disetujui penguji");
-        await page
-          .getByLabel("Verifikasi dokumen", { exact: true })
-          .selectOption("verified");
       }
       await save(page);
       await expect(page).toHaveURL(/\/kalibrasi-alat\?/);
       const row = page.getByRole("row").filter({ hasText: name("Alat") });
       await expect(row).toContainText(
-        verified ? "Layak Pakai" : "Kalibrasi Terbaru Belum Diverifikasi",
+        verified ? "Layak Pakai" : "Hasil Belum Diisi",
       );
     }
     await page.goto("/kalibrasi-alat/" + assetId);

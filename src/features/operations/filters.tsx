@@ -49,7 +49,12 @@ export async function OperationalFilters({
               full_name: String(row.account_manager_name),
             });
         }
-        return { param, title, label, rows: [...unique.values()].slice(0, 100) };
+        return {
+          param,
+          title,
+          label,
+          rows: [...unique.values()].slice(0, 100),
+        };
       }
       let q = db
         .from(table)
@@ -86,9 +91,7 @@ export async function OperationalFilters({
             >
               <option value="">Semua jenis</option>
               <option value="term">Berjangka</option>
-              <option value="lifetime">
-                Seumur hidup (semua status verifikasi)
-              </option>
+              <option value="lifetime">Seumur hidup</option>
             </select>
           </label>
         )}
@@ -104,8 +107,9 @@ export async function OperationalFilters({
               {[
                 "Layak Pakai",
                 "Tidak Layak Pakai",
-                "Perlu Verifikasi",
-                "Kalibrasi Terbaru Belum Diverifikasi",
+                "Hasil Belum Diisi",
+                "Tanggal Belum Diisi",
+                "Belum Ada Kalibrasi",
               ].map((s) => (
                 <option key={s}>{s}</option>
               ))}
@@ -126,7 +130,7 @@ export async function OperationalFilters({
               "Perhatian",
               "Pantau",
               "Aman",
-              "Perlu Verifikasi",
+              "Tanggal Belum Diisi",
               "Berlaku Seumur Hidup",
             ].map((x) => (
               <option key={x}>{x}</option>
