@@ -1,4 +1,5 @@
 import { ALL_ROLES, type Role } from "@/lib/auth/permissions";
+import { OPERATIONAL_ENTITIES } from "@/features/operations/entities";
 export type FieldKind =
   | "text"
   | "email"
@@ -9,7 +10,9 @@ export type FieldKind =
   | "lookup"
   | "date"
   | "integer"
-  | "days";
+  | "days"
+  | "money"
+  | "url";
 export type Field = {
   key: string;
   label: string;
@@ -24,6 +27,7 @@ export type Field = {
 export type EntityConfig = {
   key: string;
   table: string;
+  readTable?: string;
   title: string;
   singular: string;
   description: string;
@@ -38,6 +42,7 @@ export type EntityConfig = {
   create?: boolean;
   readonly?: boolean;
   detail?: string;
+  detailColumn?: string;
 };
 const active: Field = { key: "is_active", label: "Aktif", kind: "boolean" };
 const verification: Field = {
@@ -94,6 +99,7 @@ const base = {
   writeRoles: admin,
 };
 export const ENTITIES: Record<string, EntityConfig> = {
+  ...OPERATIONAL_ENTITIES,
   cabang: {
     ...base,
     key: "cabang",
@@ -185,6 +191,19 @@ export const ENTITIES: Record<string, EntityConfig> = {
       },
       text("position", "Jabatan"),
       {
+        key: "employment_category",
+        label: "Kategori kepegawaian",
+        kind: "select",
+        options: [
+          { value: "", label: "Belum dikonfirmasi" },
+          { value: "PT", label: "PT" },
+          { value: "PTT_REGULAR", label: "PTT Regular" },
+          { value: "PTT_PROJECT", label: "PTT Project" },
+          { value: "LS", label: "LS" },
+        ],
+      },
+      text("organization_unit", "Unit organisasi"),
+      {
         key: "employment_status",
         label: "Status kepegawaian",
         kind: "select",
@@ -203,10 +222,12 @@ export const ENTITIES: Record<string, EntityConfig> = {
       "full_name",
       "npp",
       "position",
+      "employment_category",
+      "organization_unit",
       "verification_status",
       "is_active",
     ],
-    search: ["full_name", "npp", "position"],
+    search: ["full_name", "npp", "position", "organization_unit"],
   },
   penugasan: {
     ...base,

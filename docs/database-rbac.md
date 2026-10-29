@@ -1,6 +1,24 @@
-# Database dan RBAC tahap 02
+# Database dan RBAC tahap 01–04
 
-Sumber otoritatif adalah migrasi SQL berurutan; tipe database dihasilkan dari development aktual. Seluruh 21 public table mempunyai RLS.
+Sumber otoritatif adalah migrasi SQL berurutan; tipe database dihasilkan dari development aktual. Seluruh **27 tabel public** mempunyai RLS. Riwayat implementasi tahap 02 di bawah tetap menjadi fondasi; perluasan operasional dijelaskan pada bagian berikut dan [laporan tahap 03+04](phase34-report.md).
+
+## Perluasan operasional tahap 03+04
+
+| Entitas | Perilaku dan relasi tambahan |
+|---|---|
+| employee_directory | NPP tetap teks; kategori PT/PTT Regular/PTT Project/LS dan unit organisasi terpisah dari RBAC; header sumber lama dipertahankan |
+| personnel_certificates | term/lifetime per lisensi; lifetime tanpa expiry/interval; judul/nama sumber, folder Drive dan baris impor; satu pegawai banyak lisensi |
+| equipment + calibrations | Identitas aset terverifikasi dan banyak peristiwa historis; tanggal asli/manual/dihitung serta resolusi konflik; latest verified gagal/overdue mengalahkan clearance, latest pending tetap diperingatkan |
+| import_batches → import_rows | Staging privat Admin cabang; file hash, koordinat/raw/normalized, isu, keputusan, reviewer dan canonical ID; idempoten/atomik, tanpa Auth otomatis |
+| personnel_correction_requests | Pengajuan sendiri oleh Inspector, atau Admin/HRGA, tanpa perubahan lisensi resmi; Kepala Cabang tidak menulis |
+| operational_documents | Parent domain/record terotorisasi, objek PDF privat; metadata/aktor diikat server/trigger; signed URL pendek |
+| renewal_opportunities → renewal_events | Satu peluang per sertifikat klien, mengikuti akses client/AM saat ini; tahap hanya melalui gerbang RPC, histori append-only |
+
+View operasional memakai security_invoker. Ringkasan dashboard/ekspor mengikuti baris yang dapat dibaca pemanggil. Helper internal privileged berada di schema private, search_path kosong, grant minimum dan pemeriksaan peran/identitas; wrapper public invoker. Label AM dibaca hanya untuk pelanggan yang sudah berhak diakses, tanpa membuka directory kepada AM.
+
+Storage import-sources hanya Admin cabang. Aplikasi tidak dapat menghapus sumber nyata; penghapusan objek hanya batch sintetis yang secara eksplisit ditandai operator database. Storage certificate-documents memerlukan metadata dengan parent yang dapat diakses; policy restrictive tetap menolak objek yatim. Tidak ada bucket publik.
+
+Semua impor kanonis menghasilkan pending; approval staging bukan verifikasi sertifikat. Flag contoh dan source_import_row_id tidak dapat dipalsukan lewat payload biasa. Contoh klien diwariskan ke sertifikat dan dikecualikan peluang riil. Tiga batch nyata saat ini berisi 299 baris pending; 13 normalized NPP dikoreksi dengan izin pengguna, raw tetap utuh. Master 39 belum dipromosikan sesuai instruksi pengguna.
 
 ## Relasi
 

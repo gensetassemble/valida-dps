@@ -4,6 +4,7 @@ import { z } from "zod";
 import { hasPermission } from "@/lib/auth/permissions";
 import { entityContext, masterClient, publicDatabaseError } from "./server";
 import { recordSchema, requestScopeSchema } from "./validation";
+import { addMonths } from "@/lib/domain/validity";
 export type MutationResult =
   | { ok: true; message: string; id?: string }
   | { ok: false; error: string; fields?: Record<string, string> };
@@ -38,6 +39,36 @@ export async function saveRecord(
       ),
     };
   const payload: Record<string, unknown> = { ...parsed.data };
+  if (entity.key === "riwayat-kalibrasi") {
+    const base =
+      payload[
+        payload.calculation_base === "issue_date"
+          ? "issue_date"
+          : "calibration_date"
+      ];
+    if (
+      typeof base === "string" &&
+      typeof payload.interval_months === "number"
+    ) {
+      payload.calculated_due_date = addMonths(base, payload.interval_months);
+      if (!payload.due_date) payload.due_date = payload.calculated_due_date;
+      if (
+        payload.verification_status === "verified" &&
+        payload.reported_due_date &&
+        payload.reported_due_date !== payload.calculated_due_date &&
+        String(payload.resolution_note || "").trim().length < 8
+      )
+        return {
+          ok: false,
+          error:
+            "Tanggal dokumen berbeda dengan perhitungan. Jelaskan penyelesaian konflik sebelum verifikasi.",
+        };
+    } else payload.calculated_due_date = null;
+  }
+  if (entity.key === "kompetensi-personil")
+    payload.source_provider = payload.source_folder_url
+      ? "google_drive_folder"
+      : null;
   const isAdmin = hasPermission(scopes, branch, ["admin"]);
   if (entity.key === "pelanggan" && !isAdmin) {
     if (!scope.data.id) payload.account_manager_id = user.id;

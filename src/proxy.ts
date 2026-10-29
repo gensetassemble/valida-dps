@@ -30,6 +30,16 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/sertifikat-klien/:path*",
+    "/kompetensi-personil/:path*",
+    "/kalibrasi-alat/:path*",
+    "/peristiwa-kalibrasi/:path*",
+    "/pipeline-perpanjangan/:path*",
+    "/impor-data/:path*",
+    "/api/imports/:path*",
+    "/api/operations/:path*",
+    "/api/documents",
+    "/api/competency-check",
     "/master-data/:path*",
     "/pelanggan/:path*",
     "/pengaturan/:path*",

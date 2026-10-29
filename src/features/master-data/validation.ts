@@ -1,8 +1,31 @@
 import { z } from "zod";
 import type { EntityConfig, Field } from "./registry";
+import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
 function fieldSchema(field: Field) {
+  if (field.kind === "money")
+    return z.preprocess(
+      emptyToNull,
+      z
+        .string()
+        .regex(
+          /^\d{1,18}(\.\d{1,2})?$/,
+          "Gunakan rupiah tanpa pemisah ribuan, maksimum dua desimal.",
+        )
+        .nullable(),
+    );
+  if (field.kind === "url")
+    return z.preprocess(
+      emptyToNull,
+      z
+        .string()
+        .refine(
+          (v) => !!driveFolder(v),
+          "Gunakan URL folder HTTPS drive.google.com.",
+        )
+        .nullable(),
+    );
   if (field.kind === "boolean") return z.boolean();
   if (field.kind === "integer")
     return z.preprocess(
@@ -83,6 +106,68 @@ export function recordSchema(entity: EntityConfig, editing = false) {
     .object(shape)
     .strict()
     .superRefine((values, context) => {
+      const base =
+        values[
+          values.calculation_base === "issue_date"
+            ? "issue_date"
+            : "calibration_date"
+        ];
+      const computed =
+        entity.key === "riwayat-kalibrasi" &&
+        typeof base === "string" &&
+        validDate(base) &&
+        typeof values.interval_months === "number" &&
+        Number.isInteger(values.interval_months) &&
+        values.interval_months > 0 &&
+        values.interval_months <= 600
+          ? addMonths(base, values.interval_months)
+          : null;
+      const fail = (path: string, message: string) =>
+        context.addIssue({ code: "custom", path: [path], message });
+      if (
+        values.validity_kind === "lifetime" &&
+        (values.expiry_date || values.interval_months)
+      )
+        fail(
+          "expiry_date",
+          "Rekaman seumur hidup tidak memiliki tanggal akhir atau interval.",
+        );
+      for (const [start, end] of [
+        ["issue_date", "expiry_date"],
+        ["calibration_date", "due_date"],
+      ])
+        if (
+          typeof values[start] === "string" &&
+          typeof values[end] === "string" &&
+          values[end] < values[start]
+        )
+          fail(end, "Tanggal akhir tidak boleh mendahului tanggal awal.");
+      if (values.ownership === "client" && !values.client_id)
+        fail("client_id", "Pilih pelanggan pemilik alat.");
+      if (values.ownership === "internal" && values.client_id)
+        fail("client_id", "Alat internal tidak mempunyai pelanggan pemilik.");
+      if (
+        entity.key === "kompetensi-personil" &&
+        values.verification_status === "verified" &&
+        values.validity_kind === "term" &&
+        !values.expiry_date
+      )
+        fail(
+          "expiry_date",
+          "Kompetensi berjangka terverifikasi memerlukan tanggal akhir.",
+        );
+      if (
+        entity.key === "riwayat-kalibrasi" &&
+        values.verification_status === "verified" &&
+        (!values.result ||
+          !(values.due_date || computed) ||
+          !values.date_source ||
+          values.date_basis === "unverified")
+      )
+        fail(
+          "verification_status",
+          "Verifikasi memerlukan hasil, tanggal akhir dan sumber tanggal yang diperiksa.",
+        );
       if (
         typeof values.effective_from === "string" &&
         typeof values.effective_until === "string" &&

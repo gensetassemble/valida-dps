@@ -1,4 +1,5 @@
-export function formatBusinessDate(value: string) {
+export function formatBusinessDate(value: string | null | undefined) {
+  if (!value) return "—";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "—";
   return new Intl.DateTimeFormat("id-ID", {
     day: "2-digit",

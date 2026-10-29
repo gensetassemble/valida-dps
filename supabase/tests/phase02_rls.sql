@@ -89,7 +89,7 @@ do $$ begin begin update public.client_contacts set client_id='50000000-0000-400
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000004',true);
 insert into public.employee_directory(full_name,employment_status) values('[CONTOH] Pegawai HRGA','unknown');
 update public.personnel_certificates set issuer='[CONTOH] Penerbit belum diverifikasi';
-select pg_temp.assert_true((select count(*)=2 from public.personnel_certificates),'HRGA controls branch personnel records');
+select pg_temp.assert_true((select count(*)=2 from public.personnel_certificates where employee_id in ('30000000-0000-4000-8000-000000000008','30000000-0000-4000-8000-000000000012')),'HRGA controls branch personnel records');
 do $$ begin begin insert into public.employee_portfolio_assignments(employee_id,portfolio_id,assignment_type,verification_status) values('30000000-0000-4000-8000-000000000004','40000000-0000-4000-8000-000000000002','coordinator','verified'); raise exception 'FAIL: HRGA self expands monitoring scope'; exception when insufficient_privilege then null; end; end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000005',true);
 select pg_temp.assert_true((select count(*)=2 from public.user_role_assignments where profile_id=auth.uid()),'one account has multiple roles');

@@ -25,7 +25,11 @@ import { RecordForm } from "@/features/master-data/record-form";
 import { setRecordsActive } from "@/features/master-data/actions";
 import type { EntityConfig } from "@/features/master-data/registry";
 import type { DataRow } from "@/features/master-data/server";
-import { formatBusinessDate, formatTimestamp } from "@/lib/format";
+import {
+  formatBusinessDate,
+  formatTimestamp,
+  formatRupiah,
+} from "@/lib/format";
 type TableData = {
   rows: DataRow[];
   labels: Record<string, Record<string, string>>;
@@ -44,6 +48,18 @@ const extraLabels: Record<string, string> = {
   action: "Perubahan",
   actor_id: "Aktor",
   occurred_at: "Waktu (WITA)",
+  client_name: "Pelanggan",
+  employee_name: "Pegawai",
+  equipment_name: "Alat",
+  certificate_type_name: "Jenis sertifikat",
+  validity_status: "Masa berlaku",
+  eligibility_status: "Kelayakan alat",
+  latest_due_date: "Batas kalibrasi",
+  days_remaining: "Sisa hari",
+  npp: "NPP",
+  work_area_name: "Wilayah",
+  account_manager_name: "Account Manager (AM)",
+  branch_code: "Cabang Operasional",
 };
 export function DataTable({
   entity,
@@ -93,6 +109,14 @@ export function DataTable({
     field;
   function valueFor(row: DataRow, column: string) {
     const value = row[column];
+    if (
+      column === "validity_status" &&
+      row.validity_kind === "lifetime" &&
+      row.verification_status !== "verified"
+    )
+      return (
+        <StatusBadge value="Tanpa Kedaluwarsa (perlu verifikasi dokumen)" />
+      );
     if (value === null || value === undefined || value === "")
       return <span className="text-muted-foreground">—</span>;
     if (typeof value === "boolean" || column.endsWith("_status"))
@@ -101,8 +125,13 @@ export function DataTable({
           value={typeof value === "boolean" ? value : String(value)}
         />
       );
+    if (column === "previous_order_value") return formatRupiah(String(value));
     if (column.endsWith("_at")) return formatTimestamp(String(value));
-    if (column.endsWith("_from") || column.endsWith("_until"))
+    if (
+      column.endsWith("_from") ||
+      column.endsWith("_until") ||
+      column.endsWith("_date")
+    )
       return formatBusinessDate(String(value));
     const field = entity.fields.find((field) => field.key === column);
     const display =
@@ -270,7 +299,9 @@ export function DataTable({
                           key={column}
                           className="whitespace-nowrap px-4 py-3 font-medium"
                         >
-                          {column === entity.columns[0] && entity.detail ? (
+                          {column ===
+                            (entity.detailColumn || entity.columns[0]) &&
+                          entity.detail ? (
                             <Link
                               className="font-semibold text-primary-hover hover:underline"
                               href={`${entity.detail}/${id}?branch=${branch}`}

@@ -15,14 +15,14 @@ export function validateCertificate(
   if (file.size <= 0 || file.size > CERTIFICATE_MAX_BYTES)
     throw new Error("Ukuran dokumen harus 1 byte sampai 10 MiB.");
 }
-// No privileged client or bypass exists. Future record-level authorization must precede enabling these operations.
+// Unscoped legacy operations stay closed. Operational routes authorize a real parent and use its session-bound client.
 export async function uploadCertificate(): Promise<never> {
   throw new Error(
-    "Unggah dinonaktifkan sampai kebijakan akses per sertifikat tersedia.",
+    "Operasi dokumen tanpa identitas rekaman bisnis tidak diizinkan.",
   );
 }
 export async function getCertificateSignedUrl(): Promise<never> {
   throw new Error(
-    "Pratinjau dan unduh dinonaktifkan sampai kebijakan akses per sertifikat tersedia.",
+    "Akses dokumen tanpa identitas rekaman bisnis tidak diizinkan.",
   );
 }

@@ -60,6 +60,22 @@ const statuses: Record<
     style: "bg-emerald-50 text-emerald-900 border-emerald-200",
     color: "#1F9D6B",
   },
+  "Berlaku Seumur Hidup": {
+    label: "Berlaku Seumur Hidup",
+    style: "bg-violet-50 text-violet-900 border-violet-200",
+  },
+  "Tanpa Kedaluwarsa (perlu verifikasi dokumen)": {
+    label: "Tanpa Kedaluwarsa (perlu verifikasi dokumen)",
+    style: "bg-amber-50 text-amber-900 border-amber-200",
+  },
+  "Tidak Layak Pakai": {
+    label: "Tidak Layak Pakai",
+    style: "bg-red-50 text-red-900 border-red-200",
+  },
+  "Layak Pakai": {
+    label: "Layak Pakai",
+    style: "bg-emerald-50 text-emerald-900 border-emerald-200",
+  },
 };
 export function StatusBadge({ value }: { value: string | boolean }) {
   const status = statuses[String(value)] || {

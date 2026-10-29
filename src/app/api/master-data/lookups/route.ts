@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
     );
   const db = await masterClient();
   let query = db
-    .from(target.table)
+    .from(target.readTable || target.table)
     .select(
-      `${target.idKey},${target.labelKey}${target.key === "roles" ? ",code" : ""}`,
+      `${target.idKey},${target.labelKey}${target.key === "roles" ? ",code" : ""}${target.key === "pegawai" ? ",npp" : ""}${target.key === "kalibrasi-alat" ? ",eligibility_status" : ""}`,
     );
   if (target.key !== "roles")
     query = query.eq(
@@ -34,6 +34,14 @@ export async function GET(request: NextRequest) {
   if (target.key === "roles") query = query.eq("is_active", true);
   if (context.entity.key === "persyaratan" && target.key === "jenis-sertifikat")
     query = query.eq("category", "personnel");
+  if (
+    target.key === "jenis-sertifikat" &&
+    ["sertifikat-klien", "kompetensi-personil"].includes(context.entity.key)
+  )
+    query = query.eq(
+      "category",
+      context.entity.key === "sertifikat-klien" ? "client" : "personnel",
+    );
   const { data, error } = await query.order(target.labelKey).limit(20);
   if (error)
     return NextResponse.json(
@@ -45,7 +53,13 @@ export async function GET(request: NextRequest) {
     {
       options: rows.map((row) => ({
         value: String(row[target.idKey]),
-        label: String(row[target.labelKey] || row[target.idKey]),
+        label:
+          String(row[target.labelKey] || row[target.idKey]) +
+          (target.key === "pegawai"
+            ? " · NPP " + String(row.npp || "belum diketahui")
+            : target.key === "kalibrasi-alat"
+              ? " · " + String(row.eligibility_status || "Perlu Verifikasi")
+              : ""),
       })),
     },
     { headers: { "Cache-Control": "private, no-store" } },

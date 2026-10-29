@@ -25,6 +25,8 @@ describe("Strict master-data payloads", () => {
       full_name: "[CONTOH] Pegawai",
       npp: "000001",
       position: "",
+      employment_category: "",
+      organization_unit: "",
       employment_status: "unknown",
       verification_status: "pending",
       verification_note: "",

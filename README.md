@@ -2,9 +2,11 @@
 
 Aplikasi internal PT SUCOFINDO Cabang Denpasar (DPS), wilayah Bali, NTB dan NTT. Bahasa Indonesia; zona bisnis Asia/Makassar (WITA).
 
-**Prompt 02 sudah diimplementasikan dan diuji di development:** database/RBAC, UI PRISMA dan CRUD master data. UI operasional sertifikat klien, kompetensi personil dan kalibrasi merupakan Prompt 03. Belum ada import, email, cron, PDF, laporan atau KPI operasional buatan.
+**Tahap 01–04 diimplementasikan di development:** database/RBAC, UI PRISMA, master data, tiga modul operasional, impor CSV/XLSX dengan staging/review, dashboard dan ekspor. Pipeline perpanjangan ditambahkan sesuai permintaan pengguna. Istilah pegawai di antarmuka adalah **NPP**; header NRK sumber tetap dipertahankan sebagai provenance.
 
-[Laporan implementasi dan hasil uji](docs/phase02-report.md) · [Skema dan matriks akses](docs/database-rbac.md) · [Riwayat tahap 01](docs/setup-report.md)
+**Keadaan sumber: 299 baris staging, 0 impor kanonis.** Master 39 ditahan sesuai arahan pengguna; 13 koreksi pemetaan kompetensi sudah disetujui dan tersimpan. Enam sertifikat `[CONTOH]` dipertahankan untuk demonstrasi development; nilainya tidak masuk peluang riil. Email/cron/produksi belum diaktifkan.
+
+[Laporan tahap 03+04 dan hasil uji](docs/phase34-report.md) · [Skema dan matriks akses](docs/database-rbac.md) · [Riwayat tahap 02](docs/phase02-report.md) · [Riwayat tahap 01](docs/setup-report.md)
 
 ## Status aktual
 
@@ -12,8 +14,8 @@ Aplikasi internal PT SUCOFINDO Cabang Denpasar (DPS), wilayah Bali, NTB dan NTT.
 - Node 24 LTS (teruji 24.22.1), npm 11–12 (teruji 12.2.1).
 - Supabase JS 2.118.0, SSR 0.12.7, CLI 2.122.0.
 - Development: `valida-dps-dev`, ref `vzxmnkmvcbzxrkzdtxuy`, Free, Singapore; [dashboard](https://supabase.com/dashboard/project/vzxmnkmvcbzxrkzdtxuy).
-- 21 tabel public dengan RLS; delapan migrasi tahap 02 diterapkan. Nomor lokal sesuai riwayat server.
-- Enam akun sementara berlabel CONTOH dibuat dengan izin pengguna untuk browser tests, lalu akun/sesi dan seluruh data contoh terkait dihapus. Tidak ada akun demo permanen.
+- 27 tabel public dengan RLS; sepuluh migrasi tambahan tahap 03+04 diterapkan. Nomor lokal sesuai riwayat server.
+- Enam akun sementara berlabel CONTOH dibuat dengan izin pengguna untuk browser tests, lalu akun/sesi dan seluruh fixture terkait dihapus. Tidak ada akun demo permanen. Enam contoh sertifikat yang diminta pengguna disimpan terpisah dari fixture sementara.
 - Tidak ada proyek produksi, push GitHub atau deployment Vercel yang diklaim; tidak ada peningkatan paket berbayar.
 
 ## Menjalankan aplikasi
@@ -37,12 +39,19 @@ npm run build
 npm start
 ```
 
-## Halaman tahap 02
+## Halaman aplikasi
 
 | Route | Fungsi |
 |---|---|
 | /login, /reset-password, /update-password | Supabase Auth, validasi, show/hide; recovery nyata memerlukan konfigurasi email |
-| /dashboard | Fondasi dashboard tanpa KPI palsu |
+| /dashboard | Ringkasan Supabase sesuai RLS, status WITA, 90 hari, lifetime terpisah, drill-down dan peluang riil |
+| /sertifikat-klien | CRUD, detail/riwayat, 14 kolom kerangka pengguna, filter dan ekspor XLSX |
+| /kompetensi-personil | CRUD lisensi per pegawai, lifetime, koreksi dan referensi folder Drive |
+| /kompetensi-personil/matriks | Satu pegawai banyak lisensi/portofolio, status terverifikasi dan pending terpisah |
+| /kalibrasi-alat | CRUD aset, histori kalibrasi, tambah peristiwa, status kelayakan |
+| /peristiwa-kalibrasi/[id] | Detail/ubah satu peristiwa tanpa menimpa riwayat sebelumnya |
+| /impor-data | Admin: template, upload privat, mapping, preview, review baris dan commit terkontrol |
+| /pipeline-perpanjangan | Kanban enam tahap untuk AM, gerbang PIC/PDF penawaran/PO, catatan dan histori |
 | /master-data | Ikhtisar sesuai role/cabang |
 | /master-data/cabang | Lihat/ubah cabang yang diberikan; cabang baru melalui provisioning organisasi |
 | /master-data/wilayah | Wilayah kerja |
@@ -80,6 +89,10 @@ src/app/                   Routes, Server Components, API, Server Actions
 src/components/app-shell/  Shell/sidebar/topbar/breadcrumb
 src/components/ui/         Komponen bersama, DataTable, dialog, toast
 src/features/master-data/  Registry allowlist, validasi, query, aksi, form
+src/features/operations/   CRUD, matriks, kompetensi, dokumen dan filter
+src/features/imports/      Parser privat, normalisasi, review, commit
+src/lib/domain/            Tanggal WITA, lifetime dan kelayakan
+src/lib/http/              Batas request streaming sebelum parsing
 src/lib/auth/              Guard dan permission cabang
 src/lib/supabase/          Client SSR/browser dan Storage tertutup
 src/lib/microsoft/         Kontrak Microsoft 365 belum aktif
@@ -94,7 +107,7 @@ docs/                      Skema, laporan, integrasi, deployment
 
 Salin nama variabel dari .env.example; .env.local tidak boleh masuk Git. APP_URL adalah origin callback tepercaya. NEXT_PUBLIC_SUPABASE_URL/PUBLISHABLE_KEY boleh di browser; secret Microsoft, CRON_SECRET dan kunci privileged harus server-only. Flag email tetap false.
 
-Bucket certificate-documents tetap privat, PDF maksimum 10 MiB, restrictive deny untuk anon/authenticated. Upload/download/signed URL belum aktif; tidak ada dokumen nyata diunggah.
+Bucket certificate-documents privat, PDF maksimum 10 MiB, akses mengikuti parent/RLS dan signed URL 60 detik. Dokumen yatim/tidak sah ditolak. Belum ada PDF bisnis nyata yang diberikan; uji positif SQL hanya metadata sintetis dan browser menguji penolakan berkas tidak valid. Bucket import-sources privat, 5 MiB/2.500 baris per CSV/XLSX. Tidak ada kunci privileged pada aplikasi.
 
 [Microsoft 365](docs/microsoft-365.md) menunggu Entra tenant/app, consent organisasi, mailbox dan penyimpanan token. [GitHub/Vercel](docs/deployment.md) menunggu hak publikasi serta hosting perusahaan yang sesuai. Tidak ada email dikirim atau cron diaktifkan. Menu tahap berikutnya berlabel “Nanti”.
 
@@ -113,7 +126,18 @@ npm run test:e2e
 
 Docker/Podman tidak tersedia sehingga startup/lint/reset database lokal belum terverifikasi. Suite pgTAP dijalankan pada development melalui konektor dan rollback seluruh fixture. CLI belum login/link; sesi konektor tidak otomatis memberi sesi CLI. Setelah login resmi gunakan supabase link --project-ref vzxmnkmvcbzxrkzdtxuy, lalu periksa migration list. Jangan menerapkan ulang migrasi tercatat.
 
-Windows dapat memakai $env:PLAYWRIGHT_CHANNEL='msedge'. Empat browser tests anonim berjalan tanpa akun. Sembilan authenticated tests memerlukan fixture development terotorisasi terpisah dan dilewati bila .tools/phase02-identities.json tidak ada. Tidak ada pembuatan akun otomatis pada CI. Hasil sesi ini: 19 unit/security dan 13 browser lulus, suite RLS lulus, lint/typecheck/build lulus. CI cloud belum dijalankan.
+Windows dapat memakai $env:PLAYWRIGHT_CHANNEL='msedge'. Empat browser tests anonim berjalan tanpa akun. Enam belas authenticated tests memerlukan fixture development terotorisasi terpisah dan dilewati bila .tools/phase02-identities.json tidak ada. Tidak ada pembuatan akun otomatis pada CI. Hasil tahap 03+04: **51 unit/security dan 20 browser lulus**, suite SQL RLS operasional lulus, lint/typecheck/build lulus, audit dependency produksi 0 vulnerabilities. Percobaan ulang akhir suite SQL tahap 02 terkendala konektor; sembilan browser regresi tahap 02 lulus. CI cloud belum dijalankan. Rincian/batas verifikasi ada di laporan tahap 03+04.
+
+## Alur impor privat
+
+1. Admin memilih cabang dan domain, mengunduh template, lalu mengunggah CSV/XLSX. Template klien memakai tepat 14 header kerangka pengguna. Referensi pelanggan/katalog/AM harus ditinjau, tidak dibuat otomatis dari teks.
+2. Biner upload masuk bucket privat; preview menyimpan hash, koordinat, raw values, normalized values dan isu. File/hash berulang mengembalikan batch yang sama tanpa menimpa review. Untuk workbook, Data dipakai bila tersedia; workbook master saat ini hanya mengambil PT & PTT Reguler.
+3. Reviewer memeriksa setiap identitas, NPP teks, katalog, aset, tanggal dan relasi. SIAP_TINJAU tidak sama dengan approval. Koreksi normalized menyimpan provenance/audit, sementara raw values tetap.
+4. Commit hanya baris yang sudah disetujui, dengan konfirmasi IMPOR DPS DEVELOPMENT dan target development yang disetujui. Seluruh batch atomik/idempoten. Impor tidak mengaktifkan pegawai, mengesahkan dokumen atau membuat Auth.
+
+Sumber sesi ini: master 39 (24 PT, 15 PTT Regular), kompetensi 54 (50 berjangka, empat lifetime), kalibrasi 206. Semuanya pending di staging sesuai arahan pengguna, termasuk 39 master yang secara struktur siap. Tiga pemetaan NPP pada 13 baris sudah disetujui; pemetaan pegawai/katalog/aset operasional dan approval impor masih terpisah. Biner sumber lokal belum diunggah melalui alur browser; raw rows dan hash telah disimpan privat oleh operator. Tidak ada sumber/data privat di Git atau bundel frontend.
+
+Lifetime tanpa expiry/interval dikecualikan dari bucket waktu. Barang Baik/Terpakai bukan bukti hasil kalibrasi layak. Peristiwa gagal/kedaluwarsa atau peristiwa terbaru pending tidak memberi clearance aman. Nilai peluang dashboard mengecualikan contoh dan menampilkan Belum ada data jika tidak ada sertifikat klien riil. Folder Drive merupakan referensi sumber yang tetap tunduk izin Google Drive.
 
 ## Berikutnya
 
@@ -121,4 +145,4 @@ Organisasi perlu menyediakan akun Auth resmi dan bootstrap Admin pertama melalui
 
 Leaked-password protection belum aktif dan sempat memunculkan WARN ketika akun uji tersedia; fitur memerlukan [Supabase Pro atau lebih tinggi](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). Sesudah cleanup, security advisor hanya memuat INFO ledger audit private tanpa policy, yang sengaja menolak client. Paket tetap Free sesuai arahan pengguna; unused indexes pada database kosong bukan benchmark produksi.
 
-**Prompt 03 — Sertifikat Klien, Kompetensi Personil, dan Kalibrasi Alat CRUD** belum dimulai.
+Tahap berikutnya: review/mapping dan arahan promosi data kanonis, verifikasi PDF yang benar-benar diberikan, provisioning akun organisasi, lalu integrasi Microsoft 365/pengingat sesuai persetujuan terpisah. Laporan QSHE/eksekutif penuh tetap tahap lanjutan.

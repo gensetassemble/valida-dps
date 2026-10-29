@@ -17,6 +17,16 @@ const names: Record<string, string> = {
   roles: "Peran",
   profil: "Profil Saya",
   audit: "Audit Trail",
+  "sertifikat-klien": "Sertifikat Klien",
+  "kompetensi-personil": "Kompetensi Personil",
+  "kalibrasi-alat": "Kalibrasi Alat",
+  "peristiwa-kalibrasi": "Peristiwa Kalibrasi",
+  "pipeline-perpanjangan": "Pipeline Perpanjangan",
+  "impor-data": "Impor Data",
+  baru: "Tambah",
+  ubah: "Ubah",
+  matriks: "Matriks",
+  kalibrasi: "Kalibrasi",
 };
 export function Breadcrumbs() {
   const parts = usePathname().split("/").filter(Boolean);

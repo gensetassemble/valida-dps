@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { recordSchema } from "./validation";
 import { saveRecord } from "./actions";
 import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
+import { addMonths, validDate } from "@/lib/domain/validity";
+import { formatBusinessDate } from "@/lib/format";
 type Option = { value: string; label: string };
 function Lookup({
   entity,
@@ -128,6 +130,7 @@ function initialValue(
   if (field.key === "reminder_days") return "90,60,30,0";
   if (field.key === "verification_status") return "pending";
   if (field.key === "employment_status") return "unknown";
+  if (field.key === "validity_kind") return "term";
   if (field.key === "effective_from")
     return new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Makassar",
@@ -192,6 +195,25 @@ export function RecordForm({
     resolver: zodResolver(recordSchema(entity, editing)),
   });
   const [error, setFailure] = useState<string>();
+  const [calibrationDate, issueDate, months, calculationBase] = useWatch({
+    control,
+    name: [
+      "calibration_date",
+      "issue_date",
+      "interval_months",
+      "calculation_base",
+    ],
+  });
+  const baseDate =
+    calculationBase === "issue_date" ? issueDate : calibrationDate;
+  const calculated =
+    typeof baseDate === "string" &&
+    validDate(baseDate) &&
+    Number.isInteger(Number(months)) &&
+    Number(months) > 0 &&
+    Number(months) <= 600
+      ? addMonths(baseDate, Number(months))
+      : null;
   const [confirm, setConfirm] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -366,6 +388,18 @@ export function RecordForm({
             );
           })}
         </div>
+        {entity.key === "riwayat-kalibrasi" && (
+          <p className="rounded-lg border border-border bg-slate-50 p-3 text-xs">
+            Tanggal hasil perhitungan kalender:{" "}
+            <strong>
+              {calculated
+                ? formatBusinessDate(calculated)
+                : "Pilih tanggal dasar dan interval positif."}
+            </strong>
+            . Tanggal ini digunakan bila tanggal akhir dikosongkan. Perbedaan
+            dengan dokumen harus dijelaskan sebelum verifikasi.
+          </p>
+        )}
         {error && (
           <p
             role="alert"

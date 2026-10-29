@@ -58,18 +58,19 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       {
         label: "Sertifikat Klien",
+        href: "/sertifikat-klien",
         icon: FileCheck2,
         roles: ["admin", "account_manager", "qshe", "branch_head"],
-        future: true,
       },
       {
         label: "Pipeline Perpanjangan",
+        href: "/pipeline-perpanjangan",
         icon: Workflow,
         roles: ["admin", "account_manager", "branch_head"],
-        future: true,
       },
       {
         label: "Kompetensi Personil",
+        href: "/kompetensi-personil",
         icon: UserRoundCheck,
         roles: [
           "admin",
@@ -79,10 +80,10 @@ const groups: { label: string; items: Item[] }[] = [
           "inspector",
           "branch_head",
         ],
-        future: true,
       },
       {
         label: "Kalibrasi Alat",
+        href: "/kalibrasi-alat",
         icon: Gauge,
         roles: [
           "admin",
@@ -91,7 +92,6 @@ const groups: { label: string; items: Item[] }[] = [
           "qshe",
           "branch_head",
         ],
-        future: true,
       },
     ],
   },
@@ -109,6 +109,12 @@ const groups: { label: string; items: Item[] }[] = [
         href: "/master-data",
         icon: Database,
         roles: ALL_ROLES,
+      },
+      {
+        label: "Impor Data",
+        href: "/impor-data",
+        icon: Database,
+        roles: ["admin"],
       },
     ],
   },
@@ -425,14 +431,14 @@ export function AppShell({
         </header>
         <main
           id="konten-utama"
-          className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8"
+          className="mx-auto min-w-0 w-full max-w-[1600px] p-4 sm:p-6 lg:p-8"
         >
           {children}
         </main>
         <footer className="mx-4 mt-6 flex items-center justify-between border-t border-border py-5 text-[10px] text-muted-foreground sm:mx-6">
           <span>VALIDA · PT SUCOFINDO Cabang Denpasar</span>
           <span className="flex items-center gap-1">
-            Tahap 02 <ChevronRight size={11} /> Master Data
+            VALIDA <ChevronRight size={11} /> DPS
           </span>
         </footer>
       </div>
