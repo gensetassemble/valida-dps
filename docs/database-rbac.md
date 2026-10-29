@@ -2,6 +2,8 @@
 
 Sumber otoritatif adalah migrasi SQL berurutan; tipe database dihasilkan dari development aktual. Seluruh **27 tabel public** mempunyai RLS. Riwayat implementasi tahap 02 di bawah tetap menjadi fondasi; perluasan operasional dijelaskan pada bagian berikut dan [laporan tahap 03+04](phase34-report.md).
 
+Pembaruan 29 Oktober 2026 menambahkan Super Admin (IT Officer), Tester, Kepala Bidang dan Kepala UP. IT Officer mewarisi administrasi hanya pada cabang yang ditugaskan; tiga peran lain mewarisi baca bisnis seluruh DPS sesuai arahan pengguna. PTK memakai hak PJ Peralatan/Kalibrasi yang sudah ada. [Rincian akun contoh dan verifikasi](development-accounts.md).
+
 ## Perluasan operasional tahap 03+04
 
 | Entitas | Perilaku dan relasi tambahan |

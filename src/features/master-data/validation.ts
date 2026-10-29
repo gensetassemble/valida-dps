@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { EntityConfig, Field } from "./registry";
+import { ALL_ROLES } from "@/lib/auth/permissions";
 import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
@@ -67,16 +68,7 @@ function fieldSchema(field: Field) {
   if (field.kind === "lookup")
     schema =
       field.lookup === "roles"
-        ? z.enum([
-            "admin",
-            "account_manager",
-            "hrga",
-            "coordinator",
-            "qshe",
-            "equipment_manager",
-            "inspector",
-            "branch_head",
-          ])
+        ? z.enum(ALL_ROLES)
         : z.uuid("ID pilihan tidak valid.");
   if (field.key === "id") schema = z.uuid("UUID akun Auth tidak valid.");
   if (field.required && field.kind === "text")

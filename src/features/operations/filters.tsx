@@ -32,6 +32,25 @@ export async function OperationalFilters({
         : [["portfolio", "portfolios", "code", "Portofolio"]];
   const options = await Promise.all(
     keys.map(async ([param, table, label, title]) => {
+      if (param === "am") {
+        // Derive labels from authorized certificates; reading profiles would
+        // offer the caller's own name even when that caller is not an AM.
+        const { data } = await db
+          .from("client_certificate_display_records")
+          .select("account_manager_id,account_manager_name")
+          .eq("branch_code", branch)
+          .order("account_manager_name")
+          .limit(1000);
+        const unique = new Map<string, Record<string, string>>();
+        for (const row of data || []) {
+          if (row.account_manager_id && row.account_manager_name)
+            unique.set(String(row.account_manager_id), {
+              id: String(row.account_manager_id),
+              full_name: String(row.account_manager_name),
+            });
+        }
+        return { param, title, label, rows: [...unique.values()].slice(0, 100) };
+      }
       let q = db
         .from(table)
         .select("id," + label)

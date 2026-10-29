@@ -6,6 +6,8 @@ Aplikasi internal PT SUCOFINDO Cabang Denpasar (DPS), wilayah Bali, NTB dan NTT.
 
 **Keadaan sumber: 299 baris staging, 0 impor kanonis.** Master 39 ditahan sesuai arahan pengguna; 13 koreksi pemetaan kompetensi sudah disetujui dan tersimpan. Enam sertifikat `[CONTOH]` dipertahankan untuk demonstrasi development; nilainya tidak masuk peluang riil. Email/cron/produksi belum diaktifkan.
 
+**Pembaruan akun development, 29 Oktober 2026:** pengguna meminta sepuluh akun contoh yang dipertahankan: Tester, Super Admin/IT Officer, QSHE, HRGA, Koordinator, AM, PTK, Kepala Bidang, Kepala UP, Kepala Cabang. [Cakupan dan verifikasi akun](docs/development-accounts.md). Kredensial hanya di berkas lokal privat `private-exports/akun-development.md`, tidak masuk Git. Akun resmi organisasi tetap terpisah dari akun contoh ini.
+
 [Laporan tahap 03+04 dan hasil uji](docs/phase34-report.md) · [Skema dan matriks akses](docs/database-rbac.md) · [Riwayat tahap 02](docs/phase02-report.md) · [Riwayat tahap 01](docs/setup-report.md)
 
 ## Status aktual
