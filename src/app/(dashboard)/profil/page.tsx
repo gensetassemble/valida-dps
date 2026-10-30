@@ -2,6 +2,7 @@ import { requireActiveUser } from "@/lib/auth/guards";
 import { ROLE_LABELS } from "@/lib/auth/permissions";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ChangePasswordForm } from "@/components/shared/change-password-form";
 export default async function ProfilePage() {
   const { user, profile, scopes } = await requireActiveUser();
   return (
@@ -34,6 +35,14 @@ export default async function ProfilePage() {
             ))}
           </ul>
         </div>
+      </Card>
+      <Card className="mt-5 max-w-3xl p-5">
+        <h2 className="text-base font-bold text-brand-navy">Ganti password</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Ubah password akun Anda sendiri. Setelah berhasil, Anda akan kembali
+          ke halaman login untuk masuk menggunakan password baru.
+        </p>
+        <ChangePasswordForm />
       </Card>
     </>
   );
