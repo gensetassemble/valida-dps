@@ -191,7 +191,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       text("model", "Model"),
       text("serial", "Nomor seri"),
       ...monitoringAssetFields,
-      text("measurement_range", "Rentang ukur"),
+      { ...text("measurement_range", "Rentang ukur / kapasitas"), max: 2000 },
       text("location", "Lokasi"),
       ref("portfolio_id", "Portofolio", "portofolio"),
       text("unit", "Sub unit kerja pemilik"),

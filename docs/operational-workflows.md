@@ -38,7 +38,13 @@ Penggabungan pegawai dilakukan hanya setelah konfirmasi identitas tertentu. Reka
 
 Catatan operasional ditampilkan pada halaman, formulir dan ekspor. Diagnostik impor (baris Excel, staging, kandidat aset) tidak ditampilkan; menyimpan formulir tetap mempertahankan komponen diagnostik yang sudah ada sebagai provenance.
 
-## Pengelolaan HRGA
+## Preview dan PDF permintaan kalibrasi
+
+Setelah Simpan draf, formulir tetap terbuka dan menyediakan Preview formulir serta Unduh PDF. Preview besar menampilkan PDF yang sama dengan berkas unduhan, memakai template FOR/SCI-UMA/197 Rev.02 yang diberikan pengguna. Setelah isian diubah, simpan kembali untuk memperbarui preview dan unduhan. Tombol juga tersedia pada riwayat permintaan, termasuk permintaan yang sudah ditutup. Nilai diambil dari draf yang dibaca melalui sesi pengguna dan RLS; respons PDF privat, tidak dicache. Isian panjang dipindahkan ke lampiran, bukan dipotong. Nama tercetak tidak menggantikan tanda tangan pengaju/Kabid atau gate dokumen bertanda tangan.
+
+Pada formulir alat, Rentang ukur / kapasitas menyediakan simbol SI, satuan yang diterima bersama SI, simbol historis yang dapat dibaca pengguna, serta Satuan lain. Simbol mengikuti kapitalisasi BIPM; satuan historis non-SI dipisahkan dan tidak dikonversi otomatis. Teks sumber kompleks tetap utuh sampai diedit. Nilai dan satuan disimpan bersama pada kolom range yang sudah ada, sehingga tabel monitoring, ekspor, dan PDF tetap konsisten. Spesifikasi tambahan digunakan untuk dimensi/keterangan di luar rentang; isian sumber lama tidak digabung atau ditulis ulang otomatis.
+
+## Pengelolaan status personil oleh HRGA
 
 Pada Master Data → Direktori Pegawai, HRGA/admin memilih **Status personil**. Pilih Nonaktif beserta alasan Resign/Pindah/Lainnya, tanggal efektif hari ini atau sebelumnya (WITA), dan keterangan minimal delapan karakter. Pengaktifan kembali memakai alasan Aktif kembali. Tanggal tidak boleh mendahului keputusan terakhir; penjadwalan masa depan belum tersedia. Setiap keputusan tercatat dalam riwayat yang tidak dapat ditulis langsung atau dihapus melalui aplikasi. Perubahan status sendiri memerlukan administrator lain.
 

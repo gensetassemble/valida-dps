@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { masterClient } from "@/features/master-data/server";
 import { calibrationRequestHtml } from "@/features/workflows/print-form";
+export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   await requireActiveUser();
   const id = z.uuid().safeParse(request.nextUrl.searchParams.get("id"));
@@ -14,6 +15,20 @@ export async function GET(request: NextRequest) {
     .eq("id", id.data)
     .maybeSingle();
   if (!data) return new NextResponse(null, { status: 404 });
+  if (request.nextUrl.searchParams.get("format") === "pdf") {
+    const { calibrationRequestPdf, calibrationRequestFilename } = await import("@/features/workflows/request-pdf");
+    const pdf = await calibrationRequestPdf(data);
+    return new NextResponse(Buffer.from(pdf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `${request.nextUrl.searchParams.get("download") === "1" ? "attachment" : "inline"}; filename="${calibrationRequestFilename(data)}"`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "default-src 'none'; frame-ancestors 'self'; base-uri 'none'",
+      },
+    });
+  }
   return new NextResponse(calibrationRequestHtml(data), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",

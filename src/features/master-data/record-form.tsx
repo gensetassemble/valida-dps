@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { recordSchema } from "./validation";
 import { saveRecord } from "./actions";
+import { MeasurementRangeInput } from "@/features/operations/measurement-range-input";
 import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
@@ -528,6 +529,8 @@ export function RecordForm({
                         </button>
                       )}
                     </>
+                  ) : field.key === "measurement_range" ? (
+                    <Controller control={control} name={field.key} render={({ field: input }) => <MeasurementRangeInput id={field.key} value={String(input.value || "")} branch={branch} onChange={input.onChange} invalid={!!message} describedBy={common["aria-describedby"]}/>}/>
                   ) : field.kind === "boolean" ? (
                     <Controller
                       control={control}

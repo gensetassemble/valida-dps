@@ -87,9 +87,10 @@ export const monitoringAssetFields: Field[] = [
   },
   {
     key: "specification_size",
-    label: "Ukuran / spesifikasi",
+    label: "Spesifikasi tambahan (opsional)",
     kind: "text",
     max: 200,
+    hint: "Untuk dimensi fisik atau keterangan lain. Nilai kemampuan ukur diisi pada Rentang ukur / kapasitas.",
   },
   {
     key: "item_condition",

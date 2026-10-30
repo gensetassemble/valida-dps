@@ -21,6 +21,7 @@ supabase/.branches/
 *.pfx
 *.p12
 *.pdf
+!src/assets/forms/FOR-SCI-UMA-197-Rev-02.pdf
 *.xlsx
 *.xls
 .DS_Store

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { saveWorkflow } from "./actions";
+import { CalibrationFormPreview } from "./form-preview";
 import {
   REQUEST_STATUSES,
   RENEWAL_STATUSES,
@@ -37,6 +38,8 @@ export function WorkflowDialog({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [document, setDocument] = useState("");
+  const [dirty, setDirty] = useState(false);
+  const [savedMessage, setSavedMessage] = useState("");
   const router = useRouter();
   const status = String(
     current?.status || (kind === "calibration" ? "draft" : "unprocessed"),
@@ -101,8 +104,10 @@ export function WorkflowDialog({
       if (result.error) setError(result.error);
       else if (result.record) {
         setCurrent(result.record);
+        setDirty(false);
+        setSavedMessage("Draf tersimpan. Preview dan PDF sudah mengikuti isian ini.");
         router.refresh();
-        if (current) setOpen(false);
+        if (current && kind !== "calibration") setOpen(false);
       }
     } catch {
       setError("Proses belum tersimpan. Silakan coba lagi.");
@@ -163,6 +168,8 @@ export function WorkflowDialog({
           setCurrent(record);
           setDocument("");
           setError("");
+          setDirty(false);
+          setSavedMessage("");
           setOpen(true);
         }}
       >
@@ -196,6 +203,7 @@ export function WorkflowDialog({
             void save(e.currentTarget);
           }}
           className="space-y-4"
+          onChange={() => { setDirty(true); setSavedMessage(""); }}
         >
           {kind === "calibration" && (
             <dl className="grid gap-2 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-2">
@@ -222,16 +230,6 @@ export function WorkflowDialog({
           {current && (
             <p className="rounded-lg bg-slate-50 p-3 text-sm font-semibold">
               Status: {labels[status]}
-              {kind === "calibration" && (
-                <a
-                  className="ml-4 text-xs underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={"/api/workflows/form?id=" + current.id}
-                >
-                  Buka / cetak formulir
-                </a>
-              )}
             </p>
           )}
           {kind === "calibration" && (
@@ -369,6 +367,8 @@ export function WorkflowDialog({
               {error}
             </p>
           )}
+          {kind === "calibration" && savedMessage && <p role="status" className="text-sm text-emerald-800">{savedMessage}</p>}
+          {kind === "calibration" && current && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3"><CalibrationFormPreview id={String(current.id)} version={Number(current.version)} disabled={dirty || busy}/>{dirty && <span className="text-xs text-amber-900">Simpan perubahan untuk memperbarui preview dan PDF.</span>}</div>}
           <div className="flex justify-end gap-2">
             <Button
               type="button"

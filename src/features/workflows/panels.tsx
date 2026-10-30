@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { WorkflowDialog } from "./dialog";
 import { REQUEST_STATUSES, RENEWAL_STATUSES } from "./model";
 import { RenewalCompletionDialog } from "./renewal-completion-dialog";
+import { CalibrationFormPreview } from "./form-preview";
 
 export async function WorkflowPanel({
   kind,
@@ -164,6 +165,7 @@ export async function WorkflowPanel({
               )}
           </div>
           <p className="mt-2 whitespace-pre-wrap text-xs">{String(r.notes)}</p>
+          {kind === "calibration" && <div className="mt-3 flex flex-wrap gap-2"><CalibrationFormPreview id={String(r.id)} version={Number(r.version)}/></div>}
           {kind === "personnel" && hrga && r.status === "processing" && <div className="mt-3"><RenewalCompletionDialog branch={branch} caseId={String(r.id)} version={Number(r.version)} title={String(row.original_title)} issuer={String(row.issuer || "")}/></div>}
           {r.signed_document_id ? (
             <a
