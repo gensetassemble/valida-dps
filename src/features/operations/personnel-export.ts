@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { businessNotes } from "./notes";
 import {
   driveFolder,
   remainingDays,
@@ -128,7 +129,7 @@ export function addPersonnelSheet(
         ? { text: url, hyperlink: url, tooltip: "Buka folder sertifikat" }
         : null,
       String(record.certificate_number || ""),
-      String(record.notes || ""),
+      businessNotes(record.notes),
     ];
     const row = sheet.addRow(values as ExcelJS.CellValue[]);
     row.font = { name: "Arial", size: 10 };

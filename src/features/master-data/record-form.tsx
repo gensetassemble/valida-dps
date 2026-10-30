@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,8 @@ import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
 import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
+import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
+import { businessNotes } from "@/features/operations/notes";
 import {
   initialCalibrationFields,
   measurementKeys,
@@ -126,6 +128,16 @@ function initialValue(
 ) {
   if (field.kind === "password") return "";
   const value = row?.[field.key];
+  if (
+    field.key === "notes" &&
+    [
+      "kalibrasi-alat",
+      "riwayat-kalibrasi",
+      "kompetensi-personil",
+      "sertifikat-klien",
+    ].includes(entity)
+  )
+    return businessNotes(value);
   if (field.kind === "boolean")
     return typeof value === "boolean"
       ? value
@@ -178,7 +190,7 @@ export function RecordForm({
   const equipmentIdentity = entity.fields.filter((f) =>
     ["name", "portfolio_id"].includes(f.key),
   );
-  const formFields = (
+  const unsortedFields = (
     initialEquipment
       ? [
           ...equipmentIdentity,
@@ -201,6 +213,31 @@ export function RecordForm({
         ? { ...field, label: field.label + " (parameter 1)" }
         : field,
   );
+  const identityKeys = [
+    "name",
+    "tag",
+    "asset_id",
+    "serial",
+    "brand",
+    "model",
+    "portfolio_id",
+    "responsible_employee_id",
+    "unit",
+    "location",
+  ];
+  const formFields =
+    entity.key === "kalibrasi-alat"
+      ? [...unsortedFields].sort((a, b) => {
+          const rank = (f: Field) =>
+            identityKeys.includes(f.key)
+              ? identityKeys.indexOf(f.key)
+              : f.key.startsWith("initial_")
+                ? 100 +
+                  initialCalibrationFields.findIndex((x) => x.key === f.key)
+                : 50 + entity.fields.findIndex((x) => x.key === f.key);
+          return rank(a) - rank(b);
+        })
+      : unsortedFields;
   const editableFields = formFields.filter(
     (field) => !editing || (field.key !== entity.idKey && !field.immutable),
   );
@@ -227,7 +264,9 @@ export function RecordForm({
     resolver: zodResolver(recordSchema(entity, editing)),
   });
   const [error, setFailure] = useState<string>();
+  const [overrideResponsible, setOverrideResponsible] = useState(false);
   const initialEnabled = useWatch({ control, name: "initial_enabled" });
+  const portfolio = useWatch({ control, name: "portfolio_id" });
   const calibrationDate = useWatch({
     control,
     name: initialEquipment ? "initial_calibration_date" : "calibration_date",
@@ -342,9 +381,7 @@ export function RecordForm({
         })}
       >
         <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] leading-5 text-muted-foreground">
-          Cabang <strong className="text-brand-navy">{branch}</strong>.
-          Perubahan dicatat pada audit. Identitas dan relasi induk tidak
-          dipindahkan melalui formulir ubah.
+          Cabang <strong className="text-brand-navy">{branch}</strong>
         </div>
         {multipleParameters && (
           <p className="rounded-lg bg-slate-50 p-3 text-xs">
@@ -375,20 +412,27 @@ export function RecordForm({
           }
           className={
             entity.key === "kalibrasi-alat"
-              ? "overflow-hidden rounded-lg border border-border"
+              ? "equipment-entry grid overflow-hidden rounded-lg border border-border md:grid-cols-2"
               : "grid gap-4 sm:grid-cols-2"
           }
         >
           {entity.key === "kalibrasi-alat" && (
             <div
               role="row"
-              className="hidden grid-cols-[minmax(160px,0.35fr)_minmax(0,1fr)] gap-5 border-b border-border bg-slate-50 p-3 text-xs font-bold sm:grid"
+              className="hidden border-b border-border bg-slate-50 p-2 text-xs font-bold sm:block md:col-span-2"
             >
-              <span role="columnheader">Parameter</span>
-              <span role="columnheader">Isian</span>
+              <span role="columnheader">
+                Identitas peralatan · Parameter / Isian
+              </span>
             </div>
           )}
           {formFields.map((field) => {
+            if (
+              entity.key === "kalibrasi-alat" &&
+              field.key === "responsibility_override_reason" &&
+              (!editing || !isAdmin || !overrideResponsible)
+            )
+              return null;
             if (field.kind === "password" && !canManagePasswords) return null;
             if (
               lifetime &&
@@ -443,136 +487,169 @@ export function RecordForm({
                   : undefined,
             };
             return (
-              <FormField
-                key={field.key}
-                layout={entity.key === "kalibrasi-alat" ? "table" : "standard"}
-                id={field.key}
-                label={field.label}
-                hint={field.hint}
-                required={field.required}
-                error={message}
-              >
-                {field.kind === "boolean" ? (
-                  <Controller
-                    control={control}
-                    name={field.key}
-                    render={({ field: input }) => (
-                      <select
-                        {...common}
-                        value={input.value ? "true" : "false"}
-                        onChange={(event) =>
-                          input.onChange(event.target.value === "true")
-                        }
-                        className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
-                      >
-                        <option value="true">
-                          {field.key === "is_active" ? "Aktif" : "Ya"}
-                        </option>
-                        <option value="false">
-                          {field.key === "is_active" ? "Nonaktif" : "Tidak"}
-                        </option>
-                      </select>
-                    )}
-                  />
-                ) : field.kind === "lookup" ? (
-                  <Controller
-                    control={control}
-                    name={field.key}
-                    render={({ field: input }) => (
-                      <Lookup
-                        entity={entity.key}
-                        field={field}
+              <Fragment key={field.key}>
+                {entity.key === "kalibrasi-alat" &&
+                  ["color", "initial_enabled"].includes(field.key) && (
+                    <div
+                      role="row"
+                      className="border-y border-border bg-slate-50 p-2 text-xs font-bold md:col-span-2"
+                    >
+                      {field.key === "color"
+                        ? "Spesifikasi & kondisi"
+                        : "Kalibrasi awal"}
+                    </div>
+                  )}
+                <FormField
+                  key={field.key}
+                  layout={
+                    entity.key === "kalibrasi-alat" ? "table" : "standard"
+                  }
+                  id={field.key}
+                  label={field.label}
+                  hint={field.hint}
+                  required={field.required}
+                  error={message}
+                >
+                  {entity.key === "kalibrasi-alat" &&
+                  field.key === "responsible_employee_id" &&
+                  !overrideResponsible ? (
+                    <>
+                      <ResponsibleCoordinator
+                        portfolio={String(portfolio || "")}
                         branch={branch}
-                        value={String(input.value || "")}
-                        onChange={input.onChange}
-                        disabled={locked}
                       />
-                    )}
-                  />
-                ) : field.kind === "integer" &&
-                  /interval|validity_months/.test(field.key) ? (
-                  <Controller
-                    control={control}
-                    name={field.key}
-                    render={({ field: input }) => (
-                      <IntervalInput
-                        id={field.key}
-                        value={input.value}
-                        onChange={input.onChange}
-                        invalid={!!message}
-                        describedBy={common["aria-describedby"]}
+                      {isAdmin && editing && (
+                        <button
+                          type="button"
+                          onClick={() => setOverrideResponsible(true)}
+                          className="text-[11px] underline"
+                        >
+                          Koreksi penanggung jawab dengan alasan
+                        </button>
+                      )}
+                    </>
+                  ) : field.kind === "boolean" ? (
+                    <Controller
+                      control={control}
+                      name={field.key}
+                      render={({ field: input }) => (
+                        <select
+                          {...common}
+                          value={input.value ? "true" : "false"}
+                          onChange={(event) =>
+                            input.onChange(event.target.value === "true")
+                          }
+                          className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+                        >
+                          <option value="true">
+                            {field.key === "is_active" ? "Aktif" : "Ya"}
+                          </option>
+                          <option value="false">
+                            {field.key === "is_active" ? "Nonaktif" : "Tidak"}
+                          </option>
+                        </select>
+                      )}
+                    />
+                  ) : field.kind === "lookup" ? (
+                    <Controller
+                      control={control}
+                      name={field.key}
+                      render={({ field: input }) => (
+                        <Lookup
+                          entity={entity.key}
+                          field={field}
+                          branch={branch}
+                          value={String(input.value || "")}
+                          onChange={input.onChange}
+                          disabled={locked}
+                        />
+                      )}
+                    />
+                  ) : field.kind === "integer" &&
+                    /interval|validity_months/.test(field.key) ? (
+                    <Controller
+                      control={control}
+                      name={field.key}
+                      render={({ field: input }) => (
+                        <IntervalInput
+                          id={field.key}
+                          value={input.value}
+                          onChange={input.onChange}
+                          invalid={!!message}
+                          describedBy={common["aria-describedby"]}
+                        />
+                      )}
+                    />
+                  ) : field.kind === "combobox" ? (
+                    <>
+                      <Input
+                        {...common}
+                        {...register(field.key)}
+                        list={field.key + "-choices"}
+                        maxLength={field.max || 200}
                       />
-                    )}
-                  />
-                ) : field.kind === "combobox" ? (
-                  <>
-                    <Input
+                      <datalist id={field.key + "-choices"}>
+                        {field.options?.map((option) => (
+                          <option value={option.value} key={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </datalist>
+                    </>
+                  ) : field.kind === "select" ? (
+                    <select
                       {...common}
                       {...register(field.key)}
-                      list={field.key + "-choices"}
-                      maxLength={field.max || 200}
-                    />
-                    <datalist id={field.key + "-choices"}>
-                      {field.options?.map((option) => (
-                        <option value={option.value} key={option.value}>
+                      className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+                    >
+                      {field.options!.map((option) => (
+                        <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
                       ))}
-                    </datalist>
-                  </>
-                ) : field.kind === "select" ? (
-                  <select
-                    {...common}
-                    {...register(field.key)}
-                    className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
-                  >
-                    {field.options!.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : field.kind === "textarea" ? (
-                  <textarea
-                    {...common}
-                    {...register(field.key)}
-                    maxLength={field.max || 2000}
-                    className="min-h-24 w-full rounded-lg border border-input bg-white p-3 text-sm"
-                  />
-                ) : (
-                  <Input
-                    {...common}
-                    type={
-                      field.kind === "integer"
-                        ? "number"
-                        : field.kind === "date"
-                          ? "date"
-                          : field.kind === "password"
-                            ? "password"
-                            : field.kind === "email"
-                              ? "email"
-                              : field.kind === "tel"
-                                ? "tel"
-                                : "text"
-                    }
-                    {...register(field.key)}
-                    autoComplete={
-                      field.kind === "password" ? "new-password" : undefined
-                    }
-                    maxLength={field.max || 254}
-                    onInput={
-                      field.kind === "date"
-                        ? (event) =>
-                            setValue(field.key, event.currentTarget.value, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            })
-                        : undefined
-                    }
-                    readOnly={field.key === endField && automaticEnd}
-                  />
-                )}
-              </FormField>
+                    </select>
+                  ) : field.kind === "textarea" ? (
+                    <textarea
+                      {...common}
+                      {...register(field.key)}
+                      maxLength={field.max || 2000}
+                      className="min-h-24 w-full rounded-lg border border-input bg-white p-3 text-sm"
+                    />
+                  ) : (
+                    <Input
+                      {...common}
+                      type={
+                        field.kind === "integer"
+                          ? "number"
+                          : field.kind === "date"
+                            ? "date"
+                            : field.kind === "password"
+                              ? "password"
+                              : field.kind === "email"
+                                ? "email"
+                                : field.kind === "tel"
+                                  ? "tel"
+                                  : "text"
+                      }
+                      {...register(field.key)}
+                      autoComplete={
+                        field.kind === "password" ? "new-password" : undefined
+                      }
+                      maxLength={field.max || 254}
+                      onInput={
+                        field.kind === "date"
+                          ? (event) =>
+                              setValue(field.key, event.currentTarget.value, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              })
+                          : undefined
+                      }
+                      readOnly={field.key === endField && automaticEnd}
+                    />
+                  )}
+                </FormField>
+              </Fragment>
             );
           })}
         </div>

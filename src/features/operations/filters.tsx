@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
+import { CompactOperationalFilters } from "./compact-filters";
 export async function OperationalFilters({
   entity,
   branch,
@@ -74,11 +75,13 @@ export async function OperationalFilters({
         };
       }
       let q = db
-        .from(table)
+        .from(
+          table === "employee_directory" ? "employee_directory_records" : table,
+        )
         .select("id," + label)
         .eq("branch_code", branch)
         .order(label)
-        .limit(100);
+        .limit(500);
       if (table === "certificate_types")
         q = q.eq(
           "category",
@@ -93,6 +96,18 @@ export async function OperationalFilters({
       };
     }),
   );
+  if (["kalibrasi-alat", "kompetensi-personil"].includes(entity))
+    return (
+      <CompactOperationalFilters
+        entity={entity}
+        branch={branch}
+        options={options.map((o) => ({
+          key: o.param,
+          label: o.title,
+          options: o.rows.map((r) => ({ value: r.id, label: r[o.label] })),
+        }))}
+      />
+    );
   return (
     <Card className="mb-4 p-4">
       <AutoFilterForm

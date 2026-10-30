@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Dialog } from "radix-ui";
 import {
   Archive,
+  Bell,
   LayoutDashboard,
   FileCheck2,
   Workflow,
@@ -48,6 +49,12 @@ const groups: { label: string; items: Item[] }[] = [
         label: "Dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
+        roles: ALL_ROLES,
+      },
+      {
+        label: "Notifikasi",
+        href: "/notifikasi",
+        icon: Bell,
         roles: ALL_ROLES,
       },
     ],

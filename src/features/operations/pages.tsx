@@ -18,10 +18,12 @@ import {
 import { hasPermission } from "@/lib/auth/permissions";
 import { DeadlineDate } from "@/components/ui/deadline-date";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
-import { driveFolder, validityLabel } from "@/lib/domain/validity";
+import { driveFolder, validityLabel, todayWita } from "@/lib/domain/validity";
 import { OperationalForm, CorrectionForm, EvidenceForm } from "./forms";
 import { OperationalFilters } from "./filters";
 import { monitoringColumns } from "./monitoring";
+import { businessNotes } from "./notes";
+import { WorkflowPanel, WorkflowOverview } from "@/features/workflows/panels";
 export async function OperationList({
   entity,
   params,
@@ -34,13 +36,14 @@ export async function OperationList({
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        {c.canWrite && (
-          <Button asChild>
-            <Link href={"/" + entity + "/baru?branch=" + c.branch}>
-              Tambah rekaman
-            </Link>
-          </Button>
-        )}
+        {c.canWrite &&
+          !["kompetensi-personil", "kalibrasi-alat"].includes(entity) && (
+            <Button asChild>
+              <Link href={"/" + entity + "/baru?branch=" + c.branch}>
+                Tambah rekaman
+              </Link>
+            </Button>
+          )}
         {entity === "kompetensi-personil" && (
           <Button asChild variant="outline">
             <Link href={"/kompetensi-personil/matriks?branch=" + c.branch}>
@@ -64,6 +67,12 @@ export async function OperationList({
         </Button>
       </div>
       <OperationalFilters entity={entity} branch={c.branch} params={params} />
+      {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
+        <WorkflowOverview
+          kind={entity === "kalibrasi-alat" ? "calibration" : "personnel"}
+          branch={c.branch}
+        />
+      )}
       <MasterPage entity={entity} params={params} />
     </>
   );
@@ -124,8 +133,36 @@ export async function OperationDetail({
   if (!c) return <AccessDenied />;
   const row = await getRecord(c.entity, c.branch, id);
   if (!row) notFound();
+  const canEditRow =
+    c.canWrite &&
+    (entity !== "sertifikat-klien" ||
+      hasPermission(c.scopes, c.branch, ["admin"]) ||
+      row.account_manager_id === c.user.id);
   const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
+  if (
+    entity === "kalibrasi-alat" &&
+    !row.responsible_employee_id &&
+    row.portfolio_id
+  ) {
+    const today = todayWita();
+    const { data } = await db
+      .from("portfolio_coordinators")
+      .select("coordinator:operational_coordinators(full_name,is_active)")
+      .eq("branch_code", c.branch)
+      .eq("portfolio_id", row.portfolio_id)
+      .eq("is_active", true)
+      .lte("effective_from", today)
+      .or("effective_until.is.null,effective_until.gte." + today)
+      .maybeSingle();
+    const coordinator = data?.coordinator as unknown as {
+      full_name: string;
+      is_active: boolean;
+    } | null;
+    if (coordinator?.is_active)
+      labels.responsible_employee_id =
+        coordinator.full_name + " (koordinator portofolio saat ini)";
+  }
   const domain =
     entity === "sertifikat-klien"
       ? "client"
@@ -186,7 +223,7 @@ export async function OperationDetail({
         {row.eligibility_status ? (
           <StatusBadge value={String(row.eligibility_status)} />
         ) : null}
-        {c.canWrite && (
+        {canEditRow && (
           <Button asChild variant="outline" size="sm">
             <Link
               href={
@@ -299,12 +336,18 @@ export async function OperationDetail({
       )}
       <Card className="mb-5 grid gap-4 p-5 sm:grid-cols-2">
         {c.entity.fields
-          .filter((f) => !["is_active", "verification_status"].includes(f.key))
+          .filter(
+            (f) =>
+              !["is_active", "verification_status"].includes(f.key) &&
+              (f.key !== "notes" || !!businessNotes(row.notes)),
+          )
           .map((f) => (
             <div key={f.key}>
               <p className="text-[11px] text-muted-foreground">{f.label}</p>
               <p className="mt-1 break-words text-sm">
-                {f.kind === "lookup" ? (
+                {f.key === "notes" ? (
+                  businessNotes(row.notes)
+                ) : f.kind === "lookup" ? (
                   labels[f.key] || "—"
                 ) : f.kind === "money" ? (
                   formatRupiah(String(row[f.key] ?? ""))
@@ -391,8 +434,9 @@ export async function OperationDetail({
       )}
       {entity === "kalibrasi-alat" && (
         <>
+          <WorkflowPanel kind="calibration" branch={c.branch} row={row} />
           <div className="mb-4 flex gap-3">
-            {c.canWrite && (
+            {canEditRow && (
               <Button asChild>
                 <Link
                   href={
@@ -416,6 +460,7 @@ export async function OperationDetail({
       )}
       {entity === "kompetensi-personil" && (
         <>
+          <WorkflowPanel kind="personnel" branch={c.branch} row={row} />
           <Card className="mb-5 p-5">
             <h2 className="text-sm font-bold">Sumber dan usulan koreksi</h2>
             {sourceFolder ? (
@@ -470,7 +515,7 @@ export async function OperationDetail({
               Belum ada dokumen PDF yang diberikan.
             </p>
           )}
-          {c.canWrite && (
+          {canEditRow && (
             <EvidenceForm domain={domain} id={id} branch={c.branch} />
           )}
         </Card>

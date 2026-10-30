@@ -10,6 +10,8 @@ const names: Record<string, string> = {
   portofolio: "Portofolio",
   pegawai: "Direktori Pegawai",
   "koordinator-operasional": "Koordinator Operasional",
+  "penetapan-koordinator": "Penetapan Koordinator",
+  notifikasi: "Notifikasi",
   "jenis-sertifikat": "Jenis Sertifikat",
   layanan: "Jenis Layanan",
   pelanggan: "Pelanggan",

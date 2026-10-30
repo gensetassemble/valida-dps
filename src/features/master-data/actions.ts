@@ -1,4 +1,5 @@
 "use server";
+import { preserveImportNotes } from "@/features/operations/notes";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -97,6 +98,26 @@ export async function saveRecord(
   if (entity.key !== "cabang" && entity.key !== "roles")
     payload.branch_code = branch;
   const db = await masterClient();
+  if (
+    scope.data.id &&
+    "notes" in payload &&
+    [
+      "kalibrasi-alat",
+      "riwayat-kalibrasi",
+      "kompetensi-personil",
+      "sertifikat-klien",
+    ].includes(entity.key)
+  ) {
+    const { data: current, error } = await db
+      .from(entity.table)
+      .select("notes")
+      .eq("id", scope.data.id)
+      .eq("branch_code", branch)
+      .maybeSingle();
+    if (error || !current)
+      return { ok: false, error: "Rekaman tidak dapat diakses." };
+    payload.notes = preserveImportNotes(current.notes, payload.notes);
+  }
   if (entity.key === "pengguna") {
     delete payload.branch_code;
     const password =
@@ -152,6 +173,7 @@ export async function saveRecord(
     }
   }
   if (entity.key === "kalibrasi-alat" && !scope.data.id) {
+    delete payload.responsibility_override_reason;
     const calibration: Record<string, unknown> = {};
     const enabled = payload.initial_enabled;
     for (const key of Object.keys(payload)) {

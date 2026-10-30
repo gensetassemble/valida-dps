@@ -15,7 +15,7 @@
 | Kepala UP | Baca seluruh bisnis DPS, sesuai pilihan pengguna |
 | Kepala Cabang | Baca seluruh bisnis DPS |
 
-Role baru `super_admin` mewarisi kemampuan `admin`; `tester`, `department_head`, dan `unit_head` mewarisi kemampuan baca `branch_head`. Pemetaan dipakai konsisten pada TypeScript dan helper RLS; batas cabang, profil/pegawai aktif, status role, pencabutan, dan larangan grant diri sendiri tetap berlaku. Penugasan dari `user_metadata` tidak digunakan. Role lama tetap tersedia.
+Role `super_admin` mewarisi kemampuan `admin`; `tester`, `department_head`, dan `unit_head` mewarisi kemampuan baca `branch_head`. Pemetaan dipakai konsisten pada TypeScript dan helper RLS; batas cabang, akun aktif, status role, pencabutan, dan larangan grant diri sendiri tetap berlaku. Aktivasi identitas pegawai bukan syarat login pada matriks terbaru. Penugasan dari `user_metadata` tidak digunakan. Role lama tetap tersedia.
 
 Migrasi aditif: `20261029002308_workflow_access_roles.sql`. PTK tetap memakai kode `equipment_manager` agar penugasan dan kebijakan yang ada kompatibel. Pilihan form role menggunakan katalog allowlist yang sama dengan guard aplikasi.
 

@@ -44,8 +44,7 @@ const notes: Field = { key: "notes", label: "Catatan", kind: "textarea" };
 const active: Field = { key: "is_active", label: "Aktif", kind: "boolean" };
 const common = {
   idKey: "id",
-  description:
-    "Pencatatan bersumber dari database dengan otorisasi cabang. Status masa berlaku dihitung otomatis dari tanggal WITA.",
+  description: "Pantau masa berlaku dan tindak lanjut sertifikat.",
   create: true,
 };
 const clientRoles = MODULE_ACCESS.clients.read;
@@ -197,6 +196,12 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       ref("portfolio_id", "Portofolio", "portofolio"),
       text("unit", "Sub unit kerja pemilik"),
       ref("responsible_employee_id", "Penanggung jawab", "pegawai", false),
+      {
+        key: "responsibility_override_reason",
+        label: "Alasan override penanggung jawab (administrator)",
+        kind: "textarea",
+        max: 2000,
+      },
       notes,
       active,
     ],

@@ -15,7 +15,7 @@ export default async function LoginPage({
     <>
       <h1 className="text-2xl font-bold">Masuk ke VALIDA</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Gunakan akun yang telah disediakan dan diaktifkan administrator.
+        Gunakan akun yang telah disediakan administrator.
       </p>
       {status && notices[status] && (
         <p role="status" className="mt-4 rounded-lg bg-muted p-3 text-sm">

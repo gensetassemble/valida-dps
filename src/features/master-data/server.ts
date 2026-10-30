@@ -229,6 +229,25 @@ export async function listRecords(
     );
   }
   const rows = (data ?? []) as DataRow[];
+  if (entity.key === "kompetensi-personil" && rows.length) {
+    const cases = await db
+      .from("personnel_renewal_cases")
+      .select("certificate_id,status")
+      .eq("branch_code", branch)
+      .in(
+        "certificate_id",
+        rows.map((r) => r.id),
+      );
+    if (cases.error) throw new Error("Status proses HRGA belum dapat dimuat.");
+    const statuses = new Map(
+      (cases.data || []).map((r) => [r.certificate_id, r.status]),
+    );
+    for (const row of rows)
+      row.renewal_process_status =
+        row.validity_kind === "lifetime"
+          ? null
+          : statuses.get(row.id) || "unprocessed";
+  }
   for (const row of rows)
     if (typeof row.previous_order_value_text === "string")
       row.previous_order_value = row.previous_order_value_text;
@@ -311,7 +330,11 @@ export async function referenceLabels(
           const target = getEntity(field.lookup!);
           if (!target) return [field.key, "Referensi tidak tersedia"];
           let query = db
-            .from(target.readTable || target.table)
+            .from(
+              target.key === "pegawai"
+                ? target.table
+                : target.readTable || target.table,
+            )
             .select(target.labelKey)
             .eq(target.idKey, String(row[field.key]));
           if (target.key !== "roles")

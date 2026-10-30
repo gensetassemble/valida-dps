@@ -23,6 +23,8 @@ import { EmptyState } from "./empty-state";
 import { Modal, ConfirmDialog } from "./modal";
 import { useToast } from "./toast";
 import { FilterBar } from "@/features/master-data/filter-bar";
+import { RENEWAL_STATUSES } from "@/features/workflows/model";
+import { businessNotes } from "@/features/operations/notes";
 import dynamic from "next/dynamic";
 const RecordForm = dynamic(
   () => import("@/features/master-data/record-form").then((m) => m.RecordForm),
@@ -82,6 +84,7 @@ export function DataTable({
   isAdmin,
   canManagePasswords = false,
   parent,
+  hideFilters = false,
 }: {
   entity: EntityConfig;
   branch: string;
@@ -91,9 +94,14 @@ export function DataTable({
   isAdmin: boolean;
   canManagePasswords?: boolean;
   parent?: { field: string; id: string };
+  hideFilters?: boolean;
 }) {
   const routeParams = useSearchParams();
-  const query = new URLSearchParams(routeParams.toString());
+  const query = new URLSearchParams(hideFilters ? "" : routeParams.toString());
+  if (hideFilters) {
+    for (const key of ["sort", "dir"])
+      if (routeParams.get(key)) query.set(key, routeParams.get(key)!);
+  }
   query.set("entity", entity.key);
   query.set("branch", branch);
   if (parent) {
@@ -102,11 +110,20 @@ export function DataTable({
   }
   const scrolling = useScrollRecords(initialData, query.toString());
   const data = scrolling.data;
+  function writable(row: DataRow) {
+    return (
+      canWrite &&
+      (!["pelanggan", "sertifikat-klien"].includes(entity.key) ||
+        isAdmin ||
+        row.account_manager_id === userId)
+    );
+  }
+  const writableRows = data.rows.filter(writable);
   const [editing, setEditing] = useState<DataRow | "new" | null>(null);
   const [viewing, setViewing] = useState<DataRow | null>(null);
   const [selection, setSelected] = useState<string[]>([]);
   const selected = selection.filter((id) =>
-    data.rows.some((row) => String(row[entity.idKey]) === id),
+    writableRows.some((row) => String(row[entity.idKey]) === id),
   );
   const [change, setChange] = useState<{
     ids: string[];
@@ -160,6 +177,31 @@ export function DataTable({
     extraLabels[field] ||
     field;
   function valueFor(row: DataRow, column: string) {
+    if (column === "notes") return businessNotes(row.notes) || "—";
+    if (entity.key === "kompetensi-personil" && column === "original_title")
+      return (
+        <span className="block max-w-72 whitespace-normal">
+          {String(row[column] || "—")}
+          {row.renewal_process_status ? (
+            <span
+              className={
+                "mt-1 block w-fit rounded-md px-2 py-1 text-[10px] font-medium " +
+                (row.renewal_process_status === "renewed"
+                  ? "bg-emerald-50 text-emerald-900"
+                  : row.renewal_process_status === "processing"
+                    ? "bg-blue-50 text-blue-900"
+                    : "bg-slate-100 text-slate-700")
+              }
+            >
+              {
+                RENEWAL_STATUSES[
+                  row.renewal_process_status as keyof typeof RENEWAL_STATUSES
+                ]
+              }
+            </span>
+          ) : null}
+        </span>
+      );
     if (column === "npp" && !row.npp) return "Non-NPP";
     if (entity.key === "kalibrasi-alat") {
       const raw = monitoringValue(row, column);
@@ -272,7 +314,10 @@ export function DataTable({
             </Button>
           )}
         </div>
-        <FilterBar entity={entity} />
+        {!hideFilters &&
+          !["kompetensi-personil", "kalibrasi-alat"].includes(entity.key) && (
+            <FilterBar entity={entity} />
+          )}
         {selected.length > 0 && mayBulk && (
           <div className="flex items-center justify-between gap-3 bg-emerald-50 px-4 py-3 text-xs">
             <span>{selected.length} rekaman dipilih yang ditampilkan.</span>
@@ -327,12 +372,12 @@ export function DataTable({
                           aria-label="Pilih semua yang ditampilkan"
                           checked={
                             data.rows.length > 0 &&
-                            selected.length === data.rows.length
+                            selected.length === writableRows.length
                           }
                           onChange={(event) =>
                             setSelected(
                               event.target.checked
-                                ? data.rows.map((row) =>
+                                ? writableRows.map((row) =>
                                     String(row[entity.idKey]),
                                   )
                                 : [],
@@ -409,6 +454,7 @@ export function DataTable({
                             aria-label={`Pilih ${name}`}
                             type="checkbox"
                             checked={selected.includes(id)}
+                            disabled={!writable(row)}
                             onChange={(event) =>
                               setSelected((current) =>
                                 event.target.checked
@@ -456,7 +502,7 @@ export function DataTable({
                           >
                             <Eye size={15} />
                           </Button>
-                          {canWrite && (
+                          {writable(row) && (
                             <>
                               <Button
                                 size="icon"

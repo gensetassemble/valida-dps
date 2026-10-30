@@ -18,7 +18,7 @@ Instruksi selanjutnya mengimpor data operasional dan menghapus tahap Perlu Verif
 | operational_documents                  | Parent domain/record terotorisasi, objek PDF privat; metadata/aktor diikat server/trigger; signed URL pendek                                                                                             |
 | renewal_opportunities → renewal_events | Satu peluang per sertifikat klien, mengikuti akses client/AM saat ini; tahap hanya melalui gerbang RPC, histori append-only                                                                              |
 
-View operasional memakai security_invoker. Ringkasan dashboard/ekspor mengikuti baris yang dapat dibaca pemanggil. Helper internal privileged berada di schema private, search_path kosong, grant minimum dan pemeriksaan peran/identitas; wrapper public invoker. Label AM dibaca hanya untuk pelanggan yang sudah berhak diakses, tanpa membuka directory kepada AM.
+View operasional memakai security_invoker. Ringkasan dashboard/ekspor mengikuti baris yang dapat dibaca pemanggil. Helper internal privileged berada di schema private, search_path kosong, grant minimum dan pemeriksaan peran/identitas; wrapper public invoker. Matriks terbaru mengizinkan baca direktori organisasi pada cabang akun, termasuk AM/PTK; hal itu tidak memberikan akses ke sertifikat personil di luar perannya.
 
 Storage import-sources hanya Admin cabang. Aplikasi tidak dapat menghapus sumber nyata; penghapusan objek hanya batch sintetis yang secara eksplisit ditandai operator database. Storage certificate-documents memerlukan metadata dengan parent yang dapat diakses; policy restrictive tetap menolak objek yatim. Tidak ada bucket publik.
 
@@ -46,16 +46,16 @@ Directory pegawai tidak otomatis membuat akun. Satu orang tidak digandakan untuk
 
 ## Matriks bisnis
 
-Hak memerlukan profil, pegawai, role dan cabang aktif. Portofolio berarti penugasan terverifikasi yang masih efektif. Beberapa role memberikan gabungan hak pada cabang masing-masing.
+Hak memerlukan profil akun, role dan cabang aktif. Aktivasi identitas pegawai tidak menjadi gerbang login. Portofolio berarti penugasan terverifikasi yang masih efektif. Beberapa role memberikan gabungan hak pada cabang masing-masing.
 
 | Role               | Pelanggan/kontak/sertifikat klien                        | Directory/kompetensi                                        | Alat/kalibrasi                                    | Pengguna/role/audit                                |
 | ------------------ | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
 | Admin              | Baca/tulis cabang grant                                  | Baca/tulis cabang grant                                     | Baca/tulis cabang grant                           | Kelola orang lain, baca audit cabang               |
-| Account Manager    | Baca/tulis pelanggan yang ditugaskan; owner/cabang tetap | Tidak ada                                                   | Tidak ada                                         | Baca profil/grant sendiri                          |
+| Account Manager    | Baca/tulis pelanggan yang ditugaskan; owner/cabang tetap | Baca direktori; tanpa kompetensi                            | Tidak ada                                         | Baca profil/grant sendiri                          |
 | HRGA               | Tidak ada                                                | Baca/tulis personil cabang, penugasan personnel             | Tidak ada                                         | Baca profil/grant sendiri                          |
 | Koordinator        | Tidak ada                                                | Baca personil portofolio; tidak menyetujui kompetensi resmi | Baca portofolio                                   | Baca profil/grant sendiri                          |
 | QSHE               | Baca portofolio                                          | Baca portofolio                                             | Baca portofolio                                   | Baca profil/grant sendiri                          |
-| PJ Peralatan       | Tidak ada                                                | Tidak ada hak directory bisnis                              | Baca/tulis portofolio; pengalihan aset oleh Admin | Baca profil/grant sendiri                          |
+| PJ Peralatan       | Tidak ada                                                | Baca direktori; tanpa kompetensi                            | Baca/tulis portofolio; pengalihan aset oleh Admin | Baca profil/grant sendiri                          |
 | Personil/Inspector | Tidak ada                                                | Baca sendiri                                                | Tidak ada                                         | Baca profil/grant sendiri                          |
 | Kepala Cabang      | Baca bisnis cabang                                       | Baca bisnis cabang                                          | Baca bisnis cabang                                | Baca profil/grant sendiri; tanpa pengelolaan/audit |
 | Anon/nonaktif      | Tidak ada                                                | Tidak ada                                                   | Tidak ada                                         | Tidak ada data organisasi                          |
@@ -67,7 +67,7 @@ Matriks menggambarkan RLS domain yang sudah diterapkan. UI tahap 02 hanya master
 ## Aturan mutation
 
 - Admin hanya cabang eksplisit dan tidak dapat self-grant atau menaikkan akses dengan perubahan profil sendiri.
-- Aktivasi profile memerlukan pegawai aktif, employment_status active, verification_status verified dan email cocok dengan UUID Auth yang sudah disediakan.
+- Akun yang disediakan administrator dapat dipakai tanpa aktivasi identitas pegawai. Email profil harus sesuai akun Auth; akun nonaktif/arsip dan grant yang dicabut tidak memiliki akses bisnis.
 - Trigger menetapkan/mempertahankan aktor dan waktu created/updated, verification serta grant/revoke; client tidak dapat memalsukannya.
 - Penugasan coordinator/qshe/equipment_responsible khusus Admin; HRGA hanya personnel, sehingga tidak membuka scope monitoring sendiri.
 - Identitas/cabang/parent tidak dapat dipindah melalui update biasa. Kategori type yang sudah direferensikan tidak dapat diubah.

@@ -20,9 +20,9 @@ export function FormField({
     return (
       <div
         role="row"
-        className="grid min-w-0 gap-2 border-b border-border p-3 last:border-b-0 sm:grid-cols-[minmax(160px,0.35fr)_minmax(0,1fr)] sm:gap-5"
+        className="grid min-w-0 gap-1 border-b border-border p-2 last:border-b-0 sm:grid-cols-[minmax(120px,0.36fr)_minmax(0,1fr)] sm:gap-3 md:border-r"
       >
-        <div role="rowheader" className="text-xs font-semibold sm:pt-3">
+        <div role="rowheader" className="text-xs font-semibold sm:pt-2">
           <label htmlFor={id}>
             {label}
             {required && (

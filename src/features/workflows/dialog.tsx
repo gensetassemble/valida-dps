@@ -1,0 +1,389 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { saveWorkflow } from "./actions";
+import {
+  REQUEST_STATUSES,
+  RENEWAL_STATUSES,
+  requestTransitions,
+  renewalTransitions,
+} from "./model";
+type Row = Record<string, unknown>;
+export function WorkflowDialog({
+  kind,
+  branch,
+  parent,
+  record,
+  requester = false,
+  ptk = false,
+  replacements = [],
+  calibrationResults = [],
+  initialValues = {},
+}: {
+  kind: "calibration" | "personnel";
+  branch: string;
+  parent: string;
+  record?: Row;
+  requester?: boolean;
+  ptk?: boolean;
+  replacements?: { id: string; label: string }[];
+  calibrationResults?: { id: string; label: string }[];
+  initialValues?: Row;
+}) {
+  const [open, setOpen] = useState(false),
+    [current, setCurrent] = useState<Row | undefined>(record),
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(false),
+    [document, setDocument] = useState("");
+  const router = useRouter();
+  const status = String(
+    current?.status || (kind === "calibration" ? "draft" : "unprocessed"),
+  );
+  const transitions = !current
+    ? []
+    : kind === "calibration"
+      ? requestTransitions(status, requester, ptk)
+      : renewalTransitions(status);
+  const canEdit =
+    kind === "calibration" &&
+    requester &&
+    ["draft", "awaiting_signatures", "correction"].includes(status);
+  const labels: Record<string, string> =
+    kind === "calibration" ? REQUEST_STATUSES : RENEWAL_STATUSES;
+  async function save(form: HTMLFormElement) {
+    setBusy(true);
+    setError("");
+    try {
+      const f = new FormData(form),
+        text = (k: string) => String(f.get(k) || "").trim() || null;
+      const payload =
+        kind === "personnel"
+          ? {
+              certificate_id: parent,
+              status: text("status"),
+              replacement_certificate_id: text("replacement_certificate_id"),
+              notes: text("notes"),
+            }
+          : {
+              equipment_id: parent,
+              status: text("status"),
+              request_number: text("request_number"),
+              unit_name: text("unit_name"),
+              quantity: Number(f.get("quantity") || 1),
+              laboratory: text("laboratory"),
+              resolution_class: text("resolution_class"),
+              estimated_days:
+                text("estimated_days") === null
+                  ? null
+                  : Number(f.get("estimated_days")),
+              estimated_cost:
+                text("estimated_cost") === null
+                  ? null
+                  : Number(f.get("estimated_cost")),
+              requester_name: text("requester_name"),
+              supervisor_name: text("supervisor_name"),
+              requester_signed: f.get("requester_signed") === "on",
+              supervisor_signed: f.get("supervisor_signed") === "on",
+              signed_document_id:
+                document || current?.signed_document_id || null,
+              calibration_id: text("calibration_id"),
+              notes: text("notes"),
+            };
+      const result = await saveWorkflow(
+        kind,
+        branch,
+        current ? String(current.id) : null,
+        current ? Number(current.version) : null,
+        payload,
+      );
+      if (result.error) setError(result.error);
+      else if (result.record) {
+        setCurrent(result.record);
+        router.refresh();
+        if (current) setOpen(false);
+      }
+    } catch {
+      setError("Proses belum tersimpan. Silakan coba lagi.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function upload(file: File) {
+    if (!current) return;
+    setBusy(true);
+    setError("");
+    try {
+      const f = new FormData();
+      f.set("file", file);
+      f.set("request", String(current.id));
+      f.set("branch", branch);
+      const r = await fetch("/api/workflows/documents", {
+        method: "POST",
+        body: f,
+      });
+      const d = await r.json();
+      if (!r.ok) throw Error(d.error);
+      setDocument(d.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unggah ditolak.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const inputClass =
+    "h-9 w-full rounded-md border border-input bg-white px-2 text-sm disabled:bg-slate-50";
+  function field(key: string, label: string, type = "text") {
+    return (
+      <label className="grid gap-1 text-xs" key={key}>
+        {label}
+        <input
+          type={type}
+          name={key}
+          defaultValue={String(
+            current?.[key] ??
+              initialValues[key] ??
+              (key === "quantity" ? 1 : ""),
+          )}
+          className={inputClass}
+          maxLength={200}
+          min={type === "number" ? 0 : undefined}
+          readOnly={!!current && !canEdit && kind === "calibration"}
+        />
+      </label>
+    );
+  }
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          setCurrent(record);
+          setDocument("");
+          setError("");
+          setOpen(true);
+        }}
+      >
+        {record
+          ? "Kelola proses"
+          : kind === "calibration"
+            ? "Ajukan Kalibrasi"
+            : "Mulai proses HRGA"}
+      </Button>
+      <Modal
+        open={open}
+        onOpenChange={(v) => {
+          if (!busy) setOpen(v);
+        }}
+        size="large"
+        title={
+          kind === "calibration"
+            ? "Form Permintaan Kalibrasi Peralatan"
+            : "Proses perpanjangan kompetensi"
+        }
+        description={
+          kind === "calibration"
+            ? "FOR/SCI-UMA/197 Rev. 02 · Lengkapi formulir, cetak, dapatkan tanda tangan pengaju dan Kabid, kemudian unggah PDF untuk diajukan ke PTK."
+            : "Status proses terpisah dari masa berlaku. Sertifikat lama dan riwayatnya tetap disimpan."
+        }
+      >
+        <form
+          key={String(current?.id || "new")}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save(e.currentTarget);
+          }}
+          className="space-y-4"
+        >
+          {kind === "calibration" && (
+            <dl className="grid gap-2 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-2">
+              {[
+                ["name", "Nama alat"],
+                ["tag", "Tag / inventaris"],
+                ["serial", "Nomor seri"],
+                ["location", "Lokasi"],
+                ["measurement_range", "Range / kapasitas"],
+              ].map(([key, label]) => (
+                <div key={key}>
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-semibold">
+                    {String(
+                      (current?.equipment_snapshot as Row | undefined)?.[key] ??
+                        initialValues[key] ??
+                        "—",
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {current && (
+            <p className="rounded-lg bg-slate-50 p-3 text-sm font-semibold">
+              Status: {labels[status]}
+              {kind === "calibration" && (
+                <a
+                  className="ml-4 text-xs underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={"/api/workflows/form?id=" + current.id}
+                >
+                  Buka / cetak formulir
+                </a>
+              )}
+            </p>
+          )}
+          {kind === "calibration" && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["request_number", "Nomor permintaan"],
+                  ["unit_name", "Unit kerja / bagian"],
+                  ["quantity", "Jumlah peralatan", "number"],
+                  ["laboratory", "Lembaga kalibrasi"],
+                  ["resolution_class", "Resolusi / kelas"],
+                  [
+                    "estimated_days",
+                    "Perkiraan hari kerja (opsional)",
+                    "number",
+                  ],
+                  ["estimated_cost", "Perkiraan biaya (opsional)", "number"],
+                  ["requester_name", "Nama pengaju / pengguna"],
+                  ["supervisor_name", "Nama Kabid / pejabat mengetahui"],
+                ].map(([k, l, t]) => field(k, l, t))}
+              </div>
+              {current && canEdit && (
+                <div className="space-y-3 rounded-lg border border-border p-3">
+                  <label className="block text-xs font-semibold">
+                    PDF dengan tanda tangan pengaju & Kabid
+                    <input
+                      className="mt-2 block text-xs"
+                      type="file"
+                      accept="application/pdf"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void upload(f);
+                      }}
+                    />
+                  </label>
+                  {document && (
+                    <p role="status" className="text-xs text-emerald-800">
+                      PDF tersimpan privat. Simpan untuk menautkan ke
+                      permintaan.
+                    </p>
+                  )}
+                  <label className="flex gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      name="requester_signed"
+                      defaultChecked={current.requester_signed === true}
+                    />
+                    Saya memastikan tanda tangan pengaju tercantum di PDF.
+                  </label>
+                  <label className="flex gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      name="supervisor_signed"
+                      defaultChecked={current.supervisor_signed === true}
+                    />
+                    Saya memastikan tanda tangan Kabid tercantum di PDF.
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    Konfirmasi ini merupakan pernyataan pengaju.
+                    Keaslian/kelengkapan dokumen diperiksa PTK.
+                  </p>
+                </div>
+              )}
+              {status === "accepted" && (
+                <label className="grid gap-1 text-xs">
+                  Hasil kalibrasi baru (catat melalui Tambah peristiwa
+                  kalibrasi)
+                  <select
+                    name="calibration_id"
+                    defaultValue={String(current?.calibration_id || "")}
+                    className={inputClass}
+                  >
+                    <option value="">Pilih hasil kalibrasi</option>
+                    {calibrationResults.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-xs">
+              Tahap berikutnya
+              <select
+                name="status"
+                className={inputClass}
+                defaultValue={status}
+              >
+                <option value={status}>
+                  {labels[status]}
+                  {current ? " — simpan catatan" : ""}
+                </option>
+                {transitions.map((s) => (
+                  <option key={s} value={s}>
+                    {labels[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {kind === "personnel" && status === "processing" && (
+              <label className="grid gap-1 text-xs">
+                Sertifikat pengganti (wajib untuk selesai)
+                <select
+                  name="replacement_certificate_id"
+                  className={inputClass}
+                  defaultValue=""
+                >
+                  <option value="">Pilih sertifikat baru</option>
+                  {replacements.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+          <label className="grid gap-1 text-xs">
+            Catatan proses / alasan
+            <textarea
+              required
+              minLength={8}
+              maxLength={4000}
+              name="notes"
+              defaultValue={String(current?.notes || "")}
+              className="min-h-20 rounded-md border border-input p-2"
+            />
+          </label>
+          {error && (
+            <p role="alert" className="text-sm text-red-800">
+              {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setOpen(false)}
+            >
+              Tutup
+            </Button>
+            <Button disabled={busy}>
+              {busy ? "Menyimpan…" : current ? "Simpan proses" : "Simpan draf"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
+  );
+}

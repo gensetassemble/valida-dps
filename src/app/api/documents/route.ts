@@ -9,13 +9,14 @@ import {
 } from "@/lib/supabase/storage";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { boundedForm } from "@/lib/http/bounded-form";
+import { isSameOrigin } from "@/lib/http/same-origin";
 const entities: Record<string, string> = {
   client: "sertifikat-klien",
   personnel: "kompetensi-personil",
   calibration: "riwayat-kalibrasi",
 };
 export async function POST(request: NextRequest) {
-  if (request.headers.get("origin") !== new URL(request.url).origin)
+  if (!isSameOrigin(request))
     return NextResponse.json({ error: "Origin ditolak." }, { status: 403 });
   if (Number(request.headers.get("content-length")) > 11 * 1024 * 1024)
     return NextResponse.json(

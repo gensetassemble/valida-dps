@@ -68,7 +68,7 @@ npm start
 | /master-data/jenis-sertifikat             | Kategori, penerbit, rujukan, interval/hari pengingat; detail persyaratan layanan                    |
 | /master-data/layanan                      | Katalog layanan                                                                                     |
 | /pelanggan                                | Pelanggan/AM/wilayah/portofolio, detail kontak                                                      |
-| /pengaturan/pengguna                      | Tautkan UUID Auth yang sudah ada, aktivasi, multi-role oleh Admin                                   |
+| /pengaturan/pengguna                      | Nama, email, NPP, WhatsApp, pengelolaan password oleh Super Admin dan penugasan peran                |
 | /pengaturan/roles                         | Katalog peran tetap dan grant/revoke per cabang                                                     |
 | /profil, /audit                           | Profil/peran sendiri; audit cabang khusus Admin                                                     |
 
@@ -76,7 +76,9 @@ Pencarian, filter kolom/status, chip/hapus filter, sort stabil dan pagination 20
 
 ## Identitas, RBAC dan keamanan
 
-Auth user ditautkan ke profile dan directory pegawai. Satu akun dapat mempunyai banyak role per cabang, satu pegawai banyak portofolio. Hak berasal dari penugasan database aktif, bukan user_metadata atau profiles.role_code lama. Profil aktif memerlukan pegawai aktif/terverifikasi; scope pemantauan memerlukan penugasan portofolio terverifikasi yang masih berlaku.
+Auth user ditautkan ke profile dan directory pegawai. Satu akun dapat mempunyai banyak role per cabang, satu pegawai banyak portofolio. Hak berasal dari akun dan penugasan database aktif, bukan user_metadata atau profiles.role_code lama. Sesuai matriks akses terbaru, aktivasi/verifikasi identitas pegawai bukan syarat login. Akun yang dinonaktifkan/diarsipkan tetap ditolak; scope pemantauan memerlukan penugasan portofolio terverifikasi yang masih berlaku.
+
+Workflow kalibrasi, perpanjangan HRGA, notifikasi internal, penetapan koordinator dan filter ringkas dijelaskan pada [workflow operasional](docs/operational-workflows.md). Catatan teknis impor disimpan sebagai provenance dan tidak ditampilkan pada isian bisnis.
 
 Admin hanya mengelola cabang yang diberikan dan tidak dapat menaikkan role sendiri. AM hanya pelanggan miliknya; pengalihan oleh Admin menyimpan alasan/riwayat dan mempertahankan relasi sertifikat. HRGA mengelola personil; penugasan yang membuka scope monitoring khusus Admin. Kepala Cabang membaca bisnis tanpa hak tulis. Lihat [matriks lengkap](docs/database-rbac.md).
 

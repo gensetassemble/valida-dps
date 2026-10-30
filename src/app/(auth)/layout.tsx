@@ -51,7 +51,7 @@ export default function AuthLayout({
           </div>
           <p className="mt-5 flex items-center justify-center gap-2 text-center text-[11px] leading-5 text-muted-foreground">
             <ShieldCheck size={14} className="shrink-0" />
-            Akun disediakan organisasi dan diaktifkan administrator.
+            Akses mengikuti peran dan penugasan akun organisasi.
           </p>
         </div>
       </section>

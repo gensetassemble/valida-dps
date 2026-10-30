@@ -49,7 +49,7 @@ select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002'
 select pg_temp.assert_true((select count(*)=1 from public.clients),'AM A sees only its client');
 select pg_temp.assert_true((select count(*)=1 from public.client_contacts),'AM A sees its contact');
 select pg_temp.assert_true((select count(*)=1 from public.client_certificates),'AM A sees its certificate');
-select pg_temp.assert_true((select count(*)=0 from public.employee_directory),'AM cannot read employee directory');
+select pg_temp.assert_true(exists(select 1 from public.employee_directory where branch_code='DPS') and not exists(select 1 from public.employee_directory where branch_code<>'DPS'),'AM reads branch directory per approved module matrix');
 update public.clients set name='[CONTOH] Klien A Diubah' where id='50000000-0000-4000-8000-000000000001';
 select pg_temp.assert_true((select name='[CONTOH] Klien A Diubah' from public.clients where id='50000000-0000-4000-8000-000000000001'),'AM authorized update is real');
 do $$ begin
@@ -106,7 +106,7 @@ do $$ begin begin insert into public.equipment(name,ownership,portfolio_id) valu
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000008',true);
 select pg_temp.assert_true((select count(*)=1 from public.personnel_certificates),'inspector sees own certificates only');
 select pg_temp.assert_true((select count(*)=2 from public.employee_portfolio_assignments),'one employee has two portfolios');
-select pg_temp.assert_true((select npp='000008' from public.employee_directory),'NPP preserves leading zeroes');
+select pg_temp.assert_true((select npp='000008' from public.employee_directory where id='30000000-0000-4000-8000-000000000008'),'NPP preserves leading zeroes');
 do $$ declare n integer; begin update public.personnel_certificates set verification_status='verified'; get diagnostics n=row_count; if n<>0 then raise exception 'FAIL: inspector approves license'; end if; end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000009',true);
 select pg_temp.assert_true((select count(*)=2 from public.clients where id in ('50000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000003')),'branch head reads branch-wide business');

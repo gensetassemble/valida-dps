@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import {
   getRecord,
   referenceLabels,
   listRecords,
+  masterClient,
   type QueryParams,
 } from "./server";
 export async function MasterTable({
@@ -24,7 +25,12 @@ export async function MasterTable({
   const data = await listRecords(
     context.entity,
     context.branch,
-    { ...params, page: "1" },
+    {
+      ...(parent && key === "kompetensi-personil"
+        ? { branch: context.branch, sort: params.sort, dir: params.dir }
+        : params),
+      page: "1",
+    },
     parent,
   );
   return (
@@ -41,6 +47,7 @@ export async function MasterTable({
           s.branch_code === context.branch && s.role_code === "super_admin",
       )}
       parent={parent}
+      hideFilters={!!parent && key === "kompetensi-personil"}
     />
   );
 }
@@ -102,6 +109,19 @@ export async function DetailPage({
 }) {
   if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)) notFound();
   const { entity, branch } = await entityContext(key, params.branch);
+  if (key === "pegawai") {
+    const db = await masterClient();
+    const { data } = await db
+      .from("employee_directory")
+      .select("merged_into_employee_id")
+      .eq("id", id)
+      .eq("branch_code", branch)
+      .maybeSingle();
+    if (data?.merged_into_employee_id)
+      redirect(
+        `/master-data/pegawai/${data.merged_into_employee_id}?branch=${branch}`,
+      );
+  }
   const record = await getRecord(entity, branch, id);
   if (!record) notFound();
   const labels = await referenceLabels(entity, branch, record);

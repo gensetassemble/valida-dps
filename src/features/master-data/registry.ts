@@ -102,6 +102,53 @@ const base = {
 };
 export const ENTITIES: Record<string, EntityConfig> = {
   ...OPERATIONAL_ENTITIES,
+  "penetapan-koordinator": {
+    ...base,
+    key: "penetapan-koordinator",
+    table: "portfolio_coordinators",
+    title: "Penetapan Koordinator",
+    singular: "Penetapan koordinator",
+    path: "/master-data/penetapan-koordinator",
+    labelKey: "portfolio_id",
+    description:
+      "Satu koordinator utama per portofolio dan periode. Penetapan ini tidak memberikan hak akses akun. Tutup periode lama sebelum membuat penetapan baru.",
+    fields: [
+      lookup("portfolio_id", "Portofolio", "portofolio", true, true),
+      lookup(
+        "coordinator_id",
+        "Koordinator",
+        "koordinator-operasional",
+        true,
+        true,
+      ),
+      lookup(
+        "employee_id",
+        "Identitas pegawai (opsional, setelah dipastikan)",
+        "pegawai",
+        false,
+        true,
+      ),
+      {
+        key: "effective_from",
+        label: "Berlaku mulai",
+        kind: "date",
+        required: true,
+        immutable: true,
+      },
+      { key: "effective_until", label: "Berlaku sampai", kind: "date" },
+      { key: "notes", label: "Catatan penetapan", kind: "textarea" },
+      active,
+    ],
+    columns: [
+      "portfolio_id",
+      "coordinator_id",
+      "employee_id",
+      "effective_from",
+      "effective_until",
+      "is_active",
+    ],
+    search: ["notes"],
+  },
   "koordinator-operasional": {
     ...base,
     key: "koordinator-operasional",
@@ -217,12 +264,13 @@ export const ENTITIES: Record<string, EntityConfig> = {
     ...base,
     key: "pegawai",
     table: "employee_directory",
+    readTable: "employee_directory_records",
     title: "Direktori Pegawai",
     singular: "Pegawai",
     path: "/master-data/pegawai",
     labelKey: "full_name",
     detail: "/master-data/pegawai",
-    readRoles: personnel,
+    readRoles: ALL_ROLES,
     writeRoles: ["admin", "hrga"],
     description:
       "Identitas organisasi terpisah dari akun login. Entri direktori tidak memberikan akses aplikasi.",
@@ -622,6 +670,7 @@ export const MASTER_KEYS = [
   "pegawai",
   "am-marketing",
   "koordinator-operasional",
+  "penetapan-koordinator",
   "jenis-sertifikat",
   "layanan",
 ];
