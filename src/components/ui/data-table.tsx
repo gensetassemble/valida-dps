@@ -23,7 +23,8 @@ import { EmptyState } from "./empty-state";
 import { Modal, ConfirmDialog } from "./modal";
 import { useToast } from "./toast";
 import { FilterBar } from "@/features/master-data/filter-bar";
-import { RENEWAL_STATUSES } from "@/features/workflows/model";
+import { RENEWAL_STATUSES, personnelRenewalDisplay } from "@/features/workflows/model";
+import { DirectoryActionsDialog } from "@/features/master-data/directory-actions-dialog";
 import { EmployeeStatusDialog } from "@/features/workflows/employee-status-dialog";
 import { businessNotes } from "@/features/operations/notes";
 import dynamic from "next/dynamic";
@@ -84,6 +85,7 @@ export function DataTable({
   userId,
   isAdmin,
   canManagePasswords = false,
+  canManageDirectory = false,
   parent,
   hideFilters = false,
 }: {
@@ -94,6 +96,7 @@ export function DataTable({
   userId: string;
   isAdmin: boolean;
   canManagePasswords?: boolean;
+  canManageDirectory?: boolean;
   parent?: { field: string; id: string };
   hideFilters?: boolean;
 }) {
@@ -179,25 +182,27 @@ export function DataTable({
     extraLabels[field] ||
     field;
   function valueFor(row: DataRow, column: string) {
+    const processStatus = personnelRenewalDisplay(row.renewal_process_status as string | null, String(row.validity_status || ""), row.validity_kind === "lifetime");
+    if (entity.key === "kompetensi-personil" && column === "employee_name" && canManageDirectory && typeof row.employee_id === "string") return <Link className="font-semibold text-primary-hover underline" href={`/master-data/pegawai/${row.employee_id}?branch=${encodeURIComponent(branch)}`}>{String(row.employee_name || "—")}</Link>;
     if (column === "notes") return businessNotes(row.notes) || "—";
     if (entity.key === "kompetensi-personil" && column === "original_title")
       return (
         <span className="block max-w-72 whitespace-normal">
           {String(row[column] || "—")}
-          {row.renewal_process_status ? (
+          {processStatus ? (
             <span
               className={
                 "mt-1 block w-fit rounded-md px-2 py-1 text-[10px] font-medium " +
-                (row.renewal_process_status === "renewed"
+                (processStatus === "renewed"
                   ? "bg-emerald-50 text-emerald-900"
-                  : row.renewal_process_status === "processing"
+                  : processStatus === "processing"
                     ? "bg-blue-50 text-blue-900"
                     : "bg-slate-100 text-slate-700")
               }
             >
               {
                 RENEWAL_STATUSES[
-                  row.renewal_process_status as keyof typeof RENEWAL_STATUSES
+                  processStatus
                 ]
               }
             </span>
@@ -515,6 +520,7 @@ export function DataTable({
                               >
                                 <Pencil size={15} />
                               </Button>
+                              {entity.key === "pegawai" && canManageDirectory && <DirectoryActionsDialog row={row} branch={branch} compact/>}
                               {entity.key === "pegawai" ? <EmployeeStatusDialog branch={branch} employee={id} version={Number(row.employment_status_version)} name={name} status={String(row.employment_status)}/> : typeof row.is_active === "boolean" && (
                                 <Button
                                   size="icon"
@@ -580,6 +586,7 @@ export function DataTable({
             userId={userId}
             isAdmin={isAdmin}
             canManagePasswords={canManagePasswords}
+            canManageDirectory={canManageDirectory}
             onSaved={() => setEditing(null)}
           />
         )}

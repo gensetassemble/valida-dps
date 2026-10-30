@@ -5,6 +5,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { hasPermission } from "@/lib/auth/permissions";
 import { EmployeeStatusPanel } from "@/features/workflows/employee-status-panel";
+import { DirectoryActionsDialog } from "./directory-actions-dialog";
 import {
   entityContext,
   getRecord,
@@ -49,6 +50,7 @@ export async function MasterTable({
       )}
       parent={parent}
       hideFilters={!!parent && key === "kompetensi-personil"}
+      canManageDirectory={context.scopes.some((s) => s.branch_code === context.branch && s.role_code === "super_admin")}
     />
   );
 }
@@ -84,13 +86,16 @@ export async function MasterPage({
     throw error;
   }
   const { entity, branch } = context;
+  const canManageDirectory = context.scopes.some((s) => s.branch_code === branch && s.role_code === "super_admin");
+  if (key === "pegawai" && params.archived === "true" && !canManageDirectory) return <Card className="p-6"><PageHeader title="Akses ditolak" description="Arsip direktori hanya tersedia untuk IT Officer pada cabang ini."/></Card>;
   return (
     <>
       <PageHeader
-        title={entity.title}
+        title={key === "pegawai" && params.archived === "true" ? "Arsip Pegawai" : entity.title}
         description={entity.description}
         eyebrow={`Data cabang ${branch}`}
       />
+      {key === "pegawai" && context.scopes.some((s) => s.branch_code === branch && s.role_code === "super_admin") && <div className="mt-4 flex gap-2 text-sm"><Link className="rounded-lg border border-border bg-white px-3 py-2 underline" href={`${entity.path}?branch=${branch}`}>Direktori</Link><Link className="rounded-lg border border-border bg-white px-3 py-2 underline" href={`${entity.path}?branch=${branch}&archived=true`}>Arsip pegawai</Link></div>}
       <MasterTable entity={key} params={params} />
     </>
   );
@@ -123,7 +128,8 @@ export async function DetailPage({
         `/master-data/pegawai/${data.merged_into_employee_id}?branch=${branch}`,
       );
   }
-  const record = await getRecord(entity, branch, id);
+  const isIT = scopes.some((s) => s.branch_code === branch && s.role_code === "super_admin");
+  const record = await getRecord(key === "pegawai" && isIT ? { ...entity, readTable: entity.table } : entity, branch, id);
   if (!record) notFound();
   const labels = await referenceLabels(entity, branch, record);
   return (
@@ -139,6 +145,7 @@ export async function DetailPage({
         description={entity.description}
         eyebrow={`Detail cabang ${branch}`}
       />
+      {key === "pegawai" && isIT && <div className="mb-4 space-y-3">{record.archived_at ? <p className="rounded-lg bg-amber-50 p-3 text-sm">Entri berada di Arsip. Sertifikat dan riwayat tetap tersimpan.</p> : null}<DirectoryActionsDialog row={record} branch={branch}/></div>}
       <Card className="mb-6 grid gap-4 p-5 sm:grid-cols-2">
         {entity.columns.map((column) => (
           <div key={column}>

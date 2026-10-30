@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.10.30-pdf.1";
+export const APPLICATION_RELEASE = "2026.10.30-directory.1";

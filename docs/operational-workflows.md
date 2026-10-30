@@ -44,7 +44,15 @@ Setelah Simpan draf, formulir tetap terbuka dan menyediakan Preview formulir ser
 
 Pada formulir alat, Rentang ukur / kapasitas menyediakan simbol SI, satuan yang diterima bersama SI, simbol historis yang dapat dibaca pengguna, serta Satuan lain. Simbol mengikuti kapitalisasi BIPM; satuan historis non-SI dipisahkan dan tidak dikonversi otomatis. Teks sumber kompleks tetap utuh sampai diedit. Nilai dan satuan disimpan bersama pada kolom range yang sudah ada, sehingga tabel monitoring, ekspor, dan PDF tetap konsisten. Spesifikasi tambahan digunakan untuk dimensi/keterangan di luar rentang; isian sumber lama tidak digabung atau ditulis ulang otomatis.
 
-## Pengelolaan status personil oleh HRGA
+## Pengelolaan nama oleh IT Officer
+
+IT Officer (grant Super Admin pada cabang aktif) dapat membuka Kelola nama/hapus pada daftar, detail, atau formulir ubah pegawai. Verifikasi nama memerlukan dasar pemeriksaan serta konfirmasi, mencatat verifikator/waktu melalui audit, dan tidak memverifikasi sertifikat, mengaktifkan pegawai, atau memberi akses akun. Nama pada tabel kompetensi dapat diklik oleh IT Officer untuk membuka identitas direktori yang tepat berdasarkan employee_id.
+
+Hapus dari direktori adalah arsip yang dapat dipulihkan melalui Arsip pegawai. Identitas utama dan seluruh relasi sertifikat/alat tetap disimpan. Nama dengan akun login aktif, identitas sendiri, dan alias hasil penggabungan tidak dapat diarsipkan melalui tindakan ini. Tidak ada penggabungan atau perubahan ejaan otomatis. Alasan minimal delapan karakter, konfirmasi, dan pemeriksaan updated_at mencegah keputusan dari formulir lama. Trigger database menolak pengubahan metadata arsip oleh peran lain, termasuk melalui REST langsung.
+
+Label Belum Diproses pada tabel kompetensi hanya muncul untuk Expired/Kritis/Perhatian/Pantau; tidak muncul pada Aman, tanggal kosong, atau seumur hidup. Proses yang benar-benar Sedang Diproses/Sudah Diperpanjang tetap ditampilkan sebagai riwayat meski sertifikat berstatus Aman. Status tersimpan di database tidak diubah oleh aturan tampilan.
+
+## Status kepegawaian dan perpanjangan HRGA
 
 Pada Master Data → Direktori Pegawai, HRGA/admin memilih **Status personil**. Pilih Nonaktif beserta alasan Resign/Pindah/Lainnya, tanggal efektif hari ini atau sebelumnya (WITA), dan keterangan minimal delapan karakter. Pengaktifan kembali memakai alasan Aktif kembali. Tanggal tidak boleh mendahului keputusan terakhir; penjadwalan masa depan belum tersedia. Setiap keputusan tercatat dalam riwayat yang tidak dapat ditulis langsung atau dihapus melalui aplikasi. Perubahan status sendiri memerlukan administrator lain.
 

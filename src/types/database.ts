@@ -1063,6 +1063,9 @@ export type Database = {
       }
       employee_directory: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           branch_code: string
           created_at: string
           created_by: string | null
@@ -1090,6 +1093,9 @@ export type Database = {
           verified_by: string | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           branch_code?: string
           created_at?: string
           created_by?: string | null
@@ -1117,6 +1123,9 @@ export type Database = {
           verified_by?: string | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           branch_code?: string
           created_at?: string
           created_by?: string | null
@@ -1144,6 +1153,20 @@ export type Database = {
           verified_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "employee_directory_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profile_identity_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_directory_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employee_directory_branch_code_fkey"
             columns: ["branch_code"]
@@ -3658,6 +3681,9 @@ export type Database = {
       }
       employee_directory_records: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           branch_code: string | null
           created_at: string | null
           created_by: string | null
@@ -3685,6 +3711,9 @@ export type Database = {
           verified_by: string | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           branch_code?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -3712,6 +3741,9 @@ export type Database = {
           verified_by?: string | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           branch_code?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -3739,6 +3771,20 @@ export type Database = {
           verified_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "employee_directory_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profile_identity_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_directory_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employee_directory_branch_code_fkey"
             columns: ["branch_code"]
@@ -4569,6 +4615,16 @@ export type Database = {
       }
       create_equipment_with_calibration: {
         Args: { asset: Json; b: string; calibration?: Json }
+        Returns: string
+      }
+      manage_employee_directory: {
+        Args: {
+          b: string
+          employee: string
+          expected_updated_at: string
+          operation: string
+          reason: string
+        }
         Returns: string
       }
       operational_summary: {

@@ -5,6 +5,7 @@ import { hasPermission, activeBranch } from "@/lib/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { getEntity, type EntityConfig } from "./registry";
 import { safeSearch } from "./validation";
+import { personnelRenewalDisplay } from "@/features/workflows/model";
 export type DataRow = Record<string, unknown>;
 export type QueryParams = {
   q?: string;
@@ -29,6 +30,7 @@ export type QueryParams = {
   examples?: string;
   kind?: string;
   eligibility?: string;
+  archived?: string;
 };
 export async function entityContext(
   key: string,
@@ -162,9 +164,15 @@ export async function listRecords(
     : entity.key === "kalibrasi-alat"
       ? "portfolio_code"
       : entity.columns[0];
+  const archives = entity.key === "pegawai" && params.archived === "true";
+  if (archives) {
+    const context = await requireActiveUser();
+    if (!context.scopes.some((s) => s.branch_code === branch && s.role_code === "super_admin")) throw Error("Arsip direktori hanya tersedia untuk IT Officer.");
+  }
   let query = db
-    .from(entity.readTable || entity.table)
+    .from(archives ? entity.table : entity.readTable || entity.table)
     .select("*", { count: "exact" });
+  if (archives) query = query.not("archived_at", "is", null).is("merged_into_employee_id", null);
   if (entity.key !== "roles")
     query = query.eq(entity.key === "cabang" ? "code" : "branch_code", branch);
   const search = safeSearch(params.q || "");
@@ -243,10 +251,7 @@ export async function listRecords(
       (cases.data || []).map((r) => [r.certificate_id, r.status]),
     );
     for (const row of rows)
-      row.renewal_process_status =
-        row.validity_kind === "lifetime"
-          ? null
-          : statuses.get(row.id) || "unprocessed";
+      row.renewal_process_status = personnelRenewalDisplay(statuses.get(row.id), String(row.validity_status || ""), row.validity_kind === "lifetime");
   }
   for (const row of rows)
     if (typeof row.previous_order_value_text === "string")

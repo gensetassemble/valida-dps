@@ -12,6 +12,12 @@ export const RENEWAL_STATUSES = {
   processing: "Sedang Diproses",
   renewed: "Sudah Diperpanjang",
 } as const;
+export function personnelRenewalDisplay(status: string | null | undefined, validity: string, lifetime = false) {
+  if (lifetime) return null;
+  const actual = status || "unprocessed";
+  if (actual === "unprocessed" && !["Expired", "Kritis", "Perhatian", "Pantau"].includes(validity)) return null;
+  return Object.hasOwn(RENEWAL_STATUSES, actual) ? actual as keyof typeof RENEWAL_STATUSES : null;
+}
 export function requestTransitions(
   status: string,
   requester: boolean,

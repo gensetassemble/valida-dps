@@ -315,6 +315,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
       "position",
       "employment_category",
       "organization_unit",
+      "verification_status",
       "employment_status",
     ],
     search: ["full_name", "npp", "position", "organization_unit"],

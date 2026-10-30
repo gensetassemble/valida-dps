@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { recordSchema } from "./validation";
 import { saveRecord } from "./actions";
+import { DirectoryActionsDialog } from "./directory-actions-dialog";
 import { MeasurementRangeInput } from "@/features/operations/measurement-range-input";
 import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
@@ -171,6 +172,7 @@ export function RecordForm({
   userId,
   isAdmin,
   canManagePasswords = false,
+  canManageDirectory = false,
   onSaved,
 }: {
   entity: EntityConfig;
@@ -180,6 +182,7 @@ export function RecordForm({
   userId: string;
   isAdmin: boolean;
   canManagePasswords?: boolean;
+  canManageDirectory?: boolean;
   onSaved: () => void;
 }) {
   const editing = !!row;
@@ -691,6 +694,7 @@ export function RecordForm({
           </p>
         )}
         <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+          {entity.key === "pegawai" && row && canManageDirectory && <DirectoryActionsDialog row={row} branch={branch} onSaved={onSaved}/>}
           <Button
             variant="outline"
             type="button"
