@@ -27,10 +27,8 @@ describe("Strict master-data payloads", () => {
       position: "",
       employment_category: "",
       organization_unit: "",
-      employment_status: "unknown",
       verification_status: "pending",
       verification_note: "",
-      is_active: false,
     });
     expect(parsed.npp).toBe("000001");
     expect(parsed.position).toBeNull();

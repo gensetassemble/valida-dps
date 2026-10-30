@@ -6,6 +6,7 @@ import { formatTimestamp } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { WorkflowDialog } from "./dialog";
 import { REQUEST_STATUSES, RENEWAL_STATUSES } from "./model";
+import { RenewalCompletionDialog } from "./renewal-completion-dialog";
 
 export async function WorkflowPanel({
   kind,
@@ -122,6 +123,7 @@ export async function WorkflowPanel({
             ? "Sertifikat seumur hidup tidak masuk perpanjangan berkala."
             : "Belum Diproses → Sedang Diproses → Sudah Diperpanjang. Penyelesaian wajib menautkan sertifikat pengganti beserta bukti."}
       </p>
+      {kind === "personnel" && !lifetime && <ol aria-label="Tahap perpanjangan sertifikat" className="mt-3 flex flex-wrap gap-2 text-xs">{Object.entries(RENEWAL_STATUSES).map(([stage, label]) => <li key={stage} className={"rounded-full border px-3 py-1 " + ((records[0]?.status || "unprocessed") === stage ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900" : "border-border text-muted-foreground")}>{label}</li>)}</ol>}
       {!records.length && !lifetime && (
         <p className="mt-3 text-xs">
           {kind === "calibration"
@@ -162,6 +164,7 @@ export async function WorkflowPanel({
               )}
           </div>
           <p className="mt-2 whitespace-pre-wrap text-xs">{String(r.notes)}</p>
+          {kind === "personnel" && hrga && r.status === "processing" && <div className="mt-3"><RenewalCompletionDialog branch={branch} caseId={String(r.id)} version={Number(r.version)} title={String(row.original_title)} issuer={String(row.issuer || "")}/></div>}
           {r.signed_document_id ? (
             <a
               href={"/api/workflows/documents?id=" + r.signed_document_id}

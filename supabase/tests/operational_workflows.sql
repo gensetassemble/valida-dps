@@ -12,11 +12,11 @@ insert into public.portfolios(id,branch_code,code,name) values
  ('af300000-0000-4000-8000-000000000003','WFQ','CONTOH_WF3','[CONTOH] Other branch');
 insert into auth.users(id,email) select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'workflow.'||i||'@example.invalid' from generate_series(1,7)i;
 insert into public.employee_directory(id,branch_code,full_name,npp,employment_status,verification_status,is_active)
-select ('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Person '||i,(93700+i)::text,'active','verified',true from generate_series(1,7)i;
+select ('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Person '||i,(93700+i)::text,case when i=5 then 'unknown' else 'active' end,'verified',true from generate_series(1,7)i;
 insert into public.profiles(id,employee_id,branch_code,full_name,is_active)
 select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Account '||i,true from generate_series(1,7)i;
 -- Employee activation/verification is not a login gate; the account and role are.
-update public.employee_directory set is_active=false,verification_status='pending',employment_status='unknown' where id='af200000-0000-4000-8000-000000000005';
+update public.employee_directory set is_active=false,verification_status='pending' where id='af200000-0000-4000-8000-000000000005';
 insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason)
 select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,(array['admin','coordinator','equipment_manager','hrga','inspector','branch_head','admin'])[i],'[CONTOH] Transaction-only regression' from generate_series(1,7)i;
 insert into public.employee_portfolio_assignments(employee_id,portfolio_id,branch_code,assignment_type,effective_from,verification_status,is_active) values

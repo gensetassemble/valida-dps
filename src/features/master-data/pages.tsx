@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { DataTable } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { hasPermission } from "@/lib/auth/permissions";
+import { EmployeeStatusPanel } from "@/features/workflows/employee-status-panel";
 import {
   entityContext,
   getRecord,
@@ -108,7 +109,7 @@ export async function DetailPage({
   field: string;
 }) {
   if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)) notFound();
-  const { entity, branch } = await entityContext(key, params.branch);
+  const { entity, branch, scopes, profile } = await entityContext(key, params.branch);
   if (key === "pegawai") {
     const db = await masterClient();
     const { data } = await db
@@ -161,6 +162,7 @@ export async function DetailPage({
           </div>
         ))}
       </Card>
+      {key === "pegawai" && hasPermission(scopes, branch, ["admin", "hrga"]) && <EmployeeStatusPanel branch={branch} row={record} own={profile.employee_id === id}/>}
       <MasterTable
         entity={child}
         params={{ ...params, branch }}

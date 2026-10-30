@@ -24,6 +24,7 @@ import { Modal, ConfirmDialog } from "./modal";
 import { useToast } from "./toast";
 import { FilterBar } from "@/features/master-data/filter-bar";
 import { RENEWAL_STATUSES } from "@/features/workflows/model";
+import { EmployeeStatusDialog } from "@/features/workflows/employee-status-dialog";
 import { businessNotes } from "@/features/operations/notes";
 import dynamic from "next/dynamic";
 const RecordForm = dynamic(
@@ -162,6 +163,7 @@ export function DataTable({
       "penugasan",
       "cabang",
       "kalibrasi-alat",
+      "pegawai",
     ].includes(entity.key);
   function navigate(values: Record<string, string>) {
     const next = new URLSearchParams(params.toString());
@@ -513,7 +515,7 @@ export function DataTable({
                               >
                                 <Pencil size={15} />
                               </Button>
-                              {typeof row.is_active === "boolean" && (
+                              {entity.key === "pegawai" ? <EmployeeStatusDialog branch={branch} employee={id} version={Number(row.employment_status_version)} name={name} status={String(row.employment_status)}/> : typeof row.is_active === "boolean" && (
                                 <Button
                                   size="icon"
                                   variant="ghost"

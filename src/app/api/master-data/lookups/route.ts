@@ -31,6 +31,10 @@ export async function GET(request: NextRequest) {
   const search = safeSearch(params.get("q") || "");
   if (search) query = query.ilike(target.labelKey, `%${search}%`);
   if (params.get("id")) query = query.eq(target.idKey, params.get("id")!);
+  // Retain existing historical references, but do not offer explicitly inactive
+  // employees for a new operational assignment or certificate.
+  if (target.key === "pegawai" && !params.get("id") && ["penugasan", "kalibrasi-alat", "kompetensi-personil"].includes(context.entity.key))
+    query = query.neq("employment_status", "inactive");
   if (target.key === "roles") query = query.eq("is_active", true);
   if (
     ["kalibrasi-alat", "kompetensi-personil", "riwayat-kalibrasi"].includes(

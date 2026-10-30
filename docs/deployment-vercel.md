@@ -61,6 +61,8 @@ Gunakan **Runtime Logs** di Vercel untuk menelusuri kegagalan. Error konfigurasi
 
 Setelah Git integration aktif, push ke branch selain production menghasilkan preview; push ke production branch biasanya memulai deployment production. Pilih alur review organisasi sebelum menjadikan deployment dapat digunakan operasional. GitHub Actions menjalankan pemeriksaan aplikasi dan database; tes browser yang membutuhkan fixture akun privat tidak membuat akun baru otomatis di CI.
 
+Pastikan deployment production berstatus **Ready**, commit SHA cocok dengan GitHub `main`, dan alias `valida-dps.vercel.app` menunjuk deployment itu. Push Git dan domain yang siap dilayani adalah dua pemeriksaan terpisah. Nomor rilis kini terlihat pada halaman login/footer; `/api/health` menyediakan `release` serta commit SHA singkat tanpa kredensial. Setelah rilis baru, muat ulang tab lama agar komponen yang sudah terbuka diganti.
+
 Untuk preview lokal yang lebih ringan daripada development:
 
 ```powershell

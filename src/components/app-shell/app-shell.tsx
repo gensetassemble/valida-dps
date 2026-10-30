@@ -34,6 +34,7 @@ import { LogoutButton } from "@/components/shared/logout-button";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./breadcrumbs";
 import { cn } from "@/lib/utils";
+import { APPLICATION_RELEASE } from "@/lib/version";
 type Item = {
   label: string;
   href?: string;
@@ -434,7 +435,7 @@ export function AppShell({
         <footer className="mx-4 mt-6 flex items-center justify-between border-t border-border py-5 text-[10px] text-muted-foreground sm:mx-6">
           <span>VALIDA · PT SUCOFINDO Cabang Denpasar</span>
           <span className="flex items-center gap-1">
-            VALIDA <ChevronRight size={11} /> DPS
+            {APPLICATION_RELEASE} <ChevronRight size={11} /> DPS
           </span>
         </footer>
       </div>

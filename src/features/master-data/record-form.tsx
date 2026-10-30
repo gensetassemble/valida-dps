@@ -199,7 +199,7 @@ export function RecordForm({
             (f) => !["name", "portfolio_id"].includes(f.key),
           ),
         ]
-      : entity.fields
+      : entity.key === "pegawai" ? entity.fields.filter((f) => !["employment_status", "is_active"].includes(f.key)) : entity.fields
   ).map((field) =>
     entity.key === "penugasan" && !isAdmin && field.key === "assignment_type"
       ? {

@@ -7,7 +7,7 @@ export default async function LoginPage({
 }) {
   const { status } = await searchParams;
   const notices: Record<string, string> = {
-    inactive: "Akun belum diaktifkan. Hubungi administrator cabang.",
+    inactive: "Akses akun atau status personil sedang nonaktif. Hubungi HRGA atau administrator cabang.",
     "callback-error": "Tautan pemulihan tidak valid atau telah expired.",
     "password-updated": "Kata sandi telah diperbarui. Silakan masuk kembali.",
   };

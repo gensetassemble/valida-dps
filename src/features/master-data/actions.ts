@@ -252,6 +252,7 @@ export async function setRecordsActive(
     scope.data.branch,
     true,
   );
+  if (entity.key === "pegawai") return { ok: false, error: "Gunakan Status personil untuk mencatat alasan dan tanggal efektif melalui HRGA." };
   if (!entity.fields.some((field) => field.key === "is_active"))
     return { ok: false, error: "Perubahan status tidak tersedia." };
   if (entity.key === "pengguna" && selected.data.includes(user.id))

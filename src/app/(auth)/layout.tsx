@@ -1,4 +1,5 @@
 import { Archive, ShieldCheck, MapPin } from "lucide-react";
+import { APPLICATION_RELEASE } from "@/lib/version";
 export default function AuthLayout({
   children,
 }: {
@@ -53,6 +54,7 @@ export default function AuthLayout({
             <ShieldCheck size={14} className="shrink-0" />
             Akses mengikuti peran dan penugasan akun organisasi.
           </p>
+          <p className="mt-2 text-center text-[10px] text-muted-foreground">Versi {APPLICATION_RELEASE}</p>
         </div>
       </section>
     </main>

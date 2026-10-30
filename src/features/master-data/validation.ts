@@ -107,6 +107,7 @@ export function recordSchema(entity: EntityConfig, editing = false) {
       ? initialCalibrationFields
       : []),
   ]) {
+    if (entity.key === "pegawai" && ["employment_status", "is_active"].includes(field.key)) continue;
     if (editing && (field.key === entity.idKey || field.immutable)) continue;
     shape[field.key] = fieldSchema(field);
   }

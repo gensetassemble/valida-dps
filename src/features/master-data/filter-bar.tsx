@@ -50,7 +50,7 @@ export function FilterBar({ entity }: { entity: EntityConfig }) {
             />
           </div>
         </div>
-        {entity.key !== "kompetensi-personil" &&
+        {!["kompetensi-personil", "pegawai"].includes(entity.key) &&
           entity.fields.some((field) => field.key === "is_active") && (
             <label className="space-y-1 text-[11px] text-muted-foreground">
               <span className="block">Status</span>
