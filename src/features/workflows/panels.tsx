@@ -9,6 +9,7 @@ import { WorkflowDialog } from "./dialog";
 import { REQUEST_STATUSES, RENEWAL_STATUSES } from "./model";
 import { RenewalCompletionDialog } from "./renewal-completion-dialog";
 import { CalibrationFormPreview } from "./form-preview";
+import { resolveRequestIdentity } from "./request-identity";
 
 export async function WorkflowPanel({
   kind,
@@ -33,7 +34,9 @@ export async function WorkflowPanel({
     .eq(parentField, row.id)
     .order("created_at", { ascending: false });
   if (error) throw Error("Riwayat proses belum dapat dimuat.");
-  const records = (data || []) as DataRow[];
+  const records = kind === "calibration"
+    ? await Promise.all(((data || []) as DataRow[]).map((r) => resolveRequestIdentity(db, r)))
+    : (data || []) as DataRow[];
   const requester = hasPermission(scopes, branch, ["admin", "coordinator"]),
     ptk = hasPermission(scopes, branch, ["admin", "equipment_manager"]),
     hrga = hasPermission(scopes, branch, ["admin", "hrga"]);

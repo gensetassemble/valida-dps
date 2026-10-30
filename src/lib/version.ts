@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.10.30-uma.1";
+export const APPLICATION_RELEASE = "2026.10.30-uma.2";

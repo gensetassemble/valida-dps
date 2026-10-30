@@ -4640,6 +4640,13 @@ export type Database = {
       }
     }
     Functions: {
+      calibration_request_form_identity: {
+        Args: { r: string }
+        Returns: {
+          requester_employee_id: string
+          requester_npp: string
+        }[]
+      }
       calibration_request_supervisors: {
         Args: { b: string }
         Returns: {
