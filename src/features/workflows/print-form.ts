@@ -1,3 +1,4 @@
+import { draftSignatureDate } from "./request-form-model";
 function escapeHtml(value: unknown) {
   return String(value ?? "").replace(
     /[&<>"']/g,
@@ -19,6 +20,6 @@ export function calibrationRequestHtml(r: Record<string, unknown>) {
  <table><tr><td class="section">A.</td><td class="section" colspan="2">PERBAIKAN/KALIBRASI <span class="note">(diisi oleh Pengguna / User)</span></td></tr>
  ${line("1.0", "Nama Peralatan", e.name)}${line("2.0", "Jumlah Peralatan", r.quantity)}${line("3.0", "No. Seri / No. Inventaris / Lokasi", [e.serial, e.asset_id || e.tag, e.location].filter(Boolean).join(" / "))}${line("4.0", "Spesifikasi", [e.brand, e.model, e.specification_size].filter(Boolean).join(" / "))}${line("", "– Range / Kapasitas", e.measurement_range)}${line("", "– Resolusi / Klas", r.resolution_class)}${line("5.0", "Keterangan / Informasi lainnya", r.notes)}${line("6.0", "Jenis Perawatan", "Kalibrasi")}${line("7.0", "Lembaga Perbaikan / Kalibrasi*", r.laboratory)}
  <tr><td class="section">B.</td><td class="section" colspan="2">WAKTU &amp; BIAYA</td></tr>${line("1.0", "Perkiraan waktu penyelesaian", r.estimated_days == null ? null : r.estimated_days + " hari kerja")}${line("2.0", "Perkiraan biaya", r.estimated_cost == null ? null : "Rp. " + Number(r.estimated_cost).toLocaleString("id-ID"))}<tr><td></td><td colspan="2" class="note">(diisi oleh Fungsi Umum)</td></tr></table>
- <table style="margin-top:25px;text-align:center"><tr><td>Mengetahui,</td><td>……… / ……… / …………<br>Pengguna / Pengaju,</td></tr><tr><td class="sig"></td><td class="sig"></td></tr><tr><td>(${v(r.supervisor_name)})<br><span class="note">Kadiv/Kabag/Kabid/Kasubag/Kasubid**</span></td><td>(${v(r.requester_name)})<br>NPP. …………………</td></tr></table>
+ <table style="margin-top:25px;text-align:center"><tr><td>Mengetahui,</td><td>${v(draftSignatureDate(r.created_at))}<br>Pengguna / Pengaju,</td></tr><tr><td class="sig"></td><td class="sig"></td></tr><tr><td>(${v(r.supervisor_name)})<br><span class="note">Kadiv/Kabag/Kabid/Kasubag/Kasubid**</span></td><td>(${v(r.requester_name)})<br>NPP. ${escapeHtml(r.requester_npp || "Non-NPP")}</td></tr></table>
  <footer>FOR/SCI-UMA/197 · Rev. 02<span style="float:right">Halaman 1</span><p class="note">Formulir isian VALIDA mengikuti bagian A, B, dan blok tanda tangan pada template sumber. Nama tercetak bukan tanda tangan; cetak lalu lengkapi tanda tangan basah dan unggah PDF.</p></footer></body></html>`;
 }

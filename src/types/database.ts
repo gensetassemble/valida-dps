@@ -163,12 +163,15 @@ export type Database = {
           notes: string
           quantity: number
           request_number: string | null
+          requester_employee_id: string | null
           requester_name: string | null
+          requester_npp: string | null
           requester_signed: boolean
           resolution_class: string | null
           signed_document_id: string | null
           status: string
           supervisor_name: string | null
+          supervisor_profile_id: string | null
           supervisor_signed: boolean
           unit_name: string | null
           updated_at: string
@@ -189,12 +192,15 @@ export type Database = {
           notes?: string
           quantity?: number
           request_number?: string | null
+          requester_employee_id?: string | null
           requester_name?: string | null
+          requester_npp?: string | null
           requester_signed?: boolean
           resolution_class?: string | null
           signed_document_id?: string | null
           status?: string
           supervisor_name?: string | null
+          supervisor_profile_id?: string | null
           supervisor_signed?: boolean
           unit_name?: string | null
           updated_at?: string
@@ -215,12 +221,15 @@ export type Database = {
           notes?: string
           quantity?: number
           request_number?: string | null
+          requester_employee_id?: string | null
           requester_name?: string | null
+          requester_npp?: string | null
           requester_signed?: boolean
           resolution_class?: string | null
           signed_document_id?: string | null
           status?: string
           supervisor_name?: string | null
+          supervisor_profile_id?: string | null
           supervisor_signed?: boolean
           unit_name?: string | null
           updated_at?: string
@@ -292,10 +301,38 @@ export type Database = {
             referencedColumns: ["id", "branch_code"]
           },
           {
+            foreignKeyName: "calibration_requests_requester_employee_id_branch_code_fkey"
+            columns: ["requester_employee_id", "branch_code"]
+            isOneToOne: false
+            referencedRelation: "employee_directory"
+            referencedColumns: ["id", "branch_code"]
+          },
+          {
+            foreignKeyName: "calibration_requests_requester_employee_id_branch_code_fkey"
+            columns: ["requester_employee_id", "branch_code"]
+            isOneToOne: false
+            referencedRelation: "employee_directory_records"
+            referencedColumns: ["id", "branch_code"]
+          },
+          {
             foreignKeyName: "calibration_requests_signed_document_id_fkey"
             columns: ["signed_document_id"]
             isOneToOne: false
             referencedRelation: "workflow_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calibration_requests_supervisor_profile_id_fkey"
+            columns: ["supervisor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_identity_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calibration_requests_supervisor_profile_id_fkey"
+            columns: ["supervisor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4603,6 +4640,14 @@ export type Database = {
       }
     }
     Functions: {
+      calibration_request_supervisors: {
+        Args: { b: string }
+        Returns: {
+          full_name: string
+          id: string
+          role_code: string
+        }[]
+      }
       commit_import: { Args: { batch: string }; Returns: number }
       complete_personnel_renewal: {
         Args: {

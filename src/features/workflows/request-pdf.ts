@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { draftSignatureDate } from "./request-form-model";
 
 type Row = Record<string, unknown>;
 
@@ -83,6 +84,8 @@ export async function calibrationRequestPdf(request: Row): Promise<Uint8Array> {
   slot("Perkiraan biaya", request.estimated_cost == null ? null : `Rp. ${Number(request.estimated_cost).toLocaleString("id-ID", { maximumFractionDigits: 2 })}`, 292, 468, 281);
   slot("Nama Kabid / pejabat mengetahui", request.supervisor_name ? `(${request.supervisor_name})` : null, 59.6, 624.3, 210);
   slot("Nama pengaju / pengguna", request.requester_name ? `(${request.requester_name})` : null, 394.9, 624.3, 178);
+  slot("Tanggal draf", draftSignatureDate(request.created_at), 394.9, 538.9, 178);
+  slot("NPP pengaju", request.requester_npp || "Non-NPP", 425, 638.5, 148);
 
   // Long values receive additional pages instead of being clipped or overlapping.
   if (overflow.length) {

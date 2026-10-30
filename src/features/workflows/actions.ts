@@ -34,8 +34,7 @@ const calibration = z
       .nullable()
       .optional(),
     estimated_cost: z.coerce.number().min(0).max(1e15).nullable().optional(),
-    requester_name: optionalText(),
-    supervisor_name: optionalText(),
+    supervisor_profile_id: optionalId,
     requester_signed: z.boolean(),
     supervisor_signed: z.boolean(),
     signed_document_id: optionalId,
@@ -87,7 +86,7 @@ export async function saveWorkflow(
   };
   let query;
   if (id) {
-    // PTK can only transition status, add notes and link a result. The database
+    // PTK can fill its own time/cost section, transition and link a result. The database
     // independently enforces the same rule against direct REST mutations.
     let patch: Record<string, unknown> = payload;
     if (kind === "calibration") {
@@ -103,6 +102,12 @@ export async function saveWorkflow(
           notes: payload.notes,
           calibration_id: (parsed.data as z.infer<typeof calibration>)
             .calibration_id,
+          ...("estimated_days" in parsed.data
+            ? { estimated_days: parsed.data.estimated_days }
+            : {}),
+          ...("estimated_cost" in parsed.data
+            ? { estimated_cost: parsed.data.estimated_cost }
+            : {}),
         };
     }
     query = db

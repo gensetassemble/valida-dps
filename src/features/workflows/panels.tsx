@@ -3,6 +3,7 @@ import { masterClient, type DataRow } from "@/features/master-data/server";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { formatTimestamp } from "@/lib/format";
+import { ROLE_LABELS, type Role } from "@/lib/auth/permissions";
 import { Card } from "@/components/ui/card";
 import { WorkflowDialog } from "./dialog";
 import { REQUEST_STATUSES, RENEWAL_STATUSES } from "./model";
@@ -36,6 +37,31 @@ export async function WorkflowPanel({
   const requester = hasPermission(scopes, branch, ["admin", "coordinator"]),
     ptk = hasPermission(scopes, branch, ["admin", "equipment_manager"]),
     hrga = hasPermission(scopes, branch, ["admin", "hrga"]);
+  const [
+    { data: supervisorData, error: supervisorError },
+    { data: requesterIdentity },
+  ] =
+    kind === "calibration" && (requester || ptk)
+      ? await Promise.all([
+          db.rpc("calibration_request_supervisors", { b: branch }),
+          profile.employee_id
+            ? db
+                .from("employee_directory_records")
+                .select("full_name,npp")
+                .eq("id", profile.employee_id)
+                .eq("branch_code", branch)
+                .maybeSingle()
+            : Promise.resolve({ data: null }),
+        ])
+      : [{ data: [], error: null }, { data: null }];
+  if (supervisorError)
+    throw Error("Pilihan Kepala Bidang/Kepala UP belum dapat dimuat.");
+  const supervisors = (supervisorData || []).map(
+    (s: { id: string; full_name: string; role_code: string }) => ({
+      id: s.id,
+      label: `${s.full_name} · ${ROLE_LABELS[s.role_code as Role] || s.role_code}`,
+    }),
+  );
   const labels: Record<string, string> =
     kind === "calibration" ? REQUEST_STATUSES : RENEWAL_STATUSES;
   const ids = records.map((r) => r.id);
@@ -108,11 +134,15 @@ export async function WorkflowPanel({
               parent={String(row.id)}
               requester={requester}
               ptk={ptk}
+              actorId={profile.id}
+              supervisors={supervisors}
               initialValues={{
                 ...row,
                 tag: row.tag || row.asset_id,
                 unit_name: row.unit,
-                requester_name: profile.full_name,
+                requester_name:
+                  requesterIdentity?.full_name || profile.full_name,
+                requester_npp: requesterIdentity?.npp,
               }}
             />
           )}
@@ -124,7 +154,26 @@ export async function WorkflowPanel({
             ? "Sertifikat seumur hidup tidak masuk perpanjangan berkala."
             : "Belum Diproses → Sedang Diproses → Sudah Diperpanjang. Penyelesaian wajib menautkan sertifikat pengganti beserta bukti."}
       </p>
-      {kind === "personnel" && !lifetime && <ol aria-label="Tahap perpanjangan sertifikat" className="mt-3 flex flex-wrap gap-2 text-xs">{Object.entries(RENEWAL_STATUSES).map(([stage, label]) => <li key={stage} className={"rounded-full border px-3 py-1 " + ((records[0]?.status || "unprocessed") === stage ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900" : "border-border text-muted-foreground")}>{label}</li>)}</ol>}
+      {kind === "personnel" && !lifetime && (
+        <ol
+          aria-label="Tahap perpanjangan sertifikat"
+          className="mt-3 flex flex-wrap gap-2 text-xs"
+        >
+          {Object.entries(RENEWAL_STATUSES).map(([stage, label]) => (
+            <li
+              key={stage}
+              className={
+                "rounded-full border px-3 py-1 " +
+                ((records[0]?.status || "unprocessed") === stage
+                  ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900"
+                  : "border-border text-muted-foreground")
+              }
+            >
+              {label}
+            </li>
+          ))}
+        </ol>
+      )}
       {!records.length && !lifetime && (
         <p className="mt-3 text-xs">
           {kind === "calibration"
@@ -159,14 +208,33 @@ export async function WorkflowPanel({
                   record={r}
                   requester={requester}
                   ptk={ptk}
+                  actorId={profile.id}
+                  supervisors={supervisors}
                   replacements={replacements}
                   calibrationResults={calibrationResults}
                 />
               )}
           </div>
           <p className="mt-2 whitespace-pre-wrap text-xs">{String(r.notes)}</p>
-          {kind === "calibration" && <div className="mt-3 flex flex-wrap gap-2"><CalibrationFormPreview id={String(r.id)} version={Number(r.version)}/></div>}
-          {kind === "personnel" && hrga && r.status === "processing" && <div className="mt-3"><RenewalCompletionDialog branch={branch} caseId={String(r.id)} version={Number(r.version)} title={String(row.original_title)} issuer={String(row.issuer || "")}/></div>}
+          {kind === "calibration" && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <CalibrationFormPreview
+                id={String(r.id)}
+                version={Number(r.version)}
+              />
+            </div>
+          )}
+          {kind === "personnel" && hrga && r.status === "processing" && (
+            <div className="mt-3">
+              <RenewalCompletionDialog
+                branch={branch}
+                caseId={String(r.id)}
+                version={Number(r.version)}
+                title={String(row.original_title)}
+                issuer={String(row.issuer || "")}
+              />
+            </div>
+          )}
           {r.signed_document_id ? (
             <a
               href={"/api/workflows/documents?id=" + r.signed_document_id}

@@ -5,6 +5,8 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { saveWorkflow } from "./actions";
 import { CalibrationFormPreview } from "./form-preview";
+import { formatBusinessDate } from "@/lib/format";
+import { draftBusinessDate } from "./request-form-model";
 import {
   REQUEST_STATUSES,
   RENEWAL_STATUSES,
@@ -22,6 +24,8 @@ export function WorkflowDialog({
   replacements = [],
   calibrationResults = [],
   initialValues = {},
+  supervisors = [],
+  actorId,
 }: {
   kind: "calibration" | "personnel";
   branch: string;
@@ -32,6 +36,8 @@ export function WorkflowDialog({
   replacements?: { id: string; label: string }[];
   calibrationResults?: { id: string; label: string }[];
   initialValues?: Row;
+  supervisors?: { id: string; label: string }[];
+  actorId?: string;
 }) {
   const [open, setOpen] = useState(false),
     [current, setCurrent] = useState<Row | undefined>(record),
@@ -53,6 +59,12 @@ export function WorkflowDialog({
     kind === "calibration" &&
     requester &&
     ["draft", "awaiting_signatures", "correction"].includes(status);
+  const canEstimate =
+    kind === "calibration" &&
+    ptk &&
+    !!current &&
+    actorId !== current.created_by &&
+    ["submitted", "accepted"].includes(status);
   const labels: Record<string, string> =
     kind === "calibration" ? REQUEST_STATUSES : RENEWAL_STATUSES;
   async function save(form: HTMLFormElement) {
@@ -77,16 +89,19 @@ export function WorkflowDialog({
               quantity: Number(f.get("quantity") || 1),
               laboratory: text("laboratory"),
               resolution_class: text("resolution_class"),
-              estimated_days:
-                text("estimated_days") === null
-                  ? null
-                  : Number(f.get("estimated_days")),
-              estimated_cost:
-                text("estimated_cost") === null
-                  ? null
-                  : Number(f.get("estimated_cost")),
-              requester_name: text("requester_name"),
-              supervisor_name: text("supervisor_name"),
+              ...(canEstimate
+                ? {
+                    estimated_days:
+                      text("estimated_days") === null
+                        ? null
+                        : Number(f.get("estimated_days")),
+                    estimated_cost:
+                      text("estimated_cost") === null
+                        ? null
+                        : Number(f.get("estimated_cost")),
+                  }
+                : {}),
+              supervisor_profile_id: text("supervisor_profile_id"),
               requester_signed: f.get("requester_signed") === "on",
               supervisor_signed: f.get("supervisor_signed") === "on",
               signed_document_id:
@@ -105,7 +120,9 @@ export function WorkflowDialog({
       else if (result.record) {
         setCurrent(result.record);
         setDirty(false);
-        setSavedMessage("Draf tersimpan. Preview dan PDF sudah mengikuti isian ini.");
+        setSavedMessage(
+          "Draf tersimpan. Preview dan PDF sudah mengikuti isian ini.",
+        );
         router.refresh();
         if (current && kind !== "calibration") setOpen(false);
       }
@@ -138,7 +155,7 @@ export function WorkflowDialog({
     }
   }
   const inputClass =
-    "h-9 w-full rounded-md border border-input bg-white px-2 text-sm disabled:bg-slate-50";
+    "h-9 w-full rounded-md border border-input bg-white px-2 text-sm read-only:bg-slate-50 read-only:text-muted-foreground disabled:bg-slate-50";
   function field(key: string, label: string, type = "text") {
     return (
       <label className="grid gap-1 text-xs" key={key}>
@@ -154,7 +171,11 @@ export function WorkflowDialog({
           className={inputClass}
           maxLength={200}
           min={type === "number" ? 0 : undefined}
-          readOnly={!!current && !canEdit && kind === "calibration"}
+          readOnly={
+            key.startsWith("estimated_")
+              ? !canEstimate
+              : !!current && !canEdit && kind === "calibration"
+          }
         />
       </label>
     );
@@ -203,7 +224,10 @@ export function WorkflowDialog({
             void save(e.currentTarget);
           }}
           className="space-y-4"
-          onChange={() => { setDirty(true); setSavedMessage(""); }}
+          onChange={() => {
+            setDirty(true);
+            setSavedMessage("");
+          }}
         >
           {kind === "calibration" && (
             <dl className="grid gap-2 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-2">
@@ -241,16 +265,89 @@ export function WorkflowDialog({
                   ["quantity", "Jumlah peralatan", "number"],
                   ["laboratory", "Lembaga kalibrasi"],
                   ["resolution_class", "Resolusi / kelas"],
-                  [
+                ].map(([k, l, t]) => field(k, l, t))}
+                <label className="grid gap-1 text-xs">
+                  Mengetahui / menyetujui · Kepala Bidang / Kepala UP
+                  <select
+                    name="supervisor_profile_id"
+                    className={inputClass}
+                    defaultValue={String(current?.supervisor_profile_id || "")}
+                    disabled={!!current && !canEdit}
+                  >
+                    <option value="">Pilih Kepala Bidang / Kepala UP</option>
+                    {current?.supervisor_profile_id &&
+                    !supervisors.some(
+                      (s) => s.id === current.supervisor_profile_id,
+                    ) ? (
+                      <option value={String(current.supervisor_profile_id)}>
+                        {String(current.supervisor_name)} · pilihan terdahulu
+                      </option>
+                    ) : null}
+                    {supervisors.map((s) => (
+                      <option key={`${s.id}-${s.label}`} value={s.id}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <dl className="grid gap-3 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-3">
+                <div>
+                  <dt className="text-muted-foreground">Pengaju / pengguna</dt>
+                  <dd className="font-semibold">
+                    {String(
+                      current?.requester_name ||
+                        initialValues.requester_name ||
+                        "—",
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">
+                    NPP pengaju · dari direktori
+                  </dt>
+                  <dd className="font-semibold">
+                    {String(
+                      current?.requester_npp ??
+                        initialValues.requester_npp ??
+                        "Non-NPP",
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Tanggal draf · WITA</dt>
+                  <dd className="font-semibold">
+                    {current
+                      ? formatBusinessDate(
+                          draftBusinessDate(current.created_at),
+                        )
+                      : "Otomatis saat draf disimpan"}
+                  </dd>
+                </div>
+              </dl>
+              <fieldset className="space-y-2 rounded-lg border border-border p-3">
+                <legend className="px-1 text-xs font-semibold">
+                  B. Waktu & biaya · diisi PTK / Fungsi Umum
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {field(
                     "estimated_days",
                     "Perkiraan hari kerja (opsional)",
                     "number",
-                  ],
-                  ["estimated_cost", "Perkiraan biaya (opsional)", "number"],
-                  ["requester_name", "Nama pengaju / pengguna"],
-                  ["supervisor_name", "Nama Kabid / pejabat mengetahui"],
-                ].map(([k, l, t]) => field(k, l, t))}
-              </div>
+                  )}
+                  {field(
+                    "estimated_cost",
+                    "Perkiraan biaya IDR (opsional)",
+                    "number",
+                  )}
+                </div>
+                {!canEstimate && (
+                  <p className="text-xs text-muted-foreground">
+                    Bagian ini diisi PTK / Fungsi Umum setelah diajukan; pengaju
+                    tidak dapat mengisinya.
+                  </p>
+                )}
+              </fieldset>
               {current && canEdit && (
                 <div className="space-y-3 rounded-lg border border-border p-3">
                   <label className="block text-xs font-semibold">
@@ -286,7 +383,8 @@ export function WorkflowDialog({
                       name="supervisor_signed"
                       defaultChecked={current.supervisor_signed === true}
                     />
-                    Saya memastikan tanda tangan Kabid tercantum di PDF.
+                    Saya memastikan tanda tangan pejabat yang dipilih tercantum
+                    di PDF.
                   </label>
                   <p className="text-xs text-muted-foreground">
                     Konfirmasi ini merupakan pernyataan pengaju.
@@ -367,8 +465,25 @@ export function WorkflowDialog({
               {error}
             </p>
           )}
-          {kind === "calibration" && savedMessage && <p role="status" className="text-sm text-emerald-800">{savedMessage}</p>}
-          {kind === "calibration" && current && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3"><CalibrationFormPreview id={String(current.id)} version={Number(current.version)} disabled={dirty || busy}/>{dirty && <span className="text-xs text-amber-900">Simpan perubahan untuk memperbarui preview dan PDF.</span>}</div>}
+          {kind === "calibration" && savedMessage && (
+            <p role="status" className="text-sm text-emerald-800">
+              {savedMessage}
+            </p>
+          )}
+          {kind === "calibration" && current && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3">
+              <CalibrationFormPreview
+                id={String(current.id)}
+                version={Number(current.version)}
+                disabled={dirty || busy}
+              />
+              {dirty && (
+                <span className="text-xs text-amber-900">
+                  Simpan perubahan untuk memperbarui preview dan PDF.
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <Button
               type="button"

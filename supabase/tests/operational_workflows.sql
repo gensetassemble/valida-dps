@@ -10,15 +10,15 @@ insert into public.portfolios(id,branch_code,code,name) values
  ('af300000-0000-4000-8000-000000000001','DPS','CONTOH_WF1','[CONTOH] Workflow 1'),
  ('af300000-0000-4000-8000-000000000002','DPS','CONTOH_WF2','[CONTOH] Workflow 2'),
  ('af300000-0000-4000-8000-000000000003','WFQ','CONTOH_WF3','[CONTOH] Other branch');
-insert into auth.users(id,email) select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'workflow.'||i||'@example.invalid' from generate_series(1,7)i;
+insert into auth.users(id,email) select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'workflow.'||i||'@example.invalid' from generate_series(1,9)i;
 insert into public.employee_directory(id,branch_code,full_name,npp,employment_status,verification_status,is_active)
-select ('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Person '||i,(93700+i)::text,case when i=5 then 'unknown' else 'active' end,'verified',true from generate_series(1,7)i;
+select ('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Person '||i,case when i=1 then null when i=2 then '03702' else (93700+i)::text end,case when i=5 then 'unknown' else 'active' end,'verified',true from generate_series(1,9)i;
 insert into public.profiles(id,employee_id,branch_code,full_name,is_active)
-select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Account '||i,true from generate_series(1,7)i;
+select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,('af200000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,'[CONTOH] Workflow Account '||i,true from generate_series(1,9)i;
 -- Employee activation/verification is not a login gate; the account and role are.
 update public.employee_directory set is_active=false,verification_status='pending' where id='af200000-0000-4000-8000-000000000005';
 insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason)
-select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,(array['admin','coordinator','equipment_manager','hrga','inspector','branch_head','admin'])[i],'[CONTOH] Transaction-only regression' from generate_series(1,7)i;
+select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,(array['admin','coordinator','equipment_manager','hrga','inspector','branch_head','admin','department_head','unit_head'])[i],'[CONTOH] Transaction-only regression' from generate_series(1,9)i;
 insert into public.employee_portfolio_assignments(employee_id,portfolio_id,branch_code,assignment_type,effective_from,verification_status,is_active) values
  ('af200000-0000-4000-8000-000000000002','af300000-0000-4000-8000-000000000001','DPS','coordinator','2020-01-01','verified',true),
  ('af200000-0000-4000-8000-000000000003','af300000-0000-4000-8000-000000000001','DPS','equipment_responsible','2020-01-01','verified',true),
@@ -39,10 +39,21 @@ select pg_temp.expect_workflow_failure($q$insert into public.portfolio_coordinat
 insert into public.equipment(id,branch_code,portfolio_id,name) values('af400000-0000-4000-8000-000000000003','DPS','af300000-0000-4000-8000-000000000001','[CONTOH] Automatic Responsible');
 select pg_temp.assert_workflow((select responsible_employee_id='af200000-0000-4000-8000-000000000002' from public.equipment where id='af400000-0000-4000-8000-000000000003'),'auto coordinator');
 select pg_temp.assert_workflow((select responsible_employee_id is null from public.equipment where id='af400000-0000-4000-8000-000000000001'),'old responsibility untouched');
+insert into public.calibration_requests(id,branch_code,equipment_id,notes,requester_npp) values('af800000-0000-4000-8000-000000000002','DPS','af400000-0000-4000-8000-000000000002','[CONTOH] Non-NPP requester','FABRICATED');
+select pg_temp.assert_workflow((select requester_npp is null from public.calibration_requests where id='af800000-0000-4000-8000-000000000002'),'Non-NPP never fabricated');
+update public.calibration_requests set status='cancelled' where id='af800000-0000-4000-8000-000000000002';
 select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000002',true);
+select pg_temp.assert_workflow((select count(*)=2 from public.calibration_request_supervisors('DPS') where id in ('af100000-0000-4000-8000-000000000008','af100000-0000-4000-8000-000000000009')),'department and unit heads selectable');
+select pg_temp.assert_workflow(not exists(select 1 from public.calibration_request_supervisors('DPS') where id in ('af100000-0000-4000-8000-000000000006','af100000-0000-4000-8000-000000000007')),'other roles and branches excluded');
+select pg_temp.expect_workflow_failure($q$select * from public.calibration_request_supervisors('WFQ')$q$,'lookup branch isolation');
+select pg_temp.expect_workflow_failure($q$insert into public.calibration_requests(branch_code,equipment_id,notes,estimated_days,estimated_cost) values('DPS','af400000-0000-4000-8000-000000000001','[CONTOH] forged estimates',2,30)$q$,'requester cannot supply time or cost');
 select pg_temp.expect_workflow_failure($q$insert into public.equipment(branch_code,portfolio_id,name) values('DPS','af300000-0000-4000-8000-000000000001','[CONTOH] forbidden coordinator asset write')$q$,'coordinator not equipment editor');
 select pg_temp.expect_workflow_failure($q$insert into public.calibration_requests(branch_code,equipment_id,notes) values('DPS','af400000-0000-4000-8000-000000000002','[CONTOH] denied request')$q$,'unauthorized portfolio');
-insert into public.calibration_requests(id,branch_code,equipment_id,notes,request_number,requester_name,supervisor_name) values('af800000-0000-4000-8000-000000000001','DPS','af400000-0000-4000-8000-000000000001','[CONTOH] calibration request','[CONTOH] WF-197','[CONTOH] Requester','[CONTOH] Supervisor');
+insert into public.calibration_requests(id,branch_code,equipment_id,notes,request_number,requester_name,requester_npp,supervisor_profile_id,created_at) values('af800000-0000-4000-8000-000000000001','DPS','af400000-0000-4000-8000-000000000001','[CONTOH] calibration request','[CONTOH] WF-197','spoofed','99999','af100000-0000-4000-8000-000000000008','2000-01-01');
+select pg_temp.assert_workflow((select requester_npp='03702' and requester_name='[CONTOH] Workflow Person 2' and requester_employee_id='af200000-0000-4000-8000-000000000002' and created_at=now() and supervisor_name='[CONTOH] Workflow Person 8' from public.calibration_requests where id='af800000-0000-4000-8000-000000000001'),'directory NPP, original actor, officer name and creation timestamp stamped');
+select pg_temp.expect_workflow_failure($q$update public.calibration_requests set supervisor_profile_id='af100000-0000-4000-8000-000000000007' where id='af800000-0000-4000-8000-000000000001'$q$,'invalid head role or branch');
+select pg_temp.expect_workflow_failure($q$update public.calibration_requests set requester_npp='99999' where id='af800000-0000-4000-8000-000000000001'$q$,'immutable requester NPP');
+select pg_temp.expect_workflow_failure($q$update public.calibration_requests set estimated_days=2 where id='af800000-0000-4000-8000-000000000001'$q$,'requester cannot edit estimates');
 select pg_temp.expect_workflow_failure($q$insert into public.calibration_requests(branch_code,equipment_id,notes) values('DPS','af400000-0000-4000-8000-000000000001','[CONTOH] duplicate active')$q$,'duplicate active');
 select pg_temp.expect_workflow_failure($q$update public.calibration_requests set status='submitted' where id='af800000-0000-4000-8000-000000000001'$q$,'cannot skip signatures');
 update public.calibration_requests set status='awaiting_signatures' where id='af800000-0000-4000-8000-000000000001';
@@ -50,9 +61,12 @@ select pg_temp.expect_workflow_failure($q$update public.calibration_requests set
 insert into public.workflow_documents(id,branch_code,request_id,object_path,original_name,file_bytes) values('af810000-0000-4000-8000-000000000001','DPS','af800000-0000-4000-8000-000000000001','DPS/af800000-0000-4000-8000-000000000001/af810000-0000-4000-8000-000000000001.pdf','[CONTOH] signed.pdf',30);
 insert into storage.objects(bucket_id,name) values('workflow-documents','DPS/af800000-0000-4000-8000-000000000001/af810000-0000-4000-8000-000000000001.pdf');
 update public.calibration_requests set status='submitted',signed_document_id='af810000-0000-4000-8000-000000000001',requester_signed=true,supervisor_signed=true where id='af800000-0000-4000-8000-000000000001';
+select pg_temp.expect_workflow_failure($q$update public.calibration_requests set estimated_cost=30 where id='af800000-0000-4000-8000-000000000001'$q$,'requester still cannot estimate after submitting');
 select pg_temp.expect_workflow_failure($q$update public.calibration_requests set status='accepted' where id='af800000-0000-4000-8000-000000000001'$q$,'coordinator cannot act as PTK');
 select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
 select pg_temp.assert_workflow(exists(select 1 from public.user_notifications where title like '%Diajukan ke PTK%'),'PTK notification');
+update public.calibration_requests set estimated_days=2,estimated_cost=30,notes='[CONTOH] PTK time and cost review' where id='af800000-0000-4000-8000-000000000001';
+select pg_temp.assert_workflow((select estimated_days=2 and estimated_cost=30 and status='submitted' and requester_npp='03702' and created_at=now() from public.calibration_requests where id='af800000-0000-4000-8000-000000000001'),'PTK can fill its own section without changing status or identity');
 select pg_temp.expect_workflow_failure($q$update public.calibration_requests set status='accepted',requester_name='tampered' where id='af800000-0000-4000-8000-000000000001'$q$,'PTK cannot rewrite signed fields');
 update public.calibration_requests set status='accepted',notes='[CONTOH] Signed PDF reviewed' where id='af800000-0000-4000-8000-000000000001';
 select pg_temp.expect_workflow_failure($q$update public.calibration_requests set status='completed' where id='af800000-0000-4000-8000-000000000001'$q$,'completion needs calibration');
