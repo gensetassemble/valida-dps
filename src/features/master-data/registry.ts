@@ -102,6 +102,30 @@ const base = {
 };
 export const ENTITIES: Record<string, EntityConfig> = {
   ...OPERATIONAL_ENTITIES,
+  "koordinator-operasional": {
+    ...base,
+    key: "koordinator-operasional",
+    table: "operational_coordinators",
+    title: "Koordinator Operasional",
+    singular: "Koordinator operasional",
+    path: "/master-data/koordinator-operasional",
+    labelKey: "full_name",
+    description:
+      "Direktori kontak koordinator per cabang. Pencatatan kontak tidak membuat akun login atau memberikan hak akses.",
+    fields: [
+      text("full_name", "Nama koordinator", true, 160),
+      { key: "email", label: "Email", kind: "email" },
+      { key: "whatsapp", label: "WhatsApp", kind: "tel" },
+      {
+        ...text("coverage", "Portofolio / cakupan tugas", false, 500),
+        hint: "Tuliskan cakupan tanggung jawab bisnis. Penugasan akses akun tetap dikelola terpisah.",
+      },
+      { ...text("notes", "Catatan", false, 2000), kind: "textarea" },
+      active,
+    ],
+    columns: ["full_name", "email", "whatsapp", "coverage", "is_active"],
+    search: ["full_name", "email", "coverage"],
+  },
   "am-marketing": {
     ...base,
     key: "am-marketing",
@@ -597,6 +621,7 @@ export const MASTER_KEYS = [
   "portofolio",
   "pegawai",
   "am-marketing",
+  "koordinator-operasional",
   "jenis-sertifikat",
   "layanan",
 ];

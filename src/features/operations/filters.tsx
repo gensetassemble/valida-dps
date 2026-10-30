@@ -95,23 +95,20 @@ export async function OperationalFilters({
   );
   return (
     <Card className="mb-4 p-4">
-      <AutoFilterForm className="flex flex-wrap items-end gap-3">
+      <AutoFilterForm
+        keys={[
+          "branch",
+          "q",
+          "from",
+          "until",
+          ...options.map((o) => o.param),
+          ...(entity === "kalibrasi-alat" ? ["eligibility"] : []),
+          ...(entity === "kompetensi-personil" ? [] : ["validity"]),
+        ]}
+        className="flex flex-wrap items-end gap-3"
+      >
         <input type="hidden" name="branch" value={branch} />
         {params.q && <input type="hidden" name="q" value={params.q} />}
-        {entity === "kompetensi-personil" && (
-          <label className="text-xs">
-            Jenis masa berlaku
-            <select
-              name="kind"
-              defaultValue={params.kind || ""}
-              className="mt-1 block h-10 rounded-lg border border-input px-2"
-            >
-              <option value="">Semua jenis</option>
-              <option value="term">Berjangka</option>
-              <option value="lifetime">Seumur hidup</option>
-            </select>
-          </label>
-        )}
         {entity === "kalibrasi-alat" && (
           <label className="text-xs">
             Kelayakan alat
@@ -133,29 +130,29 @@ export async function OperationalFilters({
             </select>
           </label>
         )}
-        <label className="text-xs">
-          Masa berlaku
-          <select
-            name="validity"
-            defaultValue={params.validity || ""}
-            className="mt-1 block h-10 rounded-lg border border-input bg-white px-2"
-          >
-            <option value="">Semua status</option>
-            {[
-              "Expired",
-              "Kritis",
-              "Perhatian",
-              "Pantau",
-              "Aman",
-              "Tanggal Belum Diisi",
-              ...(entity === "kompetensi-personil" || entity === "dashboard-all"
-                ? ["Berlaku Seumur Hidup"]
-                : []),
-            ].map((x) => (
-              <option key={x}>{x}</option>
-            ))}
-          </select>
-        </label>
+        {entity !== "kompetensi-personil" && (
+          <label className="text-xs">
+            Masa berlaku
+            <select
+              name="validity"
+              defaultValue={params.validity || ""}
+              className="mt-1 block h-10 rounded-lg border border-input bg-white px-2"
+            >
+              <option value="">Semua status</option>
+              {[
+                "Expired",
+                "Kritis",
+                "Perhatian",
+                "Pantau",
+                "Aman",
+                "Tanggal Belum Diisi",
+                ...(entity === "dashboard-all" ? ["Berlaku Seumur Hidup"] : []),
+              ].map((x) => (
+                <option key={x}>{x}</option>
+              ))}
+            </select>
+          </label>
+        )}
         {options.map((o) => (
           <label className="text-xs" key={o.param}>
             {o.title}

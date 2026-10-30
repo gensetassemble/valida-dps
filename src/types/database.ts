@@ -1330,6 +1330,59 @@ export type Database = {
           },
         ];
       };
+      operational_coordinators: {
+        Row: {
+          branch_code: string;
+          coverage: string | null;
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          notes: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          whatsapp: string | null;
+        };
+        Insert: {
+          branch_code: string;
+          coverage?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          notes?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          whatsapp?: string | null;
+        };
+        Update: {
+          branch_code?: string;
+          coverage?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          notes?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          whatsapp?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "operational_coordinators_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
       operational_documents: {
         Row: {
           branch_code: string;

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { DeadlineDate } from "./deadline-date";
+import { operationalValidity, remainingDays } from "@/lib/domain/validity";
 import { ScrollLoader } from "./scroll-loader";
 import { useScrollRecords } from "@/features/master-data/use-scroll-records";
 import Link from "next/link";
@@ -162,6 +163,7 @@ export function DataTable({
     if (column === "npp" && !row.npp) return "Non-NPP";
     if (entity.key === "kalibrasi-alat") {
       const raw = monitoringValue(row, column);
+      const days = remainingDays(String(row.latest_due_date || ""));
       if (column === "due_date" || column === "latest_due_date")
         return <DeadlineDate value={raw} />;
       const display =
@@ -177,6 +179,26 @@ export function DataTable({
           {column === "name" && (
             <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">
               Portofolio: {String(row.portfolio_code || "Belum dipetakan")}
+            </span>
+          )}
+          {column === "name" && (
+            <span className="mt-2 flex flex-wrap items-center gap-1.5">
+              <StatusBadge
+                value={operationalValidity(
+                  typeof row.latest_due_date === "string"
+                    ? row.latest_due_date
+                    : null,
+                )}
+              />
+              {days !== null && (
+                <span className="text-[10px] text-muted-foreground">
+                  {days < 0
+                    ? `${Math.abs(days)} hari lewat`
+                    : days === 0
+                      ? "Hari ini"
+                      : `${days} hari lagi`}
+                </span>
+              )}
             </span>
           )}
         </span>
