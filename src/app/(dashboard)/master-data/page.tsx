@@ -5,6 +5,7 @@ import { hasPermission, activeBranch } from "@/lib/auth/permissions";
 import { MASTER_KEYS, ENTITIES } from "@/features/master-data/registry";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { DirectoryAccessMatrix } from "@/features/master-data/access-matrix";
 export default async function MasterOverview({
   searchParams,
 }: {
@@ -40,18 +41,20 @@ export default async function MasterOverview({
           .map((entity) => (
             <Link
               key={entity.key}
-              href={`${entity.path}?branch=${branch}`}
+              href={`${entity.key === "kalibrasi-alat" ? "/master-data/alat" : entity.path}?branch=${branch}`}
               className="rounded-lg focus-visible:outline-primary-hover"
             >
               <Card className="flex h-full flex-col p-5 transition-colors hover:border-emerald-300">
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-bold text-brand-navy">
-                    {entity.title}
+                    {entity.key === "kalibrasi-alat" ? "Alat" : entity.title}
                   </h2>
                   <ArrowUpRight size={16} className="text-primary-hover" />
                 </div>
                 <p className="my-3 flex-1 text-xs leading-6 text-muted-foreground">
-                  {entity.description}
+                  {entity.key === "kalibrasi-alat"
+                    ? "Direktori alat internal, identitas aset, portofolio, lokasi, dan koordinator penanggung jawab."
+                    : entity.description}
                 </p>
                 <p className="border-t border-border pt-3 text-[11px] font-semibold text-primary-hover">
                   {!entity.readonly &&
@@ -63,6 +66,7 @@ export default async function MasterOverview({
             </Link>
           ))}
       </div>
+      <DirectoryAccessMatrix branch={branch} />
     </>
   );
 }

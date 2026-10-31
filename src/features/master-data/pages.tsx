@@ -170,11 +170,13 @@ export async function DetailPage({
         ))}
       </Card>
       {key === "pegawai" && hasPermission(scopes, branch, ["admin", "hrga"]) && <EmployeeStatusPanel branch={branch} row={record} own={profile.employee_id === id}/>}
-      <MasterTable
-        entity={child}
-        params={{ ...params, branch }}
-        parent={{ field, id }}
-      />
+      {!(key === "pegawai" && child === "penugasan") && (
+        <MasterTable
+          entity={child}
+          params={{ ...params, branch }}
+          parent={{ field, id }}
+        />
+      )}
     </>
   );
 }

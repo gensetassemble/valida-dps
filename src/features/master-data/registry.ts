@@ -668,6 +668,7 @@ export const MASTER_KEYS = [
   "wilayah",
   "portofolio",
   "pegawai",
+  "kalibrasi-alat",
   "am-marketing",
   "koordinator-operasional",
   "penetapan-koordinator",

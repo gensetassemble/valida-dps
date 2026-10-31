@@ -22,7 +22,7 @@ export function MeasurementRangeInput({ id, value, branch, onChange, invalid, de
     <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,0.65fr)]">
       <Input id={id} value={parts.range} onChange={(e) => update({ ...parts, range: e.target.value })} maxLength={1900} placeholder="Contoh: 0–2000 / 1" aria-invalid={invalid} aria-describedby={describedBy}/>
       <select aria-label="Simbol satuan ukur" value={custom ? "__other" : parts.unit} onChange={(e) => { if (e.target.value === "__other") setCustom(true); else { setCustom(false); update({ ...parts, unit: e.target.value }); } }} className="h-10 min-w-0 w-full rounded-lg border border-input bg-white px-2 text-sm">
-        <option value="">Tanpa / sudah tercantum</option>
+        <option value="">Unit</option>
         <optgroup label="Simbol SI">{SI_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}</optgroup>
         <optgroup label="Diterima bersama SI / turunan">{ACCEPTED_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}</optgroup>
         {!!legacy.length && <optgroup label="Histori / satuan non-SI">{legacy.map((u) => <option key={u} value={u}>{u}</option>)}</optgroup>}

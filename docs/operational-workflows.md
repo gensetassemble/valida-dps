@@ -67,3 +67,15 @@ Pengaju memilih pejabat Mengetahui/Menyetujui dari akun Kepala Bidang atau Kepal
 Nama dan NPP pengaju diambil database dari direktori pegawai yang tertaut ke akun pembuat draf, lalu disimpan sebagai snapshot. NPP tetap teks (termasuk nol awal); jika tidak tersedia, formulir mencetak Non-NPP. Tanggal di formulir berasal dari created_at draf dalam WITA, bukan tanggal mengunduh PDF. Draf lama menampilkan/mencetak NPP pembuat aslinya melalui lookup terbatas pada formulir yang boleh dibaca, kemudian menyimpannya saat draf disimpan ulang; tidak ada penulisan ulang massal. Identitas penampil formulir tidak digunakan untuk menggantikan pengaju asli.
 
 Bagian B Waktu & Biaya hanya dapat diperbarui PTK/Fungsi Umum yang berwenang setelah status Diajukan ke PTK atau Diterima PTK. Pengaju tidak dapat mengisi bagian tersebut, termasuk bila akunnya memiliki peran tambahan. PTK dapat menyimpan estimasi tanpa memindah tahap. Validasi database juga melindungi mutasi langsung; isi dan tanda tangan pengaju tidak dapat ditulis ulang oleh PTK.
+
+## Direktori Alat dan pemetaan akses
+
+Master Data → Alat membuka `/master-data/alat` dengan sumber dan formulir yang sama dengan Kalibrasi Alat. Tambah/ubah tetap melalui otorisasi modul alat dan RLS yang ada: IT Officer/Admin serta PTK sesuai penugasan. QSHE, Koordinator Operasional, Kepala Bidang/UP/Cabang dan Tester membaca sesuai cakupannya; AM, HRGA dan Personil tidak memperoleh akses alat dari peran tersebut. Matriks pada Master Data dihitung dari konfigurasi peran yang dipakai halaman dan aksi, bukan daftar izin terpisah. Gabungan peran tetap mengikuti pembatasan setiap rekaman.
+
+Bagian Penugasan Portofolio tidak ditampilkan pada detail pegawai. Penugasan yang mengatur akses dan tanggung jawab koordinator tetap tersimpan. Direktori alat ini tidak membuat salinan aset, menambah akun, atau memberi peran baru.
+
+## Konfirmasi master Demografi — 31 Oktober 2026
+
+Atas instruksi pengguna, 121 padanan unik diperbarui menjadi kepegawaian Aktif dan Terverifikasi; 11 identitas minimal yang belum tersedia ditambahkan setelah persetujuan terpisah. Total 132 pegawai sumber kini telah dikonfirmasi. Ini adalah konfirmasi identitas/status administratif, bukan validasi sertifikat. Nama/NPP lama, pegawai di luar sumber, dan relasi operasional tidak ditimpa.
+
+Sepuluh identitas direktori `[CONTOH]` diarsipkan. Login Super Admin yang dipertahankan dipisahkan dari identitas pegawai contoh, dengan akun dan hak akses tetap sama. Portofolio `CONTOH_WORKFLOW` dan tiga penugasan contoh nonaktif yang hanya mengacu padanya dihapus setelah pemeriksaan referensi. Cadangan, rencana sumber dan hasil transaksi disimpan pada `private-exports/directory-cleanup-2026-10-31`, yang dikecualikan dari Git. Tidak ada data pribadi sumber yang ditambahkan ke migrasi publik.
