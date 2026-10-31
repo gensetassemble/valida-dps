@@ -162,6 +162,7 @@ export type Database = {
           laboratory: string | null
           notes: string
           quantity: number
+          request_kind: string
           request_number: string | null
           requester_employee_id: string | null
           requester_name: string | null
@@ -191,6 +192,7 @@ export type Database = {
           laboratory?: string | null
           notes?: string
           quantity?: number
+          request_kind?: string
           request_number?: string | null
           requester_employee_id?: string | null
           requester_name?: string | null
@@ -220,6 +222,7 @@ export type Database = {
           laboratory?: string | null
           notes?: string
           quantity?: number
+          request_kind?: string
           request_number?: string | null
           requester_employee_id?: string | null
           requester_name?: string | null

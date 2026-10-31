@@ -10,8 +10,20 @@ import { REQUEST_STATUSES, RENEWAL_STATUSES } from "./model";
 import { RenewalCompletionDialog } from "./renewal-completion-dialog";
 import { CalibrationFormPreview } from "./form-preview";
 import { resolveRequestIdentity } from "./request-identity";
+import { CalibrationRequestPanel } from "./calibration-panel";
 
-export async function WorkflowPanel({
+export async function WorkflowPanel(props: {
+  kind: "calibration" | "personnel";
+  branch: string;
+  row: DataRow;
+}) {
+  return props.kind === "calibration" ? (
+    <CalibrationRequestPanel branch={props.branch} row={props.row} />
+  ) : (
+    <LegacyWorkflowPanel {...props} />
+  );
+}
+async function LegacyWorkflowPanel({
   kind,
   branch,
   row,
@@ -34,9 +46,12 @@ export async function WorkflowPanel({
     .eq(parentField, row.id)
     .order("created_at", { ascending: false });
   if (error) throw Error("Riwayat proses belum dapat dimuat.");
-  const records = kind === "calibration"
-    ? await Promise.all(((data || []) as DataRow[]).map((r) => resolveRequestIdentity(db, r)))
-    : (data || []) as DataRow[];
+  const records =
+    kind === "calibration"
+      ? await Promise.all(
+          ((data || []) as DataRow[]).map((r) => resolveRequestIdentity(db, r)),
+        )
+      : ((data || []) as DataRow[]);
   const requester = hasPermission(scopes, branch, ["admin", "coordinator"]),
     ptk = hasPermission(scopes, branch, ["admin", "equipment_manager"]),
     hrga = hasPermission(scopes, branch, ["admin", "hrga"]);

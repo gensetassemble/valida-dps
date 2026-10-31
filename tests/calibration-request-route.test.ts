@@ -12,6 +12,16 @@ vi.mock("@/features/master-data/server", () => ({ masterClient: client }));
 import { GET } from "@/app/api/workflows/form/route";
 const id = "ab000000-0000-4000-8000-000000000001";
 describe("private calibration PDF endpoint", () => {
+  it("exports an authenticated Excel attachment with private cache headers", async () => {
+    single.mockResolvedValue({ data: { id, request_number: "QA/197", equipment_snapshot: { name: "Test alat" } } });
+    const response = await GET(new NextRequest(`https://valida.example/api/workflows/form?id=${id}&format=xlsx`));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toContain("spreadsheetml.sheet");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("Content-Disposition")).toContain("QA-197.xlsx");
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    expect([...bytes.slice(0, 2)]).toEqual([80, 75]);
+  });
   beforeEach(() => {
     vi.clearAllMocks(); auth.mockResolvedValue({});
     eq.mockReturnValue({ maybeSingle: single });

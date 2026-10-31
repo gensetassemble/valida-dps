@@ -4,9 +4,11 @@ Implementasi menambah proses ke data yang sudah ada. Status proses tidak menggan
 
 ## Permintaan kalibrasi
 
-Koordinator pada portofolio yang ditugaskan dapat membuat permintaan tanpa hak mengubah alat atau sertifikat. Alur: Draf → Menunggu Tanda Tangan → Diajukan ke PTK → Diterima PTK → Selesai. PTK dapat mengembalikan dokumen untuk diperbaiki; pembatalan dan seluruh transisi dicatat. Satu permintaan aktif per alat. Penyelesaian memerlukan peristiwa kalibrasi baru pada alat yang sama dengan nomor sertifikat, tanggal akhir dan hasil.
+Hanya Koordinator Operasional pada portofolio alat yang dapat mengajukan perbaikan atau kalibrasi. Formulir langsung berstatus **Sedang Diajukan** dan mengirim notifikasi internal kepada PTK aktif sesuai cakupan. Satu pengajuan aktif per alat. Admin tanpa peran Koordinator tidak dapat mengajukan.
 
-Form cetak mempertahankan bagian A, B dan blok tanda tangan dari FOR/SCI-UMA/197 Rev. 02. Nilai yang belum diketahui tetap kosong. Pengaju mencetak, mendapatkan tanda tangan pengaju dan pejabat mengetahui, mengunggah PDF privat, lalu menyatakan kedua tanda tangan tersedia. Pernyataan ini bukan verifikasi tanda tangan digital; PTK memeriksa PDF sebelum menerima. Tidak ada IWO, SIMLab, pengadaan, atau alokasi biaya laboratorium.
+PTK memakai tombol **Mulai Proses** (Sedang Diproses) dan **Selesai**. Tanda tangan, unggah PDF, koreksi dan estimasi biaya/hari kerja tidak lagi dilacak aplikasi. Penyelesaian tidak membuat hasil kalibrasi atau mengubah tanggal/kelayakan alat; hasil kalibrasi tetap dicatat tersendiri.
+
+Formulir FOR/SCI-UMA/197 Rev. 02 diunduh sebagai Excel setelah pengajuan dan dapat diunduh kembali dari riwayat. Data alat, pengaju, NPP direktori, tanggal pembuatan WITA serta pejabat Mengetahui yang dipilih terisi otomatis. Waktu dan biaya selalu kosong untuk dilengkapi manual di luar sistem, termasuk ekspor permintaan lama. Excel dapat diedit. Email tidak diaktifkan oleh fitur ini.
 
 ## Penanggung jawab
 
@@ -38,9 +40,7 @@ Penggabungan pegawai dilakukan hanya setelah konfirmasi identitas tertentu. Reka
 
 Catatan operasional ditampilkan pada halaman, formulir dan ekspor. Diagnostik impor (baris Excel, staging, kandidat aset) tidak ditampilkan; menyimpan formulir tetap mempertahankan komponen diagnostik yang sudah ada sebagai provenance.
 
-## Preview dan PDF permintaan kalibrasi
-
-Setelah Simpan draf, formulir tetap terbuka dan menyediakan Preview formulir serta Unduh PDF. Preview besar menampilkan PDF yang sama dengan berkas unduhan, memakai template FOR/SCI-UMA/197 Rev.02 yang diberikan pengguna. Setelah isian diubah, simpan kembali untuk memperbarui preview dan unduhan. Tombol juga tersedia pada riwayat permintaan, termasuk permintaan yang sudah ditutup. Nilai diambil dari draf yang dibaca melalui sesi pengguna dan RLS; respons PDF privat, tidak dicache. Isian panjang dipindahkan ke lampiran, bukan dipotong. Nama tercetak tidak menggantikan tanda tangan pengaju/Kabid atau gate dokumen bertanda tangan.
+## Formulir alat dan satuan ukur
 
 Pada formulir alat, Rentang ukur / kapasitas menyediakan simbol SI, satuan yang diterima bersama SI, simbol historis yang dapat dibaca pengguna, serta Satuan lain. Simbol mengikuti kapitalisasi BIPM; satuan historis non-SI dipisahkan dan tidak dikonversi otomatis. Teks sumber kompleks tetap utuh sampai diedit. Nilai dan satuan disimpan bersama pada kolom range yang sudah ada, sehingga tabel monitoring, ekspor, dan PDF tetap konsisten. Spesifikasi tambahan digunakan untuk dimensi/keterangan di luar rentang; isian sumber lama tidak digabung atau ditulis ulang otomatis.
 
@@ -59,14 +59,6 @@ Pada Master Data → Direktori Pegawai, HRGA/admin memilih **Status personil**. 
 Status kepegawaian terpisah dari aktivasi/verifikasi direktori lama. Nilai lama `is_active=false` atau `employment_status=unknown` tidak membatalkan login yang sudah disetujui. Keputusan eksplisit Nonaktif menghentikan akses aplikasi melalui RLS, termasuk sesi yang masih memiliki JWT. Akun dan penugasan tidak dihapus; pengaktifan kembali tetap memerlukan akun serta grant yang sah. Sertifikat, tanggal, NPP, dan relasi alat tetap tersimpan. Personil Nonaktif tidak ditawarkan untuk pencatatan operasional baru; referensi historis tetap terlihat. Tidak ada pegawai yang dinonaktifkan oleh migrasi fitur ini.
 
 Pada detail kompetensi, tiga tahap perpanjangan terlihat langsung. HRGA membuka proses, mencatat pengajuan saat Sedang Diproses, lalu memilih **Catat sertifikat terbaru**. Formulir meminta nomor baru, penerbit, tanggal terbit, interval/tanggal akhir, folder bukti Google Drive, dan catatan. Tanggal akhir dapat dihitung otomatis dari tanggal terbit + interval. Penyimpanan membuat generasi sertifikat baru dan menyelesaikan proses dalam satu transaksi; kegagalan gate tidak meninggalkan sertifikat setengah tersimpan. Alternatifnya, HRGA dapat menautkan sertifikat pengganti yang sudah dicatat dan dilengkapi PDF/folder melalui **Kelola proses**. Sertifikat lama tidak ditimpa. Personil Nonaktif tidak dapat melanjutkan tahap renewal, tetapi riwayat tetap dapat dibaca HRGA.
-
-## Formulir UMA: identitas dan pengisian PTK
-
-Pengaju memilih pejabat Mengetahui/Menyetujui dari akun Kepala Bidang atau Kepala UP aktif pada cabang yang sama. Pilihan tersebut mencetak nama pada blok tanda tangan; bukan persetujuan digital. Sebelum masuk tahap tanda tangan/pengajuan, pilihan pejabat wajib valid. Bukti PDF dengan dua tanda tangan tetap diperlukan.
-
-Nama dan NPP pengaju diambil database dari direktori pegawai yang tertaut ke akun pembuat draf, lalu disimpan sebagai snapshot. NPP tetap teks (termasuk nol awal); jika tidak tersedia, formulir mencetak Non-NPP. Tanggal di formulir berasal dari created_at draf dalam WITA, bukan tanggal mengunduh PDF. Draf lama menampilkan/mencetak NPP pembuat aslinya melalui lookup terbatas pada formulir yang boleh dibaca, kemudian menyimpannya saat draf disimpan ulang; tidak ada penulisan ulang massal. Identitas penampil formulir tidak digunakan untuk menggantikan pengaju asli.
-
-Bagian B Waktu & Biaya hanya dapat diperbarui PTK/Fungsi Umum yang berwenang setelah status Diajukan ke PTK atau Diterima PTK. Pengaju tidak dapat mengisi bagian tersebut, termasuk bila akunnya memiliki peran tambahan. PTK dapat menyimpan estimasi tanpa memindah tahap. Validasi database juga melindungi mutasi langsung; isi dan tanda tangan pengaju tidak dapat ditulis ulang oleh PTK.
 
 ## Direktori Alat dan pemetaan akses
 

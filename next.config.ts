@@ -4,7 +4,11 @@ const nextConfig: NextConfig = {
   // Next.js development logs Server Function arguments by default, including login inputs.
   logging: { serverFunctions: false },
   outputFileTracingIncludes: {
-    "/api/workflows/form": ["./src/assets/forms/*.pdf", "./src/assets/fonts/Vera.ttf"],
+    "/api/workflows/form": [
+      "./src/assets/forms/*.pdf",
+      "./src/assets/forms/*.xlsx",
+      "./src/assets/fonts/Vera.ttf",
+    ],
   },
   async headers() {
     return [

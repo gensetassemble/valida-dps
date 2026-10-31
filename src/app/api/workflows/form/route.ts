@@ -17,8 +17,26 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
   if (!data) return new NextResponse(null, { status: 404 });
   const form = await resolveRequestIdentity(db, data);
+  if (request.nextUrl.searchParams.get("format") === "xlsx") {
+    const { calibrationRequestXlsx } =
+      await import("@/features/workflows/request-xlsx");
+    const bytes = await calibrationRequestXlsx(form);
+    const name = String(data.request_number || data.id)
+      .replace(/[^A-Za-z0-9_-]/g, "-")
+      .slice(0, 64);
+    return new NextResponse(Buffer.from(bytes), {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="FOR-SCI-UMA-197-${name}.xlsx"`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
   if (request.nextUrl.searchParams.get("format") === "pdf") {
-    const { calibrationRequestPdf, calibrationRequestFilename } = await import("@/features/workflows/request-pdf");
+    const { calibrationRequestPdf, calibrationRequestFilename } =
+      await import("@/features/workflows/request-pdf");
     const pdf = await calibrationRequestPdf(form);
     return new NextResponse(Buffer.from(pdf), {
       headers: {
@@ -27,7 +45,8 @@ export async function GET(request: NextRequest) {
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "SAMEORIGIN",
-        "Content-Security-Policy": "default-src 'none'; frame-ancestors 'self'; base-uri 'none'",
+        "Content-Security-Policy":
+          "default-src 'none'; frame-ancestors 'self'; base-uri 'none'",
       },
     });
   }
