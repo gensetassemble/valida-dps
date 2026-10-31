@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import ExcelJS from "exceljs";
-import { mkdir, writeFile } from "node:fs/promises";
+import JSZip from "jszip";
+import { readFile } from "node:fs/promises";
 import { calibrationRequestXlsx } from "@/features/workflows/request-xlsx";
 describe("manual UMA Excel handoff", () => {
   it("fills source fields and original NPP, leaves time/cost blank even for legacy estimates", async () => {
@@ -25,21 +26,37 @@ describe("manual UMA Excel handoff", () => {
       },
     });
     const book = new ExcelJS.Workbook();
-    await book.xlsx.load(bytes);
+    await book.xlsx.load(Uint8Array.from(bytes).buffer);
     const s = book.worksheets[0];
-    expect(s.getCell("E15").value).toBe("[CONTOH] Hydrometer");
-    expect(s.getCell("E23").value).toBe("Perbaikan");
-    expect(s.getCell("G43").value).toBe("NPP. 04125");
-    expect(s.getCell("G36").value).toEqual(new Date("2026-10-31T00:00:00Z"));
+    expect(s.getCell("E15").value).toBe("  : [CONTOH] Hydrometer");
+    expect(s.getCell("E23").value).toBe("  : Perbaikan");
+    expect(s.getCell("G43").value).toBe("NPP.  04125");
+    expect(s.getCell("G36").value).toBe("31 / 10 / 2026");
     for (const cell of ["E29", "E31", "E32"])
-      expect(s.getCell(cell).value).toBeNull();
+      expect(String(s.getCell(cell).value)).not.toMatch(/1250000|7/);
     expect(s.getCell("B42").value).toContain("Kepala UP");
-    expect(s.getCell("E16").value).toBe(1);
+    expect(s.getCell("E16").value).toBe("  : 1");
     expect(s.pageSetup.fitToWidth).toBe(1);
-    await mkdir(".tools/uma-template", { recursive: true });
-    await writeFile(
-      ".tools/uma-template/filled-example.xlsx",
-      Buffer.from(bytes),
+    const source = await JSZip.loadAsync(
+      await readFile("src/assets/forms/FOR-SCI-UMA-197-Rev-02.xlsx"),
     );
+    const output = await JSZip.loadAsync(Buffer.from(bytes));
+    for (const name of Object.keys(source.files).filter(
+      (n) => !source.files[n].dir && n !== "xl/worksheets/sheet1.xml",
+    )) {
+      expect(await output.file(name)!.async("uint8array"), name).toEqual(
+        await source.file(name)!.async("uint8array"),
+      );
+    }
+    const before = await source
+      .file("xl/worksheets/sheet1.xml")!
+      .async("string");
+    const after = await output
+      .file("xl/worksheets/sheet1.xml")!
+      .async("string");
+    // Filling changes cell contents only; all source geometry, row heights and print settings stay identical.
+    const withoutCells = (x: string) =>
+      x.replace(/<c\b[^>]*(?:\/>|>[\s\S]*?<\/c>)/g, "");
+    expect(withoutCells(after)).toBe(withoutCells(before));
   });
 });

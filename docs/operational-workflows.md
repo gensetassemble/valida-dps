@@ -71,3 +71,7 @@ Bagian Penugasan Portofolio tidak ditampilkan pada detail pegawai. Penugasan yan
 Atas instruksi pengguna, 121 padanan unik diperbarui menjadi kepegawaian Aktif dan Terverifikasi; 11 identitas minimal yang belum tersedia ditambahkan setelah persetujuan terpisah. Total 132 pegawai sumber kini telah dikonfirmasi. Ini adalah konfirmasi identitas/status administratif, bukan validasi sertifikat. Nama/NPP lama, pegawai di luar sumber, dan relasi operasional tidak ditimpa.
 
 Sepuluh identitas direktori `[CONTOH]` diarsipkan. Login Super Admin yang dipertahankan dipisahkan dari identitas pegawai contoh, dengan akun dan hak akses tetap sama. Portofolio `CONTOH_WORKFLOW` dan tiga penugasan contoh nonaktif yang hanya mengacu padanya dihapus setelah pemeriksaan referensi. Cadangan, rencana sumber dan hasil transaksi disimpan pada `private-exports/directory-cleanup-2026-10-31`, yang dikecualikan dari Git. Tidak ada data pribadi sumber yang ditambahkan ke migrasi publik.
+
+## Format ekspor UMA — 31 Oktober 2026
+
+Template XLSX merupakan hasil Save As dari XLS asli pengguna melalui Microsoft Excel. Ekspor mengisi sel isian langsung pada paket OOXML tanpa menulis ulang style, gambar/logo, kolom, tinggi baris, border, margin, pengaturan printer dan footer. Bagian B mempertahankan titik-titik kosong template untuk pengisian manual; estimasi lama tidak diekspor. Uji regresi membandingkan seluruh bagian paket yang tidak diubah dan geometri worksheet dengan template.

@@ -1,67 +1,73 @@
-import ExcelJS from "exceljs";
+import JSZip from "jszip";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { draftBusinessDate } from "./request-form-model";
 type Row = Record<string, unknown>;
+const xmlText = (value: unknown) =>
+  String(value ?? "")
+    .split("")
+    .filter((c) => c.charCodeAt(0) >= 32 || [9, 10, 13].includes(c.charCodeAt(0)))
+    .join("")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+
+/** Fill the native Excel-converted source without round-tripping styles, drawings or print settings. */
 export async function calibrationRequestXlsx(request: Row) {
-  const book = new ExcelJS.Workbook();
-  await book.xlsx.readFile(
-    path.join(process.cwd(), "src/assets/forms/FOR-SCI-UMA-197-Rev-02.xlsx"),
+  const zip = await JSZip.loadAsync(
+    await readFile(
+      path.join(process.cwd(), "src/assets/forms/FOR-SCI-UMA-197-Rev-02.xlsx"),
+    ),
   );
-  const s = book.worksheets[0],
-    e = (request.equipment_snapshot || {}) as Row;
+  const sheet = zip.file("xl/worksheets/sheet1.xml");
+  if (!sheet) throw new Error("Template UMA tidak tersedia.");
+  let xml = await sheet.async("string");
   const set = (cell: string, value: unknown) => {
-    s.getCell(cell).value = value == null || value === "" ? null : String(value);
+    const re = new RegExp(
+      `<c\\b([^>]*\\br="${cell}"[^>]*)(?:\\/>|>[\\s\\S]*?<\\/c>)`,
+    );
+    if (!re.test(xml))
+      throw new Error(`Sel template UMA tidak ditemukan: ${cell}`);
+    xml = xml.replace(
+      re,
+      (_match, attrs: string) =>
+        `<c${attrs.replace(/\s+t="[^"]*"/g, "")} t="inlineStr"><is><t xml:space="preserve">${xmlText(value)}</t></is></c>`,
+    );
   };
-  set("A6", "No. : " + String(request.request_number || ""));
-  set("F9", "Unit Kerja / Bagian : " + String(request.unit_name || ""));
-  set("E15", e.name);
-  s.getCell("E16").value = Number(request.quantity || 1);
-  set(
+  const e = (request.equipment_snapshot || {}) as Row;
+  const field = (cell: string, value: unknown) => {
+    if (value != null && value !== "") set(cell, "  : " + String(value));
+  };
+  set("A6", "No.   :  " + String(request.request_number || "……………………………………"));
+  if (request.unit_name)
+    set("F9", "Unit Kerja /Bagian   : " + request.unit_name);
+  field("E15", e.name);
+  field("E16", request.quantity || 1);
+  field(
     "E17",
     [e.serial, e.asset_id || e.tag, e.location].filter(Boolean).join(" / "),
   );
-  set(
+  field(
     "E18",
     [e.brand, e.model, e.specification_size].filter(Boolean).join(" / "),
   );
-  set("E19", e.measurement_range);
-  set("E20", request.resolution_class);
-  set("E21", request.notes);
-  set("E23", request.request_kind === "repair" ? "Perbaikan" : "Kalibrasi");
-  set("E24", request.laboratory);
-  s.getCell("E29").value = null;
-  s.getCell("E31").value = null;
-  s.getCell("E32").value = null;
-  set(
-    "B42",
-    request.supervisor_name
-      ? `(${request.supervisor_name})`
-      : "(................................)",
-  );
-  set("G42", `(${request.requester_name || ""})`);
-  set("G43", "NPP. " + String(request.requester_npp || "Non-NPP"));
+  field("E19", e.measurement_range);
+  field("E20", request.resolution_class);
+  field("E21", request.notes);
+  if (request.notes) set("E22", "");
+  field("E23", request.request_kind === "repair" ? "Perbaikan" : "Kalibrasi");
+  field("E24", request.laboratory);
+  // Keep the original dotted blanks in section B for manual completion; never export estimates.
+  if (request.supervisor_name) set("B42", `(${request.supervisor_name})`);
+  if (request.requester_name) set("G42", `(${request.requester_name})`);
+  set("G43", "NPP.  " + String(request.requester_npp || "Non-NPP"));
   const date = draftBusinessDate(request.created_at);
   if (date) {
-    s.getCell("G36").value = new Date(date + "T00:00:00Z");
-    s.getCell("G36").numFmt = "dd/mm/yyyy";
+    const [y, m, d] = date.split("-");
+    set("G36", `${d} / ${m} / ${y}`);
   }
-  s.pageSetup = {
-    paperSize: 9,
-    orientation: "portrait",
-    fitToPage: true,
-    fitToWidth: 1,
-    fitToHeight: 1,
-    printArea: "A1:H44",
-    margins: {
-      left: 0.3,
-      right: 0.3,
-      top: 0.3,
-      bottom: 0.3,
-      header: 0.1,
-      footer: 0.1,
-    },
-  };
-  s.views = [{ showGridLines: false }];
-  book.creator = "VALIDA";
-  return book.xlsx.writeBuffer();
+  zip.file("xl/worksheets/sheet1.xml", xml);
+  return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
