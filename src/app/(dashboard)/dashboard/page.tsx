@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
+import { dashboardStatusHref } from "@/lib/domain/dashboard-filter";
 import {
   dashboardFilters,
   dashboardScope,
@@ -200,27 +202,35 @@ export default async function DashboardPage({
           .filter(
             (status) => status !== "Berlaku Seumur Hidup" || showPersonnel,
           )
-          .map((status) => (
+          .map((status) => {
+            const selected = p.validity === status;
+            const activeColor = status === "Expired"
+              ? "border-red-500 bg-red-50 ring-red-500"
+              : ["Kritis", "Perhatian", "Pantau"].includes(status)
+                ? "border-amber-500 bg-amber-50 ring-amber-500"
+                : status === "Aman" || status === "Berlaku Seumur Hidup"
+                  ? "border-emerald-600 bg-emerald-50 ring-emerald-600"
+                  : "border-slate-500 bg-slate-100 ring-slate-500";
+            return (
             <Link
               key={status}
-              href={
-                "/dashboard?" +
-                new URLSearchParams({
-                  ...p,
-                  branch,
-                  validity: status,
-                  page: "1",
-                } as Record<string, string>)
-              }
+              href={dashboardStatusHref(p, branch, status)}
+              aria-current={selected ? "true" : undefined}
+              aria-label={`${status}: ${s.buckets[status] || 0} rekaman. ${selected ? "Filter aktif, klik untuk melepas" : "Klik untuk memfilter"}`}
+              className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-navy"
             >
-              <Card className="p-4">
+              <Card className={"h-full p-4 transition-colors " + (selected ? `ring-2 ${activeColor}` : "hover:border-slate-400 hover:bg-slate-50")}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
                 <StatusBadge value={status} />
+                {selected && <span className="flex items-center gap-1 text-xs font-semibold text-brand-navy"><Check size={14} aria-hidden="true" />Aktif · klik untuk reset</span>}
+                </div>
                 <strong className="mt-4 block text-3xl tabular-nums text-brand-navy">
                   {s.buckets[status] || 0}
                 </strong>
               </Card>
             </Link>
-          ))}
+            );
+          })}
         {showClients && (
           <Card className="p-4">
             <p className="text-xs font-semibold text-muted-foreground">
