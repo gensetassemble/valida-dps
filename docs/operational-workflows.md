@@ -99,3 +99,11 @@ HRGA dan Super Admin memiliki pengelolaan Direktori Pegawai yang sama pada caban
 Riwayat Kalibrasi pada detail alat langsung menampilkan seluruh riwayat sesuai akses tanpa pencarian/filter; urutan dan pemuatan saat scroll tetap tersedia.
 
 Koordinator Operasional dapat menambah dan mengubah alat internal beserta pencatatan kalibrasinya pada portofolio penugasan koordinator yang aktif dan terverifikasi. Perpindahan alat ke luar cakupan ditolak. Pembaruan progress pengajuan tetap menjadi kewenangan PTK.
+
+## Tambah jenis kompetensi dan pembatalan renewal
+
+Pada formulir kompetensi, HRGA/Admin dapat mencari katalog atau memilih Tambah jenis kompetensi baru → Simpan & pilih. Nama dinormalisasi pada spasi dan dicocokkan tanpa membedakan kapitalisasi sebelum pembuatan; transaksi mengunci nama yang sama agar pemanggilan bersamaan tidak menggandakan jenis. Jenis baru selalu berkategori personel pada cabang actor, tanpa mengarang regulasi atau masa berlaku. Jenis nonaktif yang sudah ada harus dipulihkan oleh Admin.
+
+HRGA/Admin dapat membatalkan proses Belum Diproses/Sedang Diproses, kemudian mengajukan ulang. Hapus histori tersedia setelah Dibatalkan/Sudah Diperpanjang dengan alasan dan konfirmasi. Ini menyembunyikan histori dari panel; event/audit tetap tersimpan. Penghapusan histori selesai mempertahankan tautan sertifikat pengganti sehingga versi lama tidak muncul kembali sebagai sertifikat terkini. Operasi memeriksa cabang, peran dan versi di database; hasil perpanjangan selesai tidak dapat dibatalkan.
+
+Kartu status dashboard menampilkan ambang kalender WITA: Expired <0 hari, Kritis 0–30, Perhatian 31–60, Pantau 61–90, Aman >90. Keterangan ini tidak mengubah perhitungan masa berlaku.

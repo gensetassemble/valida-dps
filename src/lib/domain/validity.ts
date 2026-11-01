@@ -7,6 +7,15 @@ export type Validity =
   | "Perlu Verifikasi"
   | "Tanggal Belum Diisi"
   | "Berlaku Seumur Hidup";
+export const VALIDITY_DESCRIPTIONS: Record<string, string> = {
+  Expired: "Tanggal berakhir sudah lewat",
+  Kritis: "H-0 hingga H-30 · sisa 0–30 hari",
+  Perhatian: "H-31 hingga H-60 · sisa 31–60 hari",
+  Pantau: "H-61 hingga H-90 · sisa 61–90 hari",
+  Aman: "Lebih dari 90 hari menuju tanggal berakhir",
+  "Tanggal Belum Diisi": "Tanggal berakhir belum tersedia",
+  "Berlaku Seumur Hidup": "Tanpa batas tanggal berakhir",
+};
 export function todayWita(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Makassar",

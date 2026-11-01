@@ -141,6 +141,26 @@ select pg_temp.expect_workflow_failure($q$update public.equipment set portfolio_
 select pg_temp.expect_workflow_failure($q$update public.equipment set ownership='client' where id='af400000-0000-4000-8000-000000000004'$q$,'coordinator internal equipment only');
 select pg_temp.expect_workflow_failure($q$update public.calibration_requests set status='completed' where id='af800000-0000-4000-8000-000000000003'$q$,'coordinator still cannot update PTK progress');
 reset role;
+
+-- Renewal cleanup preserves certificates and completed generation links.
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000004',true);
+set local role authenticated;
+select pg_temp.expect_workflow_failure($q$select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000001','DPS',1,'delete_history','[CONTOH] stale request')$q$,'stale version rejected');
+select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000001','DPS',(select version from public.personnel_renewal_cases where id='af900000-0000-4000-8000-000000000001'),'delete_history','[CONTOH] completed history cleanup');
+select pg_temp.assert_workflow((select superseded_by_certificate_id is not null from public.personnel_certificate_portfolios where id='af600000-0000-4000-8000-000000000001'),'archived completed history does not resurrect old certificate');
+insert into public.personnel_renewal_cases(id,certificate_id,branch_code,status,notes) values('af900000-0000-4000-8000-000000000008','af600000-0000-4000-8000-000000000002','DPS','unprocessed','[CONTOH] Cancellation QA');
+select pg_temp.expect_workflow_failure($q$select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000008','DPS',1,'delete_history','[CONTOH] active history protected')$q$,'cannot hide active process');
+select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000008','DPS',1,'cancel','[CONTOH] Cancel testing process');
+select pg_temp.assert_workflow((select status='cancelled' and version=2 from public.personnel_renewal_cases where id='af900000-0000-4000-8000-000000000008'),'HRGA cancels active process');
+select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000008','DPS',2,'delete_history','[CONTOH] Hide testing process');
+insert into public.personnel_renewal_cases(id,certificate_id,branch_code,status,notes) values('af900000-0000-4000-8000-000000000009','af600000-0000-4000-8000-000000000002','DPS','unprocessed','[CONTOH] Reopened after cancellation');
+select pg_temp.assert_workflow((select count(*)=1 from public.personnel_certificate_portfolios where id='af600000-0000-4000-8000-000000000002'),'cancelled and restarted process does not duplicate certificate rows');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000002',true);
+select pg_temp.expect_workflow_failure($q$select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000009','DPS',1,'cancel','[CONTOH] coordinator forbidden')$q$,'coordinator cannot cancel HRGA process');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000007',true);
+select pg_temp.expect_workflow_failure($q$select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000009','DPS',1,'cancel','[CONTOH] wrong branch forbidden')$q$,'cross branch cleanup denied');
+reset role;
+
 select pass('Coordinator submission, PTK progress, scope, independent calibration, HRGA evidence, immutable history and inbox isolation');
 select * from finish();
 rollback;

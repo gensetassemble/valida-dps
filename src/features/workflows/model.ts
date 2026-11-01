@@ -11,6 +11,7 @@ export const RENEWAL_STATUSES = {
   unprocessed: "Belum Diproses",
   processing: "Sedang Diproses",
   renewed: "Sudah Diperpanjang",
+  cancelled: "Dibatalkan",
 } as const;
 export function personnelRenewalDisplay(
   status: string | null | undefined,

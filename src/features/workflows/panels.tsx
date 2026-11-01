@@ -11,6 +11,7 @@ import { RenewalCompletionDialog } from "./renewal-completion-dialog";
 import { CalibrationFormPreview } from "./form-preview";
 import { resolveRequestIdentity } from "./request-identity";
 import { CalibrationRequestPanel } from "./calibration-panel";
+import { RenewalCleanupDialog } from "./renewal-cleanup-dialog";
 
 export async function WorkflowPanel(props: {
   kind: "calibration" | "personnel";
@@ -44,6 +45,7 @@ async function LegacyWorkflowPanel({
     .select("*")
     .eq("branch_code", branch)
     .eq(parentField, row.id)
+    .is("history_deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw Error("Riwayat proses belum dapat dimuat.");
   const records =
@@ -152,7 +154,7 @@ async function LegacyWorkflowPanel({
             ? records.some(
                 (r) => !["completed", "cancelled"].includes(String(r.status)),
               )
-            : records.length > 0) &&
+            : records.some((r) => r.status !== "cancelled")) &&
           (kind === "calibration" ? requester : hrga) && (
             <WorkflowDialog
               kind={kind}
@@ -185,20 +187,26 @@ async function LegacyWorkflowPanel({
           aria-label="Tahap perpanjangan sertifikat"
           className="mt-3 flex flex-wrap gap-2 text-xs"
         >
-          {Object.entries(RENEWAL_STATUSES).map(([stage, label]) => (
-            <li
-              key={stage}
-              className={
-                "rounded-full border px-3 py-1 " +
-                ((records[0]?.status || row.renewal_status || "unprocessed") ===
-                stage
-                  ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900"
-                  : "border-border text-muted-foreground")
-              }
-            >
-              {label}
-            </li>
-          ))}
+          {Object.entries(RENEWAL_STATUSES)
+            .filter(
+              ([stage]) =>
+                stage !== "cancelled" || records[0]?.status === "cancelled",
+            )
+            .map(([stage, label]) => (
+              <li
+                key={stage}
+                className={
+                  "rounded-full border px-3 py-1 " +
+                  ((records[0]?.status ||
+                    row.renewal_status ||
+                    "unprocessed") === stage
+                    ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900"
+                    : "border-border text-muted-foreground")
+                }
+              >
+                {label}
+              </li>
+            ))}
         </ol>
       )}
       {!records.length && !lifetime && (
@@ -245,6 +253,16 @@ async function LegacyWorkflowPanel({
               )}
           </div>
           <p className="mt-2 whitespace-pre-wrap text-xs">{String(r.notes)}</p>
+          {kind === "personnel" && hrga && (
+            <div className="mt-3">
+              <RenewalCleanupDialog
+                id={String(r.id)}
+                branch={branch}
+                version={Number(r.version)}
+                status={String(r.status)}
+              />
+            </div>
+          )}
           {kind === "calibration" && (
             <div className="mt-3 flex flex-wrap gap-2">
               <CalibrationFormPreview
@@ -345,7 +363,7 @@ export async function WorkflowOverview({
     .not(
       "status",
       "in",
-      kind === "calibration" ? "(completed,cancelled)" : "(renewed)",
+      kind === "calibration" ? "(completed,cancelled)" : "(renewed,cancelled)",
     )
     .order("updated_at", { ascending: false })
     .limit(30);

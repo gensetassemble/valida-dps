@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { recordSchema } from "./validation";
 import { saveRecord } from "./actions";
+import { createCompetencyType } from "./competency-type-actions";
 import { DirectoryActionsDialog } from "./directory-actions-dialog";
 import { MeasurementRangeInput } from "@/features/operations/measurement-range-input";
 import type { DataRow } from "./server";
@@ -43,6 +44,14 @@ function Lookup({
   const [q, setQuery] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
   const [status, setStatus] = useState("Memuat pilihan…");
+  const canCreateType =
+    entity === "kompetensi-personil" &&
+    field.key === "certificate_type_id" &&
+    !disabled;
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [savingType, setSavingType] = useState(false);
+  const [createError, setCreateError] = useState("");
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
@@ -119,6 +128,88 @@ function Lookup({
         ))}
       </select>
       <p className="text-[10px] text-muted-foreground">{status}</p>
+      {canCreateType && !creating && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setNewName(q.trim());
+            setCreateError("");
+            setCreating(true);
+          }}
+        >
+          + Tambah jenis kompetensi baru
+        </Button>
+      )}
+      {canCreateType && creating && (
+        <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+          <label className="grid gap-1 text-xs font-medium">
+            Nama jenis kompetensi baru
+            <Input
+              value={newName}
+              onChange={(event) => setNewName(event.target.value)}
+              maxLength={160}
+              disabled={savingType}
+            />
+          </label>
+          <p className="text-xs text-muted-foreground">
+            Disimpan ke katalog kompetensi dan langsung dipilih pada formulir
+            ini.
+          </p>
+          {createError && (
+            <p role="alert" className="text-xs text-red-800">
+              {createError}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={savingType || newName.trim().length < 2}
+              onClick={async () => {
+                setSavingType(true);
+                setCreateError("");
+                try {
+                  const result = await createCompetencyType({
+                    branch,
+                    name: newName,
+                  });
+                  if (result.error) setCreateError(result.error);
+                  else if (result.option) {
+                    setOptions((current) => [
+                      result.option!,
+                      ...current.filter(
+                        (option) => option.value !== result.option!.value,
+                      ),
+                    ]);
+                    onChange(result.option.value);
+                    setQuery("");
+                    setCreating(false);
+                  }
+                } catch {
+                  setCreateError(
+                    "Jenis kompetensi belum tersimpan. Silakan coba kembali.",
+                  );
+                } finally {
+                  setSavingType(false);
+                }
+              }}
+            >
+              {savingType ? "Menyimpan…" : "Simpan & pilih"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={savingType}
+              onClick={() => setCreating(false)}
+            >
+              Batal
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -203,7 +294,11 @@ export function RecordForm({
             (f) => !["name", "portfolio_id"].includes(f.key),
           ),
         ]
-      : entity.key === "pegawai" ? entity.fields.filter((f) => !["employment_status", "is_active"].includes(f.key)) : entity.fields
+      : entity.key === "pegawai"
+        ? entity.fields.filter(
+            (f) => !["employment_status", "is_active"].includes(f.key),
+          )
+        : entity.fields
   ).map((field) =>
     entity.key === "penugasan" && !isAdmin && field.key === "assignment_type"
       ? {
@@ -533,7 +628,20 @@ export function RecordForm({
                       )}
                     </>
                   ) : field.key === "measurement_range" ? (
-                    <Controller control={control} name={field.key} render={({ field: input }) => <MeasurementRangeInput id={field.key} value={String(input.value || "")} branch={branch} onChange={input.onChange} invalid={!!message} describedBy={common["aria-describedby"]}/>}/>
+                    <Controller
+                      control={control}
+                      name={field.key}
+                      render={({ field: input }) => (
+                        <MeasurementRangeInput
+                          id={field.key}
+                          value={String(input.value || "")}
+                          branch={branch}
+                          onChange={input.onChange}
+                          invalid={!!message}
+                          describedBy={common["aria-describedby"]}
+                        />
+                      )}
+                    />
                   ) : field.kind === "boolean" ? (
                     <Controller
                       control={control}
@@ -694,7 +802,13 @@ export function RecordForm({
           </p>
         )}
         <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
-          {entity.key === "pegawai" && row && canManageDirectory && <DirectoryActionsDialog row={row} branch={branch} onSaved={onSaved}/>}
+          {entity.key === "pegawai" && row && canManageDirectory && (
+            <DirectoryActionsDialog
+              row={row}
+              branch={branch}
+              onSaved={onSaved}
+            />
+          )}
           <Button
             variant="outline"
             type="button"
