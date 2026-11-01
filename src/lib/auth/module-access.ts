@@ -17,7 +17,7 @@ export const MODULE_ACCESS: Record<
   },
   calibrations: {
     read: ["admin", "equipment_manager", "coordinator", "qshe", "branch_head"],
-    write: ["admin", "equipment_manager"],
+    write: ["admin", "equipment_manager", "coordinator"],
     label: "Kalibrasi Alat",
   },
 };

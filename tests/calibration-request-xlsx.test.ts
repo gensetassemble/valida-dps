@@ -31,7 +31,7 @@ describe("manual UMA Excel handoff", () => {
     expect(s.getCell("E15").value).toBe("  : [CONTOH] Hydrometer");
     expect(s.getCell("E23").value).toBe("  : Perbaikan");
     expect(s.getCell("G43").value).toBe("NPP.  04125");
-    expect(s.getCell("G36").value).toBe("31 / 10 / 2026");
+    expect(s.getCell("G36").value).toBe("Sabtu, 31 Oktober 2026");
     for (const cell of ["E29", "E31", "E32"])
       expect(String(s.getCell(cell).value)).not.toMatch(/1250000|7/);
     expect(s.getCell("B42").value).toContain("Kepala UP");

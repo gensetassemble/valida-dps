@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./breadcrumbs";
 import { cn } from "@/lib/utils";
 import { APPLICATION_RELEASE } from "@/lib/version";
+import { RefreshButton } from "@/components/shared/refresh-button";
 type Item = {
   label: string;
   href?: string;
@@ -156,6 +157,7 @@ const groups: { label: string; items: Item[] }[] = [
   },
 ];
 export type ShellUser = {
+  unreadCount?: number;
   name: string;
   email: string;
   branch: string;
@@ -282,13 +284,27 @@ export function AppShell({
                         key={item.label}
                         href={`${item.href}?branch=${branch}`}
                         title={item.label}
-                        aria-label={compact ? item.label : undefined}
+                        aria-label={
+                          item.href === "/notifikasi"
+                            ? `Notifikasi, ${user.unreadCount || 0} belum dibaca`
+                            : compact
+                              ? item.label
+                              : undefined
+                        }
                         aria-current={active ? "page" : undefined}
                         className={cls}
                         onClick={() => setMobileOpen(false)}
                       >
                         <Icon size={18} className="shrink-0" aria-hidden />
                         {!compact && <span>{item.label}</span>}
+                        {item.href === "/notifikasi" && !!user.unreadCount && (
+                          <span
+                            className="rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                            aria-hidden
+                          >
+                            {user.unreadCount > 99 ? "99+" : user.unreadCount}
+                          </span>
+                        )}
                       </Link>
                     );
                   })}
@@ -423,6 +439,7 @@ export function AppShell({
                 {initials}
               </span>
             </Link>
+            <RefreshButton />
             <LogoutButton />
           </div>
         </header>

@@ -6,7 +6,7 @@ import {
 } from "@/features/operations/personnel-export";
 
 describe("personnel monitoring export", () => {
-  it("round-trips the 12 report columns, dates, identifiers, current values and safe links", async () => {
+  it("round-trips the 14 report columns, dates, identifiers, current values and safe links", async () => {
     const book = new ExcelJS.Workbook();
     const url = "https://drive.google.com/drive/folders/synthetic-folder";
     addPersonnelSheet(
@@ -33,6 +33,7 @@ describe("personnel monitoring export", () => {
           issue_date: "2025-07-28",
           interval_months: 60,
           expiry_date: "2030-07-29",
+          renewal_status: "processing",
           source_folder_url: url,
           notes: "Updated remarks",
         },
@@ -57,10 +58,10 @@ describe("personnel monitoring export", () => {
     const reopened = new ExcelJS.Workbook();
     await reopened.xlsx.load(saved);
     const sheet = reopened.getWorksheet("Kompetensi Personil")!;
-    expect(sheet.columnCount).toBe(12);
+    expect(sheet.columnCount).toBe(14);
     expect(sheet.getCell("A3").value).toBe("CABANG : DENPASAR");
     expect(sheet.getCell("G4").value).toBe("MASA BERLAKU");
-    for (let col = 1; col <= 12; col++)
+    for (let col = 1; col <= 14; col++)
       expect(sheet.getCell(col >= 7 && col <= 9 ? 5 : 4, col).value).toBe(
         personnelExportHeaders[col - 1],
       );
@@ -75,6 +76,9 @@ describe("personnel monitoring export", () => {
     expect(sheet.getCell("J6").value).toMatchObject({ hyperlink: url });
     expect(sheet.getCell("K6").value).toBe("000045");
     expect(sheet.getCell("L6").value).toBe("Updated remarks");
+    expect(sheet.getCell("M8").value).toBe(-1);
+    expect(sheet.getCell("N6").value).toBe("Sedang Diproses");
+    expect(sheet.getCell("N7").value).toBe("Tidak perlu perpanjangan");
     expect(sheet.getCell("B7").value).toBe("PTT Project");
     expect(sheet.getCell("I7").value).toBe("Seumur hidup");
     expect(sheet.getCell("H7").value).toBeNull();

@@ -460,6 +460,32 @@ export async function OperationDetail({
       )}
       {entity === "kompetensi-personil" && (
         <>
+          {!!(row.previous_certificate_id ||
+            row.superseded_by_certificate_id) && (
+            <Card className="mb-4 space-y-2 p-4 text-sm">
+              <p>
+                {row.superseded_by_certificate_id
+                  ? "Riwayat: sertifikat ini sudah digantikan."
+                  : "Sertifikat terbaru hasil perpanjangan."}
+              </p>
+              {!!row.superseded_by_certificate_id && (
+                <Link
+                  className="block underline"
+                  href={`/kompetensi-personil/${row.superseded_by_certificate_id}?branch=${c.branch}`}
+                >
+                  Buka sertifikat pengganti
+                </Link>
+              )}
+              {!!row.previous_certificate_id && (
+                <Link
+                  className="block underline"
+                  href={`/kompetensi-personil/${row.previous_certificate_id}?branch=${c.branch}`}
+                >
+                  Lihat riwayat sertifikat sebelumnya
+                </Link>
+              )}
+            </Card>
+          )}
           <WorkflowPanel kind="personnel" branch={c.branch} row={row} />
           <Card className="mb-5 p-5">
             <h2 className="text-sm font-bold">Sumber dan usulan koreksi</h2>

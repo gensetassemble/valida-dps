@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { ENTITIES } from "@/features/master-data/registry";
 import { recordSchema } from "@/features/master-data/validation";
-import { hasPermission, type Role } from "@/lib/auth/permissions";
+import {
+  hasPermission,
+  canManageEmployeeDirectory,
+  ALL_ROLES,
+  type Role,
+} from "@/lib/auth/permissions";
 
 describe("profile identity and workflow pages", () => {
+  it("allows HRGA and Super Admin to manage only their branch directory", () => {
+    for (const role of ALL_ROLES) {
+      const scopes = [{ role_code: role, branch_code: "DPS" }];
+      expect(canManageEmployeeDirectory(scopes, "DPS")).toBe(
+        role === "super_admin" || role === "hrga",
+      );
+      expect(canManageEmployeeDirectory(scopes, "OTHER")).toBe(false);
+    }
+  });
   it("accepts identity and optional password without a client-supplied UUID", () => {
     const entity = ENTITIES.pengguna;
     expect(
@@ -29,7 +43,7 @@ describe("profile identity and workflow pages", () => {
     ["tester", [true, true, true], [false, false, false]],
     ["account_manager", [true, false, false], [true, false, false]],
     ["hrga", [false, true, false], [false, true, false]],
-    ["coordinator", [false, true, true], [false, false, false]],
+    ["coordinator", [false, true, true], [false, false, true]],
     ["qshe", [true, true, true], [false, false, false]],
     ["equipment_manager", [false, false, true], [false, false, true]],
     ["department_head", [true, true, true], [false, false, false]],

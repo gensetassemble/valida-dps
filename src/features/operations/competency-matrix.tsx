@@ -31,12 +31,13 @@ export default async function CompetencyMatrix({
   const branch = c.branch;
   const db = await masterClient();
   const { data: licenses, error } = await db
-    .from("personnel_certificate_records")
+    .from("personnel_certificate_portfolios")
     .select(
       "id,employee_id,certificate_type_id,certificate_type_name,original_title,expiry_date,validity_kind",
     )
     .eq("branch_code", c.branch)
     .eq("is_active", true)
+    .is("superseded_by_certificate_id", null)
     .order("original_title")
     .limit(5001);
   if (error || (licenses?.length || 0) > 5000)

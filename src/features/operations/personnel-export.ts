@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { RENEWAL_STATUSES } from "@/features/workflows/model";
 import { businessNotes } from "./notes";
 import {
   driveFolder,
@@ -20,8 +21,10 @@ export const personnelExportHeaders = [
   "Link Sertifikat",
   "No. Sertifikat (jika ada)",
   "KETERANGAN",
+  "SISA HARI",
+  "STATUS PROSES PERPANJANGAN",
 ];
-const widths = [6, 16, 30, 32, 25, 48, 18, 20, 18, 30, 32, 48];
+const widths = [6, 16, 30, 32, 25, 48, 18, 20, 18, 30, 32, 48, 14, 30];
 const categories: Record<string, string> = {
   PT: "PT",
   PTT_REGULAR: "PTT Regular",
@@ -42,7 +45,8 @@ export function addPersonnelSheet(
 ) {
   const sheet = book.addWorksheet("Kompetensi Personil");
   sheet.columns = widths.map((width) => ({ width }));
-  for (let row = 1; row <= 3; row++) sheet.mergeCells(row, 1, row, 12);
+  for (let row = 1; row <= 3; row++)
+    sheet.mergeCells(row, 1, row, personnelExportHeaders.length);
   sheet.getCell("A1").value = "MONITORING KOMPETENSI PERSONIL";
   sheet.getCell("A1").font = { name: "Arial", size: 14, bold: true };
   sheet.getCell("A2").value =
@@ -58,7 +62,7 @@ export function addPersonnelSheet(
   sheet.getRow(1).height = 25;
   sheet.getRow(2).height = 22;
   sheet.getRow(3).height = 22;
-  for (let col = 1; col <= 12; col++) {
+  for (let col = 1; col <= personnelExportHeaders.length; col++) {
     if (col >= 7 && col <= 9) continue;
     sheet.mergeCells(4, col, 5, col);
     sheet.getCell(4, col).value = personnelExportHeaders[col - 1];
@@ -69,7 +73,7 @@ export function addPersonnelSheet(
     sheet.getCell(5, col).value = personnelExportHeaders[col - 1];
   for (let r = 4; r <= 5; r++) {
     sheet.getRow(r).height = 24;
-    for (let col = 1; col <= 12; col++) {
+    for (let col = 1; col <= personnelExportHeaders.length; col++) {
       const cell = sheet.getCell(r, col);
       cell.font = {
         name: "Arial",
@@ -111,6 +115,10 @@ export function addPersonnelSheet(
         ? record.source_folder_url
         : null,
     );
+    const days =
+      typeof record.expiry_date === "string" && !lifetime
+        ? remainingDays(record.expiry_date, today)
+        : null;
     const values = [
       index + 1,
       npp,
@@ -130,6 +138,13 @@ export function addPersonnelSheet(
         : null,
       String(record.certificate_number || ""),
       businessNotes(record.notes),
+      days,
+      lifetime
+        ? "Tidak perlu perpanjangan"
+        : RENEWAL_STATUSES[
+            (record.renewal_status ||
+              "unprocessed") as keyof typeof RENEWAL_STATUSES
+          ] || "Belum Diproses",
     ];
     const row = sheet.addRow(values as ExcelJS.CellValue[]);
     row.font = { name: "Arial", size: 10 };
@@ -152,10 +167,6 @@ export function addPersonnelSheet(
         color: { argb: "FF0563C1" },
         underline: true,
       };
-    const days =
-      typeof record.expiry_date === "string" && !lifetime
-        ? remainingDays(record.expiry_date, today)
-        : null;
     if (days !== null)
       row.getCell(9).fill = {
         type: "pattern",
@@ -188,7 +199,7 @@ export function addPersonnelSheet(
     row.height = Math.max(24, Math.max(...lines) * 14 + 6);
   });
   for (let r = 4; r <= sheet.rowCount; r++)
-    for (let c = 1; c <= 12; c++)
+    for (let c = 1; c <= personnelExportHeaders.length; c++)
       sheet.getCell(r, c).border = {
         top: { style: "thin", color: { argb: "FF334155" } },
         bottom: { style: "thin", color: { argb: "FF334155" } },
@@ -245,7 +256,10 @@ export function addPersonnelSheet(
   // Filter only the data area; the two-level report header stays intact.
   sheet.autoFilter = {
     from: { row: 5, column: 1 },
-    to: { row: Math.max(5, sheet.rowCount), column: 12 },
+    to: {
+      row: Math.max(5, sheet.rowCount),
+      column: personnelExportHeaders.length,
+    },
   };
   sheet.pageSetup = {
     orientation: "landscape",
@@ -254,7 +268,7 @@ export function addPersonnelSheet(
     fitToWidth: 1,
     fitToHeight: 0,
     printTitlesRow: "1:5",
-    printArea: `A1:L${Math.max(5, sheet.rowCount)}`,
+    printArea: `A1:N${Math.max(5, sheet.rowCount)}`,
   };
   sheet.headerFooter.oddFooter = "VALIDA · &P / &N";
 }

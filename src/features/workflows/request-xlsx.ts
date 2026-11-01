@@ -6,7 +6,9 @@ type Row = Record<string, unknown>;
 const xmlText = (value: unknown) =>
   String(value ?? "")
     .split("")
-    .filter((c) => c.charCodeAt(0) >= 32 || [9, 10, 13].includes(c.charCodeAt(0)))
+    .filter(
+      (c) => c.charCodeAt(0) >= 32 || [9, 10, 13].includes(c.charCodeAt(0)),
+    )
     .join("")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -65,8 +67,16 @@ export async function calibrationRequestXlsx(request: Row) {
   set("G43", "NPP.  " + String(request.requester_npp || "Non-NPP"));
   const date = draftBusinessDate(request.created_at);
   if (date) {
-    const [y, m, d] = date.split("-");
-    set("G36", `${d} / ${m} / ${y}`);
+    set(
+      "G36",
+      new Intl.DateTimeFormat("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Makassar",
+      }).format(new Date(date + "T04:00:00Z")),
+    );
   }
   zip.file("xl/worksheets/sheet1.xml", xml);
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });

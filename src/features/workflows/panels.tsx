@@ -130,6 +130,9 @@ async function LegacyWorkflowPanel({
       " · " +
       String(r.calibration_date || "Tanggal belum diisi"),
   }));
+  const alreadyRenewed =
+    kind === "personnel" && row.renewal_status === "renewed";
+  const superseded = kind === "personnel" && !!row.superseded_by_certificate_id;
   const lifetime = kind === "personnel" && row.validity_kind === "lifetime";
   return (
     <Card className="mb-5 p-4">
@@ -140,6 +143,11 @@ async function LegacyWorkflowPanel({
             : "Perpanjangan kompetensi · HRGA"}
         </h2>
         {!lifetime &&
+          !superseded &&
+          (!alreadyRenewed ||
+            ["Expired", "Kritis", "Perhatian", "Pantau"].includes(
+              String(row.validity_status),
+            )) &&
           !(kind === "calibration"
             ? records.some(
                 (r) => !["completed", "cancelled"].includes(String(r.status)),
@@ -182,7 +190,8 @@ async function LegacyWorkflowPanel({
               key={stage}
               className={
                 "rounded-full border px-3 py-1 " +
-                ((records[0]?.status || "unprocessed") === stage
+                ((records[0]?.status || row.renewal_status || "unprocessed") ===
+                stage
                   ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900"
                   : "border-border text-muted-foreground")
               }
@@ -196,7 +205,9 @@ async function LegacyWorkflowPanel({
         <p className="mt-3 text-xs">
           {kind === "calibration"
             ? "Belum ada permintaan."
-            : "Belum Diproses — HRGA belum membuka proses perpanjangan."}
+            : alreadyRenewed
+              ? "Perpanjangan selesai. Ini sertifikat terbaru yang berlaku."
+              : "Belum Diproses — HRGA belum membuka proses perpanjangan."}
         </p>
       )}
       {records.map((r) => (

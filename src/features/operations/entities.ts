@@ -182,7 +182,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
     detail: "/kalibrasi-alat",
     labelKey: "name",
     readRoles: equipmentRoles,
-    writeRoles: ["admin", "equipment_manager"],
+    writeRoles: ["admin", "equipment_manager", "coordinator"],
     fields: [
       text("name", "Nama alat", true),
       text("asset_id", "ID aset"),
@@ -219,7 +219,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
     detail: "/peristiwa-kalibrasi",
     labelKey: "certificate_number",
     readRoles: equipmentRoles,
-    writeRoles: ["admin", "equipment_manager"],
+    writeRoles: ["admin", "equipment_manager", "coordinator"],
     fields: [
       ref("equipment_id", "Alat", "kalibrasi-alat", true, true),
       text("laboratory", "Laboratorium"),

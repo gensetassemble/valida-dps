@@ -1,7 +1,11 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireActiveUser } from "@/lib/auth/guards";
-import { hasPermission, activeBranch } from "@/lib/auth/permissions";
+import {
+  hasPermission,
+  activeBranch,
+  canManageEmployeeDirectory,
+} from "@/lib/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { getEntity, type EntityConfig } from "./registry";
 import { safeSearch } from "./validation";
@@ -31,6 +35,8 @@ export type QueryParams = {
   kind?: string;
   eligibility?: string;
   archived?: string;
+  renewal?: string;
+  generation?: string;
 };
 export async function entityContext(
   key: string,
@@ -96,6 +102,11 @@ export function operationalFilterPairs(
   )
     return [];
   const pairs: [string, string][] = [];
+  if (
+    key === "kompetensi-personil" &&
+    ["unprocessed", "processing", "renewed"].includes(params.renewal || "")
+  )
+    pairs.push(["renewal_status", params.renewal!]);
   if (
     key === "kompetensi-personil" &&
     ["term", "lifetime"].includes(params.kind || "")
@@ -167,12 +178,16 @@ export async function listRecords(
   const archives = entity.key === "pegawai" && params.archived === "true";
   if (archives) {
     const context = await requireActiveUser();
-    if (!context.scopes.some((s) => s.branch_code === branch && s.role_code === "super_admin")) throw Error("Arsip direktori hanya tersedia untuk IT Officer.");
+    if (!canManageEmployeeDirectory(context.scopes, branch))
+      throw Error("Arsip direktori hanya tersedia untuk IT Officer dan HRGA.");
   }
   let query = db
     .from(archives ? entity.table : entity.readTable || entity.table)
     .select("*", { count: "exact" });
-  if (archives) query = query.not("archived_at", "is", null).is("merged_into_employee_id", null);
+  if (archives)
+    query = query
+      .not("archived_at", "is", null)
+      .is("merged_into_employee_id", null);
   if (entity.key !== "roles")
     query = query.eq(entity.key === "cabang" ? "code" : "branch_code", branch);
   const search = safeSearch(params.q || "");
@@ -188,6 +203,12 @@ export async function listRecords(
   if (field && field.options?.some((option) => option.value === params.value))
     query = query.eq(field.key, params.value!);
   if (parent) query = query.eq(parent.field, parent.id);
+  if (entity.key === "kompetensi-personil") {
+    if (params.generation === "history")
+      query = query.not("superseded_by_certificate_id", "is", null);
+    else if (params.generation !== "all")
+      query = query.is("superseded_by_certificate_id", null);
+  }
   for (const [column, value] of operationalFilterPairs(entity.key, params))
     query = query.eq(column, value);
   if (
@@ -238,20 +259,12 @@ export async function listRecords(
   }
   const rows = (data ?? []) as DataRow[];
   if (entity.key === "kompetensi-personil" && rows.length) {
-    const cases = await db
-      .from("personnel_renewal_cases")
-      .select("certificate_id,status")
-      .eq("branch_code", branch)
-      .in(
-        "certificate_id",
-        rows.map((r) => r.id),
-      );
-    if (cases.error) throw new Error("Status proses HRGA belum dapat dimuat.");
-    const statuses = new Map(
-      (cases.data || []).map((r) => [r.certificate_id, r.status]),
-    );
     for (const row of rows)
-      row.renewal_process_status = personnelRenewalDisplay(statuses.get(row.id), String(row.validity_status || ""), row.validity_kind === "lifetime");
+      row.renewal_process_status = personnelRenewalDisplay(
+        String(row.renewal_status || "unprocessed"),
+        String(row.validity_status || ""),
+        row.validity_kind === "lifetime",
+      );
   }
   for (const row of rows)
     if (typeof row.previous_order_value_text === "string")

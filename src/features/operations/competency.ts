@@ -56,10 +56,11 @@ export async function checkCompetency(
     };
   const types = requirements.map((r) => String(r.certificate_type_id));
   const { data: certs } = await db
-    .from("personnel_certificates")
+    .from("personnel_certificate_portfolios")
     .select("certificate_type_id,verification_status,expiry_date,validity_kind")
     .eq("employee_id", employee)
     .eq("is_active", true)
+    .is("superseded_by_certificate_id", null)
     .in("certificate_type_id", types)
     .limit(501);
   if (!certs || certs.length > 500)

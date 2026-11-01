@@ -311,7 +311,7 @@ export function DataTable({
             </h2>
             <p className="mt-1 text-[11px] text-muted-foreground">
               <span className="tnum">{data.total}</span> rekaman sesuai akses
-              dan filter
+              {!hideFilters && " dan filter"}
             </p>
           </div>
           {canWrite && entity.create !== false && (

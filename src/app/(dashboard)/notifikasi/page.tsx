@@ -7,8 +7,10 @@ export default async function NotificationsPage() {
   const { user } = await requireActiveUser(),
     db = await masterClient();
   const { data, error } = await db
-    .from("user_notifications")
-    .select("id,title,href,read_at,created_at")
+    .from("user_notification_details")
+    .select(
+      "id,display_title,display_href,read_at,created_at,replacement_certificate_number",
+    )
     .eq("profile_id", user.id)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -35,9 +37,17 @@ export default async function NotificationsPage() {
             }
           >
             <div>
-              <Link href={n.href} className="text-sm font-semibold underline">
-                {n.title}
+              <Link
+                href={n.display_href}
+                className="text-sm font-semibold underline"
+              >
+                {n.display_title}
               </Link>
+              {n.replacement_certificate_number && (
+                <p className="mt-1 text-xs">
+                  Nomor sertifikat terbaru: {n.replacement_certificate_number}
+                </p>
+              )}
               <p className="mt-1 text-xs text-muted-foreground">
                 {formatTimestamp(n.created_at)} ·{" "}
                 {n.read_at ? "Sudah dibaca" : "Belum dibaca"}

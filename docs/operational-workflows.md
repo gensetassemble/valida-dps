@@ -81,3 +81,21 @@ Template XLSX merupakan hasil Save As dari XLS asli pengguna melalui Microsoft E
 Koordinator dapat membatalkan pengajuannya sendiri yang masih aktif, sedangkan PTK/admin dapat membatalkan sesuai cakupan. Tombol meminta konfirmasi dan mencatat status Dibatalkan; setelahnya alat dapat diajukan kembali. Pengajuan Selesai tidak dibuka ulang.
 
 IT Officer (peran Super Admin) dapat memilih Hapus histori untuk pengajuan Selesai/Dibatalkan. Ini mengarsipkan pengajuan dari daftar dan akses ekspor biasa melalui RLS, tanpa menghapus alat, hasil kalibrasi, event atau jejak audit. Pengajuan aktif harus dibatalkan dahulu. Database memeriksa peran/cabang, status dan versi dengan penguncian rekaman; data lama tidak dihapus otomatis saat migrasi. RPC SECURITY DEFINER sengaja mengekspos hanya dua tindakan terbatas ini, memeriksa actor dan cakupan di awal, serta tetap dilindungi trigger peran/immutability.
+
+## Monitoring renewal dan notifikasi — 1 November 2026
+
+Daftar kompetensi, matriks, pemeriksaan kompetensi dan dashboard memakai sertifikat terbaru berdasarkan tautan renewal selesai. Versi lama tidak dihapus atau ditimpa; tersedia melalui Versi sertifikat → Riwayat digantikan/Semua versi dan tautan generasi pada detail. Status proses perpanjangan difilter di query database sebelum paginasi sehingga ekspor dan daftar memakai hasil yang sama. Ekspor menambah Sisa hari (tanggal WITA) dan Status proses perpanjangan. Penyelesaian HRGA atomik membuat pengganti dan langsung membuka detail terbaru, tanpa input rekaman kedua.
+
+Notifikasi menampilkan pegawai, judul lisensi, nomor sertifikat dan tahap, beserta nomor terbaru saat selesai; tautan selesai menuju pengganti. View SECURITY INVOKER juga memperjelas notifikasi lama sesuai cakupan penerima yang sama. Sidebar menghitung semua notifikasi belum dibaca milik akun, bukan hanya 100 yang ditampilkan. Tandai dibaca memperbarui layout dan badge. Tombol Refresh di header memuat ulang data server dengan mempertahankan URL/filter.
+
+Detail Direktori Pegawai menampilkan daftar sertifikat terkini untuk peran yang berhak membaca kompetensi. Penyatuan identitas khusus memerlukan konfirmasi pengguna dan review sebelum merge; ejaan lama menjadi alias dan relasi sertifikat dipindahkan, tanpa mengubah bukti sumber. Laporan identitas dan cadangan berada di private-exports yang dikecualikan dari Git.
+
+Form UMA memakai footer Revisi dan tanggal tanda tangan Hari, tanggal bulan tahun (id-ID), berasal dari tanggal pembuatan WITA; ukuran/font template lainnya dipertahankan.
+
+## Direktori Pegawai untuk HRGA — 1 November 2026
+
+HRGA dan Super Admin memiliki pengelolaan Direktori Pegawai yang sama pada cabang yang ditugaskan: tambah/ubah identitas, verifikasi nama, perubahan status personil, arsip dan pemulihan. Tombol, server action, pembacaan arsip, RPC serta trigger memakai izin tersebut. Pengarsipan tetap meminta alasan dan konfirmasi, menolak identitas sendiri atau identitas dengan login aktif, dan mempertahankan sertifikat, relasi alat serta audit. Izin ini tidak memperluas pengelolaan akun login atau password HRGA.
+
+Riwayat Kalibrasi pada detail alat langsung menampilkan seluruh riwayat sesuai akses tanpa pencarian/filter; urutan dan pemuatan saat scroll tetap tersedia.
+
+Koordinator Operasional dapat menambah dan mengubah alat internal beserta pencatatan kalibrasinya pada portofolio penugasan koordinator yang aktif dan terverifikasi. Perpindahan alat ke luar cakupan ditolak. Pembaruan progress pengajuan tetap menjadi kewenangan PTK.

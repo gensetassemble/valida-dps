@@ -4123,8 +4123,11 @@ export type Database = {
           original_holder_name: string | null
           original_title: string | null
           portfolio_ids: string[] | null
+          previous_certificate_id: string | null
+          renewal_status: string | null
           source_folder_url: string | null
           source_provider: string | null
+          superseded_by_certificate_id: string | null
           updated_at: string | null
           updated_by: string | null
           validity_kind: string | null
@@ -4175,6 +4178,27 @@ export type Database = {
             columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_renewal_cases_certificate_id_fkey"
+            columns: ["previous_certificate_id"]
+            isOneToOne: true
+            referencedRelation: "personnel_certificate_portfolios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_renewal_cases_certificate_id_fkey"
+            columns: ["previous_certificate_id"]
+            isOneToOne: true
+            referencedRelation: "personnel_certificate_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_renewal_cases_certificate_id_fkey"
+            columns: ["previous_certificate_id"]
+            isOneToOne: true
+            referencedRelation: "personnel_certificates"
             referencedColumns: ["id"]
           },
         ]
@@ -4655,6 +4679,45 @@ export type Database = {
           {
             foreignKeyName: "clients_account_manager_id_fkey"
             columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notification_details: {
+        Row: {
+          branch_code: string | null
+          created_at: string | null
+          display_href: string | null
+          display_title: string | null
+          event_id: string | null
+          href: string | null
+          id: string | null
+          profile_id: string | null
+          read_at: string | null
+          replacement_certificate_number: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_branch_code_fkey"
+            columns: ["branch_code"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "user_notifications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_identity_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_notifications_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

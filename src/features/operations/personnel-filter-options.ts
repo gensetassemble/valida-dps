@@ -1,5 +1,24 @@
 export const personnelFilterOptions = [
   {
+    key: "renewal",
+    label: "Status perpanjangan",
+    options: [
+      ["", "Semua status"],
+      ["unprocessed", "Belum Diproses"],
+      ["processing", "Sedang Diproses"],
+      ["renewed", "Sudah Diperpanjang"],
+    ],
+  },
+  {
+    key: "generation",
+    label: "Versi sertifikat",
+    options: [
+      ["", "Terbaru"],
+      ["history", "Riwayat digantikan"],
+      ["all", "Semua versi"],
+    ],
+  },
+  {
     key: "validity",
     label: "Masa berlaku",
     options: [

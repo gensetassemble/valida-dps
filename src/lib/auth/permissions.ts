@@ -14,6 +14,13 @@ export const ROLE_LABELS = {
 } as const;
 export type Role = keyof typeof ROLE_LABELS;
 export type Scope = { branch_code: string; role_code: Role };
+export function canManageEmployeeDirectory(scopes: Scope[], branch: string) {
+  return scopes.some(
+    (scope) =>
+      scope.branch_code === branch &&
+      (scope.role_code === "super_admin" || scope.role_code === "hrga"),
+  );
+}
 export const ALL_ROLES = Object.keys(ROLE_LABELS) as Role[];
 // Match the database capability mapping. All grants remain branch-specific.
 const INHERITED_ROLE: Partial<Record<Role, Role>> = {
@@ -44,7 +51,9 @@ export function hasPermission(
     (scope) =>
       scope.branch_code === branch &&
       (allowed.includes(scope.role_code) ||
-        !!(INHERITED_ROLE[scope.role_code] &&
-          allowed.includes(INHERITED_ROLE[scope.role_code]!))),
+        !!(
+          INHERITED_ROLE[scope.role_code] &&
+          allowed.includes(INHERITED_ROLE[scope.role_code]!)
+        )),
   );
 }

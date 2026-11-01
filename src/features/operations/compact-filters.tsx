@@ -57,7 +57,11 @@ export function FilterChoices({
           )}
           <div className="flex max-h-64 flex-wrap gap-1.5 overflow-y-auto">
             {[
-              { value: "", label: "Semua" },
+              {
+                value: "",
+                label:
+                  group.options.find((o) => o.value === "")?.label || "Semua",
+              },
               ...group.options.filter((o) => o.value),
             ]
               .filter((o) =>
