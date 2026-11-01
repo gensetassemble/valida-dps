@@ -107,3 +107,7 @@ Pada formulir kompetensi, HRGA/Admin dapat mencari katalog atau memilih Tambah j
 HRGA/Admin dapat membatalkan proses Belum Diproses/Sedang Diproses, kemudian mengajukan ulang. Hapus histori tersedia setelah Dibatalkan/Sudah Diperpanjang dengan alasan dan konfirmasi. Ini menyembunyikan histori dari panel; event/audit tetap tersimpan. Penghapusan histori selesai mempertahankan tautan sertifikat pengganti sehingga versi lama tidak muncul kembali sebagai sertifikat terkini. Operasi memeriksa cabang, peran dan versi di database; hasil perpanjangan selesai tidak dapat dibatalkan.
 
 Kartu status dashboard menampilkan ambang kalender WITA: Expired <0 hari, Kritis 0–30, Perhatian 31–60, Pantau 61–90, Aman >90. Keterangan ini tidak mengubah perhitungan masa berlaku.
+
+Antrean Proses perpanjangan HRGA menampilkan nama pegawai, judul lisensi, nomor sertifikat, tahap dan waktu pembaruan. Identitas diambil sekaligus untuk sertifikat dalam antrean melalui view yang mengikuti RLS cabang; setiap kartu tetap menuju detail sertifikat terkait.
+
+Histori renewal yang dihapus tidak lagi mewariskan label Sudah Diperpanjang ke kartu proses. Tanpa proses aktif lain, status kembali ke Belum Diproses. Tautan generasi sebelumnya/pengganti tetap dipakai untuk mencegah duplikat dan mempertahankan riwayat sertifikat.

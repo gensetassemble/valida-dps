@@ -369,6 +369,28 @@ export async function WorkflowOverview({
     .limit(30);
   if (error) throw Error("Antrean proses belum dapat dimuat.");
   if (!data?.length) return null;
+  const records = data as unknown as DataRow[];
+  const { data: certificateData, error: certificateError } =
+    kind === "personnel"
+      ? await db
+          .from("personnel_certificate_records")
+          .select(
+            "id,employee_name,original_title,type_name,certificate_number",
+          )
+          .eq("branch_code", branch)
+          .in(
+            "id",
+            records.map((r) => String(r.certificate_id)),
+          )
+      : { data: [], error: null };
+  if (certificateError)
+    throw Error("Identitas pada antrean proses belum dapat dimuat.");
+  const certificates = new Map(
+    ((certificateData || []) as DataRow[]).map((certificate) => [
+      String(certificate.id),
+      certificate,
+    ]),
+  );
   const labels: Record<string, string> =
     kind === "calibration" ? REQUEST_STATUSES : RENEWAL_STATUSES;
   return (
@@ -381,25 +403,55 @@ export async function WorkflowOverview({
         {data.length === 30 ? " teratas" : ""}
       </summary>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {(data as unknown as DataRow[]).map((r) => (
-          <Link
-            key={String(r.id)}
-            className="rounded-lg border border-border p-3 hover:bg-slate-50"
-            href={
-              (kind === "calibration"
-                ? "/kalibrasi-alat/" + r.equipment_id
-                : "/kompetensi-personil/" + r.certificate_id) +
-              "?branch=" +
-              branch
-            }
-          >
-            {String(r.request_number || "Proses kompetensi")} ·{" "}
-            {labels[String(r.status)]}
-            <span className="mt-1 block text-muted-foreground">
-              {formatTimestamp(String(r.updated_at))}
-            </span>
-          </Link>
-        ))}
+        {records.map((r) => {
+          const certificate = certificates.get(String(r.certificate_id));
+          return (
+            <Link
+              key={String(r.id)}
+              className="rounded-lg border border-border p-3 hover:bg-slate-50"
+              href={
+                (kind === "calibration"
+                  ? "/kalibrasi-alat/" + r.equipment_id
+                  : "/kompetensi-personil/" + r.certificate_id) +
+                "?branch=" +
+                branch
+              }
+            >
+              {kind === "personnel" ? (
+                <>
+                  <strong className="block text-sm break-words text-brand-navy">
+                    {String(
+                      certificate?.employee_name ||
+                        "Nama pegawai belum tersedia",
+                    )}
+                  </strong>
+                  <span className="mt-1 block break-words">
+                    {String(
+                      certificate?.original_title ||
+                        certificate?.type_name ||
+                        "Nama lisensi belum tersedia",
+                    )}
+                  </span>
+                  <span className="mt-1 block break-words text-muted-foreground">
+                    No. sertifikat:{" "}
+                    {String(certificate?.certificate_number || "Belum diisi")}
+                  </span>
+                  <span className="mt-2 inline-block rounded-md bg-slate-100 px-2 py-1 font-medium">
+                    {labels[String(r.status)]}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {String(r.request_number || "Permintaan kalibrasi")} ·{" "}
+                  {labels[String(r.status)]}
+                </>
+              )}
+              <span className="mt-1 block text-muted-foreground">
+                {formatTimestamp(String(r.updated_at))}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </details>
   );
