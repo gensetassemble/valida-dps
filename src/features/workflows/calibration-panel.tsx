@@ -6,6 +6,7 @@ import { formatTimestamp } from "@/lib/format";
 import {
   EquipmentProgressButtons,
   EquipmentRequestForm,
+  EquipmentRequestCleanup,
 } from "./calibration-controls";
 export async function CalibrationRequestPanel({
   branch,
@@ -22,6 +23,12 @@ export async function CalibrationRequestPanel({
     ptk = c.scopes.some(
       (s) => s.branch_code === branch && s.role_code === "equipment_manager",
     );
+  const itOfficer = c.scopes.some(
+    (s) => s.branch_code === branch && s.role_code === "super_admin",
+  );
+  const admin =
+    itOfficer ||
+    c.scopes.some((s) => s.branch_code === branch && s.role_code === "admin");
   const { data, error } = await db
     .from("calibration_requests")
     .select("*")
@@ -115,6 +122,25 @@ export async function CalibrationRequestPanel({
                   id={String(r.id)}
                   version={Number(r.version)}
                   status={status}
+                />
+              )}
+              {!["completed", "cancelled"].includes(status) &&
+                (admin ||
+                  ptk ||
+                  (coordinator && r.created_by === c.user.id)) && (
+                  <EquipmentRequestCleanup
+                    branch={branch}
+                    id={String(r.id)}
+                    version={Number(r.version)}
+                    operation="cancel"
+                  />
+                )}
+              {itOfficer && ["completed", "cancelled"].includes(status) && (
+                <EquipmentRequestCleanup
+                  branch={branch}
+                  id={String(r.id)}
+                  version={Number(r.version)}
+                  operation="delete_history"
                 />
               )}
             </div>

@@ -83,3 +83,41 @@ export async function updateEquipmentRequestProgress(
   refresh();
   return { ok: true };
 }
+
+export async function manageEquipmentRequest(
+  branch: string,
+  id: string,
+  version: number,
+  operation: "cancel" | "delete_history",
+) {
+  const c = await requireActiveUser();
+  const allowed =
+    operation === "delete_history"
+      ? ["super_admin"]
+      : ["super_admin", "admin", "coordinator", "equipment_manager"];
+  if (
+    !/^[A-Z0-9]{2,8}$/.test(branch) ||
+    !z.uuid().safeParse(id).success ||
+    !Number.isInteger(version) ||
+    version < 1 ||
+    !["cancel", "delete_history"].includes(operation) ||
+    !c.scopes.some(
+      (s) => s.branch_code === branch && allowed.includes(s.role_code),
+    )
+  )
+    return { error: "Anda tidak berwenang melakukan tindakan ini." };
+  const db = await masterClient();
+  // The database checks the record's actual branch, creator, state and version.
+  const { error } = await db.rpc("manage_equipment_request", {
+    r: id,
+    expected_version: version,
+    operation,
+  });
+  if (error)
+    return {
+      error:
+        "Tindakan belum tersimpan. Muat ulang dan periksa hak akses atau status pengajuan.",
+    };
+  refresh();
+  return { ok: true };
+}

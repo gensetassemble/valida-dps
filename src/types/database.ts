@@ -158,6 +158,8 @@ export type Database = {
           equipment_snapshot: Json
           estimated_cost: number | null
           estimated_days: number | null
+          history_deleted_at: string | null
+          history_deleted_by: string | null
           id: string
           laboratory: string | null
           notes: string
@@ -188,6 +190,8 @@ export type Database = {
           equipment_snapshot?: Json
           estimated_cost?: number | null
           estimated_days?: number | null
+          history_deleted_at?: string | null
+          history_deleted_by?: string | null
           id?: string
           laboratory?: string | null
           notes?: string
@@ -218,6 +222,8 @@ export type Database = {
           equipment_snapshot?: Json
           estimated_cost?: number | null
           estimated_days?: number | null
+          history_deleted_at?: string | null
+          history_deleted_by?: string | null
           id?: string
           laboratory?: string | null
           notes?: string
@@ -302,6 +308,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment_records"
             referencedColumns: ["id", "branch_code"]
+          },
+          {
+            foreignKeyName: "calibration_requests_history_deleted_by_fkey"
+            columns: ["history_deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profile_identity_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calibration_requests_history_deleted_by_fkey"
+            columns: ["history_deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "calibration_requests_requester_employee_id_branch_code_fkey"
@@ -4681,6 +4701,10 @@ export type Database = {
           reason: string
         }
         Returns: string
+      }
+      manage_equipment_request: {
+        Args: { expected_version: number; operation: string; r: string }
+        Returns: undefined
       }
       operational_summary: {
         Args: { b: string; filters?: Json }

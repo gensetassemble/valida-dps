@@ -75,3 +75,9 @@ Sepuluh identitas direktori `[CONTOH]` diarsipkan. Login Super Admin yang dipert
 ## Format ekspor UMA — 31 Oktober 2026
 
 Template XLSX merupakan hasil Save As dari XLS asli pengguna melalui Microsoft Excel. Ekspor mengisi sel isian langsung pada paket OOXML tanpa menulis ulang style, gambar/logo, kolom, tinggi baris, border, margin, pengaturan printer dan footer. Bagian B mempertahankan titik-titik kosong template untuk pengisian manual; estimasi lama tidak diekspor. Uji regresi membandingkan seluruh bagian paket yang tidak diubah dan geometri worksheet dengan template.
+
+## Pembatalan dan hapus histori permintaan alat
+
+Koordinator dapat membatalkan pengajuannya sendiri yang masih aktif, sedangkan PTK/admin dapat membatalkan sesuai cakupan. Tombol meminta konfirmasi dan mencatat status Dibatalkan; setelahnya alat dapat diajukan kembali. Pengajuan Selesai tidak dibuka ulang.
+
+IT Officer (peran Super Admin) dapat memilih Hapus histori untuk pengajuan Selesai/Dibatalkan. Ini mengarsipkan pengajuan dari daftar dan akses ekspor biasa melalui RLS, tanpa menghapus alat, hasil kalibrasi, event atau jejak audit. Pengajuan aktif harus dibatalkan dahulu. Database memeriksa peran/cabang, status dan versi dengan penguncian rekaman; data lama tidak dihapus otomatis saat migrasi. RPC SECURITY DEFINER sengaja mengekspos hanya dua tindakan terbatas ini, memeriksa actor dan cakupan di awal, serta tetap dilindungi trigger peran/immutability.

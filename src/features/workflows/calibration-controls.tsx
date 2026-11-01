@@ -6,8 +6,100 @@ import { Button } from "@/components/ui/button";
 import {
   submitEquipmentRequest,
   updateEquipmentRequestProgress,
+  manageEquipmentRequest,
 } from "./calibration-actions";
 type Option = { id: string; label: string };
+export function EquipmentRequestCleanup({
+  branch,
+  id,
+  version,
+  operation,
+}: {
+  branch: string;
+  id: string;
+  version: number;
+  operation: "cancel" | "delete_history";
+}) {
+  const [open, setOpen] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  const router = useRouter();
+  const deleting = operation === "delete_history",
+    label = deleting ? "Hapus histori" : "Batalkan pengajuan";
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        className="text-red-700"
+        onClick={() => {
+          setError("");
+          setOpen(true);
+        }}
+      >
+        {label}
+      </Button>
+      <Modal
+        open={open}
+        onOpenChange={(v) => {
+          if (!busy) setOpen(v);
+        }}
+        title={label}
+        description={
+          deleting
+            ? "Pengajuan ini dihapus dari daftar histori. Jejak audit tetap tersimpan. Data alat dan hasil kalibrasi tidak dihapus."
+            : "Pengajuan dihentikan dan berstatus Dibatalkan. Anda dapat membuat pengajuan baru setelahnya."
+        }
+      >
+        {error && (
+          <p role="alert" className="mb-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={() => setOpen(false)}
+          >
+            Kembali
+          </Button>
+          <Button
+            className="bg-red-700 text-white hover:bg-red-800"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError("");
+              try {
+                const result = await manageEquipmentRequest(
+                  branch,
+                  id,
+                  version,
+                  operation,
+                );
+                if (result.error) setError(result.error);
+                else {
+                  setOpen(false);
+                  router.refresh();
+                }
+              } catch {
+                setError("Tindakan belum tersimpan. Silakan coba lagi.");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            {busy
+              ? "Menyimpan…"
+              : deleting
+                ? "Ya, hapus histori"
+                : "Ya, batalkan"}
+          </Button>
+        </div>
+      </Modal>
+    </>
+  );
+}
 export function EquipmentRequestForm({
   branch,
   equipment,
