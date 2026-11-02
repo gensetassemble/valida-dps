@@ -375,7 +375,7 @@ export async function WorkflowOverview({
       ? await db
           .from("personnel_certificate_records")
           .select(
-            "id,employee_name,original_title,type_name,certificate_number",
+            "id,employee_name,original_title,certificate_type_name,certificate_number",
           )
           .eq("branch_code", branch)
           .in(
@@ -428,7 +428,7 @@ export async function WorkflowOverview({
                   <span className="mt-1 block break-words">
                     {String(
                       certificate?.original_title ||
-                        certificate?.type_name ||
+                        certificate?.certificate_type_name ||
                         "Nama lisensi belum tersedia",
                     )}
                   </span>

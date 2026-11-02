@@ -4104,6 +4104,55 @@ export type Database = {
           },
         ];
       };
+      notification_inbox_records: {
+        Row: {
+          activity_group_id: string | null;
+          branch_code: string | null;
+          category: string | null;
+          context_name: string | null;
+          created_at: string | null;
+          entity_title: string | null;
+          event_id: string | null;
+          event_notes: string | null;
+          event_status: string | null;
+          expires_on: string | null;
+          href: string | null;
+          id: string | null;
+          portfolio_code: string | null;
+          process_reset: boolean | null;
+          profile_id: string | null;
+          read_at: string | null;
+          reference_number: string | null;
+          replacement_certificate_number: string | null;
+          search_text: string | null;
+          target_href: string | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_branch_code_fkey";
+            columns: ["branch_code"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "user_notifications_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_identity_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_notifications_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       operational_scope_records: {
         Row: {
           account_manager_id: string | null;
