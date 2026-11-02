@@ -1448,6 +1448,7 @@ export type Database = {
       };
       equipment: {
         Row: {
+          measurement_ranges: Json | null;
           asset_id: string | null;
           branch_code: string;
           brand: string | null;
@@ -1480,6 +1481,7 @@ export type Database = {
           verified_by: string | null;
         };
         Insert: {
+          measurement_ranges?: Json | null;
           asset_id?: string | null;
           branch_code?: string;
           brand?: string | null;
@@ -1512,6 +1514,7 @@ export type Database = {
           verified_by?: string | null;
         };
         Update: {
+          measurement_ranges?: Json | null;
           asset_id?: string | null;
           branch_code?: string;
           brand?: string | null;

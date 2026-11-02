@@ -12,26 +12,14 @@ import { requireActiveUser } from "@/lib/auth/guards";
 import { activeBranch } from "@/lib/auth/permissions";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
 import { OperationalFilters } from "@/features/operations/filters";
+import { ExpiringTable } from "@/features/operations/expiring-table";
+import type { ExpiringItem } from "@/features/operations/expiring-priorities";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
-import {
-  todayWita,
-  remainingDays,
-  VALIDITY_DESCRIPTIONS,
-} from "@/lib/domain/validity";
-type Item = {
-  domain: string;
-  id: string;
-  entity_name: string;
-  title: string | null;
-  expiry_date: string;
-  validity_status: string;
-  is_example: boolean;
-  portfolio_code?: string | null;
-  location?: string | null;
-};
+import { todayWita, VALIDITY_DESCRIPTIONS } from "@/lib/domain/validity";
+type Item = ExpiringItem;
 type Summary = {
   total: number;
   example_count: number;
@@ -102,17 +90,140 @@ export default async function DashboardPage({
   if (equipmentIds.length) {
     const { data: equipment, error } = await db
       .from("equipment_monitoring_records")
-      .select("id,portfolio_code,location,unit")
+      .select(
+        "id,portfolio_id,portfolio_code,location,unit,monitoring_certificate,responsible_employee_id",
+      )
       .eq("branch_code", branch)
       .in("id", equipmentIds);
     if (error) throw Error("Portofolio dan lokasi alat belum dapat dimuat.");
     const byId = new Map((equipment || []).map((e) => [String(e.id), e]));
+    const priorityPortfolios = [
+      ...new Set(
+        s.soon
+          .filter((r) => r.domain === "calibrations")
+          .map((r) => byId.get(r.id)?.portfolio_id)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const { data: coordinators, error: coordinatorError } =
+      priorityPortfolios.length
+        ? await db
+            .from("portfolio_coordinators")
+            .select(
+              "portfolio_id,coordinator:operational_coordinators(full_name,is_active)",
+            )
+            .eq("branch_code", branch)
+            .in("portfolio_id", priorityPortfolios)
+            .eq("is_active", true)
+            .lte("effective_from", todayWita())
+            .or("effective_until.is.null,effective_until.gte." + todayWita())
+        : { data: [], error: null };
+    if (coordinatorError)
+      throw Error("Koordinator prioritas alat belum dapat dimuat.");
     for (const item of [...(s.soon || []), ...(s.records || [])])
       if (item.domain === "calibrations") {
         const asset = byId.get(item.id);
         item.portfolio_code = asset?.portfolio_code;
         item.location = asset?.location || asset?.unit;
+        item.reference_number = asset?.monitoring_certificate;
+        item.certificate_kind = "Sertifikat Kalibrasi";
+        item.responsible_id = asset?.responsible_employee_id;
+        if (!item.responsible_id) {
+          const contact = coordinators?.find(
+            (p) => p.portfolio_id === asset?.portfolio_id,
+          )?.coordinator as unknown as {
+            full_name: string;
+            is_active: boolean;
+          } | null;
+          if (contact?.is_active) item.responsible_name = contact.full_name;
+        }
       }
+  }
+  // Enrich only the 20 server-selected priorities; every query keeps source RLS and branch scope.
+  const personnelIds = s.soon
+    .filter((r) => r.domain === "personnel")
+    .map((r) => r.id);
+  const clientIds = s.soon
+    .filter((r) => r.domain === "clients")
+    .map((r) => r.id);
+  const [personnel, clients] = await Promise.all([
+    personnelIds.length
+      ? db
+          .from("personnel_certificate_records")
+          .select(
+            "id,employee_name,original_title,certificate_type_name,certificate_number",
+          )
+          .eq("branch_code", branch)
+          .in("id", personnelIds)
+      : Promise.resolve({ data: [], error: null }),
+    clientIds.length
+      ? db
+          .from("client_certificate_records")
+          .select(
+            "id,certificate_type_name,certificate_number,account_manager_id",
+          )
+          .eq("branch_code", branch)
+          .in("id", clientIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (personnel.error || clients.error)
+    throw Error("Detail prioritas masa berlaku belum dapat dimuat.");
+  for (const item of s.soon) {
+    const certificate = personnel.data?.find((r) => r.id === item.id);
+    if (certificate) {
+      item.reference_number = certificate.certificate_number;
+      item.certificate_kind =
+        certificate.original_title || certificate.certificate_type_name;
+      item.responsible_name = certificate.employee_name;
+    }
+    const client = clients.data?.find((r) => r.id === item.id);
+    if (client) {
+      item.reference_number = client.certificate_number;
+      item.certificate_kind = client.certificate_type_name;
+      item.responsible_id = client.account_manager_id;
+    }
+  }
+  const employeeIds = [
+    ...new Set(
+      s.soon
+        .filter((r) => r.domain === "calibrations" && r.responsible_id)
+        .map((r) => r.responsible_id!),
+    ),
+  ];
+  const managerIds = [
+    ...new Set(
+      s.soon
+        .filter((r) => r.domain === "clients" && r.responsible_id)
+        .map((r) => r.responsible_id!),
+    ),
+  ];
+  const [employees, managers] = await Promise.all([
+    employeeIds.length
+      ? db
+          .from("employee_directory")
+          .select("id,full_name")
+          .eq("branch_code", branch)
+          .in("id", employeeIds)
+      : Promise.resolve({ data: [], error: null }),
+    managerIds.length
+      ? db
+          .from("profiles")
+          .select("id,full_name")
+          .eq("branch_code", branch)
+          .in("id", managerIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (employees.error || managers.error)
+    throw Error("Penanggung jawab prioritas belum dapat dimuat.");
+  for (const item of s.soon) {
+    if (item.domain === "calibrations" && item.responsible_id)
+      item.responsible_name = employees.data?.find(
+        (e) => e.id === item.responsible_id,
+      )?.full_name;
+    if (item.domain === "clients")
+      item.responsible_name = managers.data?.find(
+        (e) => e.id === item.responsible_id,
+      )?.full_name;
   }
   const tabs = [
     ...(domains.length > 1 ? [["all", "Semua"]] : []),
@@ -221,7 +332,7 @@ export default async function DashboardPage({
                 key={status}
                 href={dashboardStatusHref(p, branch, status)}
                 aria-current={selected ? "true" : undefined}
-                  aria-label={`${status}: ${s.buckets[status] || 0} rekaman. ${VALIDITY_DESCRIPTIONS[status]}. ${selected ? "Filter aktif, klik untuk melepas" : "Klik untuk memfilter"}`}
+                aria-label={`${status}: ${s.buckets[status] || 0} rekaman. ${VALIDITY_DESCRIPTIONS[status]}. ${selected ? "Filter aktif, klik untuk melepas" : "Klik untuk memfilter"}`}
                 className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-navy"
               >
                 <Card
@@ -374,64 +485,7 @@ export default async function DashboardPage({
           />
         </Card>
       )}
-      <Card className="mt-6 overflow-hidden">
-        <div className="border-b border-border p-5">
-          <h2 className="text-sm font-bold">Segera Berakhir</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            20 rekaman terdekat dalam 90 hari kalender. Lifetime dan tanggal
-            belum diisi tidak masuk daftar ini.
-          </p>
-        </div>
-        {s.soon.length ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-xs">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="p-4">Pemilik / objek</th>
-                  <th className="p-4">Sertifikat / alat</th>
-                  <th className="p-4">Tanggal akhir</th>
-                  <th className="p-4">Sisa hari</th>
-                  <th className="p-4">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {s.soon.map((r) => (
-                  <tr key={r.domain + r.id} className="border-t border-border">
-                    <td className="p-4">
-                      {r.entity_name}
-                      <EquipmentContext item={r} />
-                    </td>
-                    <td className="p-4">
-                      <Link
-                        className="font-semibold text-primary-hover underline"
-                        href={
-                          routes[r.domain] + "/" + r.id + "?branch=" + branch
-                        }
-                      >
-                        {r.title || "Lihat rekaman"}
-                        {r.is_example ? " [CONTOH]" : ""}
-                      </Link>
-                    </td>
-                    <td className="p-4">
-                      {<DeadlineDate value={r.expiry_date} />}
-                    </td>
-                    <td className="p-4 tabular-nums">
-                      {remainingDays(r.expiry_date)} hari
-                    </td>
-                    <td className="p-4">
-                      <StatusBadge value={r.validity_status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-8 text-center text-sm text-muted-foreground">
-            Belum ada data yang segera berakhir dalam cakupan ini.
-          </div>
-        )}
-      </Card>
+      <ExpiringTable items={s.soon} branch={branch} today={todayWita()} />
     </>
   );
 }

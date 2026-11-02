@@ -7,6 +7,10 @@ import { entityContext, masterClient, publicDatabaseError } from "./server";
 import { recordSchema, requestScopeSchema } from "./validation";
 import { addMonths } from "@/lib/domain/validity";
 import { measurementKeys } from "@/features/operations/monitoring";
+import {
+  mergeMeasurementGroups,
+  type MeasurementGroupInput,
+} from "@/features/operations/measurement-groups";
 import { saveProfileAccount } from "./profile-account";
 export type MutationResult =
   | { ok: true; message: string; id?: string }
@@ -42,9 +46,28 @@ export async function saveRecord(
       ),
     };
   const payload: Record<string, unknown> = { ...parsed.data };
+  let measurementGroups = payload.measurement_groups as
+    MeasurementGroupInput[] | undefined;
+  if (
+    measurementGroups?.length === 1 &&
+    !measurementGroups[0].measurement_range &&
+    !measurementGroups[0].correction_factor.trim()
+  )
+    measurementGroups = undefined;
+  delete payload.measurement_groups;
+  const measurementRevision = payload.measurement_revision;
+  delete payload.measurement_revision;
   if (entity.key === "kalibrasi-alat") {
     payload.ownership = "internal";
     payload.client_id = null;
+    if (measurementGroups) {
+      payload.measurement_ranges = measurementGroups.map(
+        (g) => g.measurement_range,
+      );
+      payload.measurement_range = measurementGroups
+        .map((g) => g.measurement_range)
+        .join("\n");
+    }
   }
   if (entity.key === "riwayat-kalibrasi") {
     const base =
@@ -141,36 +164,49 @@ export async function saveRecord(
       message: "Identitas pengguna tersimpan.",
     };
   }
-  if (entity.key === "riwayat-kalibrasi" && scope.data.id) {
-    const { data: current, error } = await db
-      .from("calibrations")
-      .select("monitoring_measurements")
-      .eq("id", scope.data.id)
-      .eq("branch_code", branch)
-      .maybeSingle();
-    if (error || !current)
+  if (entity.key === "riwayat-kalibrasi" && measurementGroups) {
+    const { data: current, error } = scope.data.id
+      ? await db
+          .from("calibrations")
+          .select(
+            "monitoring_measurements,calibration_internal,calibration_external,significant_yes,significant_no,updated_at",
+          )
+          .eq("id", scope.data.id)
+          .eq("branch_code", branch)
+          .maybeSingle()
+      : { data: null, error: null };
+    if (error || (scope.data.id && !current))
       return { ok: false, error: "Peristiwa kalibrasi tidak dapat diakses." };
-    if (
-      Array.isArray(current.monitoring_measurements) &&
-      current.monitoring_measurements.length > 1
-    ) {
-      payload.monitoring_measurements = current.monitoring_measurements.map(
-        (value, index) =>
-          index === 0 &&
-          value &&
-          typeof value === "object" &&
-          !Array.isArray(value)
-            ? {
-                ...value,
-                ...Object.fromEntries(
-                  measurementKeys
-                    .filter((key) => key in payload)
-                    .map((key) => [key, payload[key]]),
-                ),
-              }
-            : value,
+    if (current && measurementRevision !== current.updated_at)
+      return {
+        ok: false,
+        error:
+          "Data kalibrasi telah berubah. Muat ulang formulir agar pasangan rentang dan faktor tidak tertimpa.",
+      };
+    const shared = Object.fromEntries(
+      measurementKeys
+        .filter(
+          (key) =>
+            !["measurement_range", "correction_factor"].includes(key) &&
+            (!current ||
+              String(payload[key] ?? "") !==
+                String(current[key as keyof typeof current] ?? "")),
+        )
+        .map((key) => [key, payload[key]]),
+    );
+    try {
+      payload.monitoring_measurements = mergeMeasurementGroups(
+        measurementGroups,
+        current?.monitoring_measurements,
+        shared,
       );
+    } catch {
+      return {
+        ok: false,
+        error: "Kelompok ukur telah berubah. Muat ulang formulir.",
+      };
     }
+    payload.correction_factor = measurementGroups[0]?.correction_factor || null;
   }
   if (entity.key === "kalibrasi-alat" && !scope.data.id) {
     delete payload.responsibility_override_reason;
@@ -181,6 +217,25 @@ export async function saveRecord(
         if (key !== "initial_enabled") calibration[key.slice(8)] = payload[key];
         delete payload[key];
       }
+    }
+    if (enabled && measurementGroups) {
+      calibration.monitoring_measurements = mergeMeasurementGroups(
+        measurementGroups.map((g) => ({
+          measurement_range: g.measurement_range,
+          correction_factor: g.correction_factor,
+        })),
+        null,
+        Object.fromEntries(
+          measurementKeys
+            .filter(
+              (key) =>
+                !["measurement_range", "correction_factor"].includes(key),
+            )
+            .map((key) => [key, calibration[key]]),
+        ),
+      );
+      calibration.correction_factor =
+        measurementGroups[0]?.correction_factor || null;
     }
     delete payload.branch_code;
     if (
@@ -209,13 +264,19 @@ export async function saveRecord(
         : "Alat tersimpan.",
     };
   }
-  const query = scope.data.id
+  let query = scope.data.id
     ? db
         .from(entity.table)
         .update(payload)
         .eq(entity.idKey, scope.data.id)
         .eq(entity.key === "cabang" ? "code" : "branch_code", branch)
     : db.from(entity.table).insert(payload);
+  if (
+    entity.key === "riwayat-kalibrasi" &&
+    scope.data.id &&
+    typeof measurementRevision === "string"
+  )
+    query = query.eq("updated_at", measurementRevision);
   const { data, error } = await query.select(entity.idKey).maybeSingle();
   if (error) return { ok: false, error: publicDatabaseError(error.code) };
   if (!data)
@@ -252,7 +313,12 @@ export async function setRecordsActive(
     scope.data.branch,
     true,
   );
-  if (entity.key === "pegawai") return { ok: false, error: "Gunakan Status personil untuk mencatat alasan dan tanggal efektif melalui HRGA." };
+  if (entity.key === "pegawai")
+    return {
+      ok: false,
+      error:
+        "Gunakan Status personil untuk mencatat alasan dan tanggal efektif melalui HRGA.",
+    };
   if (!entity.fields.some((field) => field.key === "is_active"))
     return { ok: false, error: "Perubahan status tidak tersedia." };
   if (entity.key === "pengguna" && selected.data.includes(user.id))

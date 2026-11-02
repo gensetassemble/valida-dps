@@ -113,6 +113,7 @@ export async function OperationEditor({
   const c = await pageEntityContext(entity, params.branch, true);
   if (!c) return <AccessDenied />;
   const row = id ? await getRecord(c.entity, c.branch, id) : undefined;
+  let measurementDefaults: DataRow | undefined;
   if (id && !row) {
     await redirectResetCertificate(entity, c.branch, id);
     notFound();
@@ -122,8 +123,20 @@ export async function OperationEditor({
       entity === "riwayat-kalibrasi" ? "kalibrasi-alat" : null;
     if (parentEntity) {
       const p = await entityContext(parentEntity, c.branch);
-      if (!(await getRecord(p.entity, c.branch, parent.id))) notFound();
+      const equipment = await getRecord(p.entity, c.branch, parent.id);
+      if (!equipment) notFound();
+      measurementDefaults = equipment;
     }
+  }
+  if (
+    !measurementDefaults &&
+    entity === "riwayat-kalibrasi" &&
+    row?.equipment_id
+  ) {
+    const p = await entityContext("kalibrasi-alat", c.branch);
+    measurementDefaults =
+      (await getRecord(p.entity, c.branch, String(row.equipment_id))) ||
+      undefined;
   }
   return (
     <>
@@ -135,6 +148,7 @@ export async function OperationEditor({
         <OperationalForm
           entity={c.entity}
           row={row || undefined}
+          measurementDefaults={measurementDefaults}
           branch={c.branch}
           userId={c.user.id}
           isAdmin={hasPermission(c.scopes, c.branch, ["admin"])}

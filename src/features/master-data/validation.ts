@@ -3,6 +3,7 @@ import type { EntityConfig, Field } from "./registry";
 import { ALL_ROLES } from "@/lib/auth/permissions";
 import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
+import { measurementGroupsSchema } from "@/features/operations/measurement-groups";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
 function fieldSchema(field: Field) {
@@ -101,16 +102,29 @@ function fieldSchema(field: Field) {
 }
 export function recordSchema(entity: EntityConfig, editing = false) {
   const shape: Record<string, z.ZodType> = {};
+  if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key))
+    shape.measurement_groups = measurementGroupsSchema.optional();
+  if (entity.key === "riwayat-kalibrasi")
+    shape.measurement_revision = z.string().max(50).optional();
   for (const field of [
     ...entity.fields,
     ...(entity.key === "kalibrasi-alat" && !editing
       ? initialCalibrationFields
       : []),
   ]) {
-    if (entity.key === "pegawai" && ["employment_status", "is_active"].includes(field.key)) continue;
+    if (
+      entity.key === "pegawai" &&
+      ["employment_status", "is_active"].includes(field.key)
+    )
+      continue;
     if (editing && (field.key === entity.idKey || field.immutable)) continue;
     shape[field.key] = fieldSchema(field);
   }
+  if (entity.key === "kalibrasi-alat")
+    shape.measurement_range = z.preprocess(
+      emptyToNull,
+      z.string().max(400000).nullable(),
+    );
   return z
     .object(shape)
     .strict()

@@ -7,6 +7,7 @@ export function FormField({
   required,
   children,
   layout = "standard",
+  wide = false,
 }: {
   id: string;
   label: string;
@@ -15,12 +16,13 @@ export function FormField({
   required?: boolean;
   children: ReactNode;
   layout?: "standard" | "table";
+  wide?: boolean;
 }) {
   if (layout === "table")
     return (
       <div
         role="row"
-        className="grid min-w-0 gap-1 border-b border-border p-2 last:border-b-0 sm:grid-cols-[minmax(120px,0.36fr)_minmax(0,1fr)] sm:gap-3 md:border-r"
+        className={`grid min-w-0 gap-1 border-b border-border p-2 last:border-b-0 sm:gap-3 md:border-r ${wide ? "md:col-span-2 sm:grid-cols-[10rem_minmax(0,1fr)]" : "sm:grid-cols-[minmax(120px,0.36fr)_minmax(0,1fr)]"}`}
       >
         <div role="rowheader" className="text-xs font-semibold sm:pt-2">
           <label htmlFor={id}>

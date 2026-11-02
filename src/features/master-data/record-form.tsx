@@ -13,7 +13,11 @@ import { recordSchema } from "./validation";
 import { saveRecord } from "./actions";
 import { createCompetencyType } from "./competency-type-actions";
 import { DirectoryActionsDialog } from "./directory-actions-dialog";
-import { MeasurementRangeInput } from "@/features/operations/measurement-range-input";
+import { MeasurementGroupsInput } from "@/features/operations/measurement-groups-input";
+import {
+  measurementInputs,
+  type MeasurementGroupInput,
+} from "@/features/operations/measurement-groups";
 import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
@@ -21,10 +25,7 @@ import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
-import {
-  initialCalibrationFields,
-  measurementKeys,
-} from "@/features/operations/monitoring";
+import { initialCalibrationFields } from "@/features/operations/monitoring";
 type Option = { value: string; label: string };
 function Lookup({
   entity,
@@ -264,6 +265,7 @@ export function RecordForm({
   isAdmin,
   canManagePasswords = false,
   canManageDirectory = false,
+  measurementDefaults,
   onSaved,
 }: {
   entity: EntityConfig;
@@ -274,13 +276,10 @@ export function RecordForm({
   isAdmin: boolean;
   canManagePasswords?: boolean;
   canManageDirectory?: boolean;
+  measurementDefaults?: DataRow;
   onSaved: () => void;
 }) {
   const editing = !!row;
-  const multipleParameters =
-    entity.key === "riwayat-kalibrasi" &&
-    Array.isArray(row?.monitoring_measurements) &&
-    row.monitoring_measurements.length > 1;
   const initialEquipment = entity.key === "kalibrasi-alat" && !editing;
   const equipmentIdentity = entity.fields.filter((f) =>
     ["name", "portfolio_id"].includes(f.key),
@@ -307,10 +306,7 @@ export function RecordForm({
             (option) => option.value === "personnel",
           ),
         }
-      : multipleParameters &&
-          (measurementKeys as readonly string[]).includes(field.key)
-        ? { ...field, label: field.label + " (parameter 1)" }
-        : field,
+      : field,
   );
   const identityKeys = [
     "name",
@@ -340,7 +336,7 @@ export function RecordForm({
   const editableFields = formFields.filter(
     (field) => !editing || (field.key !== entity.idKey && !field.immutable),
   );
-  const defaults = Object.fromEntries(
+  const defaults: Record<string, unknown> = Object.fromEntries(
     editableFields.map((field) => [
       field.key,
       parent?.field === field.key
@@ -350,6 +346,21 @@ export function RecordForm({
           : initialValue(field, row, userId, entity.key),
     ]),
   );
+  if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key)) {
+    defaults.measurement_groups = measurementInputs(
+      row ? { ...measurementDefaults, ...row } : measurementDefaults,
+      entity.key === "kalibrasi-alat" || !row,
+    );
+    if (!row && entity.key === "riwayat-kalibrasi")
+      defaults.measurement_groups = (
+        defaults.measurement_groups as MeasurementGroupInput[]
+      ).map((g) => ({
+        measurement_range: g.measurement_range,
+        correction_factor: "",
+      }));
+  }
+  if (entity.key === "riwayat-kalibrasi" && row)
+    defaults.measurement_revision = String(row.updated_at || "");
   const {
     register,
     control,
@@ -482,12 +493,24 @@ export function RecordForm({
         <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] leading-5 text-muted-foreground">
           Cabang <strong className="text-brand-navy">{branch}</strong>
         </div>
-        {multipleParameters && (
-          <p className="rounded-lg bg-slate-50 p-3 text-xs">
-            Peristiwa ini memiliki beberapa parameter. Bidang bertanda parameter
-            1 mengubah parameter pertama; parameter lainnya tetap tersimpan dan
-            dapat dilihat pada detail peristiwa.
-          </p>
+        {entity.key === "riwayat-kalibrasi" && (
+          <Controller
+            control={control}
+            name="measurement_groups"
+            render={({ field: input }) => (
+              <MeasurementGroupsInput
+                value={input.value as MeasurementGroupInput[]}
+                onChange={input.onChange}
+                branch={branch}
+                factors
+                error={
+                  errors.measurement_groups
+                    ? "Periksa rentang ukur dan faktor koreksi setiap kelompok."
+                    : undefined
+                }
+              />
+            )}
+          />
         )}
         {endField && !lifetime && (!initialEquipment || !!initialEnabled) && (
           <label className="block max-w-sm space-y-1 text-xs font-semibold">
@@ -526,6 +549,12 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
+            if (
+              (entity.key === "riwayat-kalibrasi" &&
+                field.key === "correction_factor") ||
+              (initialEquipment && field.key === "initial_correction_factor")
+            )
+              return null;
             if (
               entity.key === "kalibrasi-alat" &&
               field.key === "responsibility_override_reason" &&
@@ -608,6 +637,7 @@ export function RecordForm({
                   hint={field.hint}
                   required={field.required}
                   error={message}
+                  wide={field.key === "measurement_range"}
                 >
                   {entity.key === "kalibrasi-alat" &&
                   field.key === "responsible_employee_id" &&
@@ -630,15 +660,18 @@ export function RecordForm({
                   ) : field.key === "measurement_range" ? (
                     <Controller
                       control={control}
-                      name={field.key}
+                      name="measurement_groups"
                       render={({ field: input }) => (
-                        <MeasurementRangeInput
-                          id={field.key}
-                          value={String(input.value || "")}
+                        <MeasurementGroupsInput
+                          value={input.value as MeasurementGroupInput[]}
                           branch={branch}
                           onChange={input.onChange}
-                          invalid={!!message}
-                          describedBy={common["aria-describedby"]}
+                          factors={initialEquipment && !!initialEnabled}
+                          error={
+                            errors.measurement_groups
+                              ? "Isi rentang ukur pada setiap kelompok."
+                              : undefined
+                          }
                         />
                       )}
                     />

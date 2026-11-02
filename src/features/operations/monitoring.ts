@@ -249,16 +249,17 @@ export function monitoringValue(
       )
     : [];
   if (
-    groups.length > 1 &&
+    groups.length >= 1 &&
     (measurementKeys as readonly string[]).includes(key) &&
     groups.some((group) => key in group)
   ) {
-    const values = groups.map((group) => String(group[key] ?? row[key] ?? ""));
-    const rangesDiffer =
-      new Set(groups.map((g) => String(g.measurement_range || ""))).size > 1;
+    const values = groups.map((group) =>
+      String(group[key] ?? row[key] ?? "").replace(/\\n/g, "\n"),
+    );
     if (
       new Set(values).size > 1 ||
-      (rangesDiffer && ["measurement_range", "correction_factor"].includes(key))
+      (groups.length > 1 &&
+        ["measurement_range", "correction_factor"].includes(key))
     )
       return values
         .map((value, index) => `[${index + 1}] ${value}`)

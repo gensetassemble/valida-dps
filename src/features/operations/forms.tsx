@@ -12,6 +12,7 @@ export function OperationalForm(props: {
   entity: EntityConfig;
   branch: string;
   row?: DataRow;
+  measurementDefaults?: DataRow;
   parent?: { field: string; id: string };
   userId: string;
   isAdmin: boolean;

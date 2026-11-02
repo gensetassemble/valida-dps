@@ -321,6 +321,16 @@ export async function getRecord(
     query = query.eq(entity.key === "cabang" ? "code" : "branch_code", branch);
   const { data, error } = await query.maybeSingle();
   if (error) throw new Error("Detail data belum dapat dimuat.");
+  if (data && entity.key === "kalibrasi-alat") {
+    const { data: ranges, error: rangesError } = await db
+      .from("equipment")
+      .select("measurement_ranges")
+      .eq("id", id)
+      .eq("branch_code", branch)
+      .maybeSingle();
+    if (rangesError) throw Error("Rentang ukur alat belum dapat dimuat.");
+    data.measurement_ranges = ranges?.measurement_ranges;
+  }
   if (data && typeof data.previous_order_value_text === "string")
     data.previous_order_value = data.previous_order_value_text;
   return data as DataRow | null;
