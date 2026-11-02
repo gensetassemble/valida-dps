@@ -23,7 +23,10 @@ import { EmptyState } from "./empty-state";
 import { Modal, ConfirmDialog } from "./modal";
 import { useToast } from "./toast";
 import { FilterBar } from "@/features/master-data/filter-bar";
-import { RENEWAL_STATUSES, personnelRenewalDisplay } from "@/features/workflows/model";
+import {
+  RENEWAL_STATUSES,
+  personnelRenewalDisplay,
+} from "@/features/workflows/model";
 import { DirectoryActionsDialog } from "@/features/master-data/directory-actions-dialog";
 import { EmployeeStatusDialog } from "@/features/workflows/employee-status-dialog";
 import { businessNotes } from "@/features/operations/notes";
@@ -182,8 +185,25 @@ export function DataTable({
     extraLabels[field] ||
     field;
   function valueFor(row: DataRow, column: string) {
-    const processStatus = personnelRenewalDisplay(row.renewal_process_status as string | null, String(row.validity_status || ""), row.validity_kind === "lifetime");
-    if (entity.key === "kompetensi-personil" && column === "employee_name" && canManageDirectory && typeof row.employee_id === "string") return <Link className="font-semibold text-primary-hover underline" href={`/master-data/pegawai/${row.employee_id}?branch=${encodeURIComponent(branch)}`}>{String(row.employee_name || "—")}</Link>;
+    const processStatus = personnelRenewalDisplay(
+      row.renewal_process_status as string | null,
+      String(row.validity_status || ""),
+      row.validity_kind === "lifetime",
+    );
+    if (
+      entity.key === "kompetensi-personil" &&
+      column === "employee_name" &&
+      canManageDirectory &&
+      typeof row.employee_id === "string"
+    )
+      return (
+        <Link
+          className="font-semibold text-primary-hover underline"
+          href={`/master-data/pegawai/${row.employee_id}?branch=${encodeURIComponent(branch)}`}
+        >
+          {String(row.employee_name || "—")}
+        </Link>
+      );
     if (column === "notes") return businessNotes(row.notes) || "—";
     if (entity.key === "kompetensi-personil" && column === "original_title")
       return (
@@ -200,11 +220,7 @@ export function DataTable({
                     : "bg-slate-100 text-slate-700")
               }
             >
-              {
-                RENEWAL_STATUSES[
-                  processStatus
-                ]
-              }
+              {RENEWAL_STATUSES[processStatus]}
             </span>
           ) : null}
         </span>
@@ -342,9 +358,30 @@ export function DataTable({
             role="region"
             aria-label={`Tabel ${entity.title}`}
             tabIndex={0}
-            className="max-w-full overflow-x-auto"
+            className={
+              entity.key === "kalibrasi-alat"
+                ? "calibration-table-scroll max-w-full"
+                : "max-w-full overflow-x-auto"
+            }
           >
-            <table className="w-full min-w-[640px] border-collapse text-left text-xs">
+            <table
+              className={
+                entity.key === "kalibrasi-alat"
+                  ? "calibration-frozen-table text-left text-xs"
+                  : "w-full min-w-[640px] border-collapse text-left text-xs"
+              }
+            >
+              {entity.key === "kalibrasi-alat" && (
+                <colgroup>
+                  {[
+                    "number",
+                    ...monitoringColumns.map(([key]) => key),
+                    "actions",
+                  ].map((key) => (
+                    <col key={key} />
+                  ))}
+                </colgroup>
+              )}
               <thead className="border-b border-border bg-surface-muted text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                 {entity.key === "kalibrasi-alat" ? (
                   monitoringHeaders.map((cells, index) => (
@@ -355,6 +392,11 @@ export function DataTable({
                           colSpan={colSpan}
                           rowSpan={rowSpan}
                           scope={colSpan > 1 ? "colgroup" : "col"}
+                          data-frozen={
+                            col <= 3
+                              ? ["number", "name", "tag"][col - 1]
+                              : undefined
+                          }
                           className="min-w-16 border border-border px-2 py-2 text-center normal-case tracking-normal"
                         >
                           {label}
@@ -452,7 +494,12 @@ export function DataTable({
                       row.assignment_type !== "personnel");
                   return (
                     <tr key={id} className="hover:bg-surface-muted">
-                      <td className="tnum px-4 py-3 text-muted-foreground">
+                      <td
+                        data-frozen={
+                          entity.key === "kalibrasi-alat" ? "number" : undefined
+                        }
+                        className="tnum px-4 py-3 text-muted-foreground"
+                      >
                         {index + 1}
                       </td>
                       {mayBulk && (
@@ -476,6 +523,12 @@ export function DataTable({
                       {displayColumns.map((column) => (
                         <td
                           key={column}
+                          data-frozen={
+                            entity.key === "kalibrasi-alat" &&
+                            ["name", "tag"].includes(column)
+                              ? column
+                              : undefined
+                          }
                           className="whitespace-nowrap px-4 py-3 font-medium"
                         >
                           {column ===
@@ -520,19 +573,38 @@ export function DataTable({
                               >
                                 <Pencil size={15} />
                               </Button>
-                              {entity.key === "pegawai" && canManageDirectory && <DirectoryActionsDialog row={row} branch={branch} compact/>}
-                              {entity.key === "pegawai" ? <EmployeeStatusDialog branch={branch} employee={id} version={Number(row.employment_status_version)} name={name} status={String(row.employment_status)}/> : typeof row.is_active === "boolean" && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  aria-label={`${row.is_active ? "Nonaktifkan" : "Aktifkan"} ${name}`}
-                                  disabled={own}
-                                  onClick={() =>
-                                    beginChange([id], !row.is_active)
-                                  }
-                                >
-                                  <Power size={15} />
-                                </Button>
+                              {entity.key === "pegawai" &&
+                                canManageDirectory && (
+                                  <DirectoryActionsDialog
+                                    row={row}
+                                    branch={branch}
+                                    compact
+                                  />
+                                )}
+                              {entity.key === "pegawai" ? (
+                                <EmployeeStatusDialog
+                                  branch={branch}
+                                  employee={id}
+                                  version={Number(
+                                    row.employment_status_version,
+                                  )}
+                                  name={name}
+                                  status={String(row.employment_status)}
+                                />
+                              ) : (
+                                typeof row.is_active === "boolean" && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label={`${row.is_active ? "Nonaktifkan" : "Aktifkan"} ${name}`}
+                                    disabled={own}
+                                    onClick={() =>
+                                      beginChange([id], !row.is_active)
+                                    }
+                                  >
+                                    <Power size={15} />
+                                  </Button>
+                                )
                               )}
                             </>
                           )}
@@ -542,6 +614,22 @@ export function DataTable({
                   );
                 })}
               </tbody>
+              {entity.key === "kalibrasi-alat" && (
+                <tfoot>
+                  <tr>
+                    <td colSpan={monitoringColumns.length + 2}>
+                      <div className="sticky left-0 w-fit px-4">
+                        <ScrollLoader
+                          hasMore={data.rows.length < data.total}
+                          busy={scrolling.busy}
+                          error={scrolling.error}
+                          load={scrolling.load}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         ) : (
@@ -559,12 +647,14 @@ export function DataTable({
           <p>
             {data.rows.length} dari {data.total} rekaman
           </p>
-          <ScrollLoader
-            hasMore={data.rows.length < data.total}
-            busy={scrolling.busy}
-            error={scrolling.error}
-            load={scrolling.load}
-          />
+          {entity.key !== "kalibrasi-alat" && (
+            <ScrollLoader
+              hasMore={data.rows.length < data.total}
+              busy={scrolling.busy}
+              error={scrolling.error}
+              load={scrolling.load}
+            />
+          )}
         </div>
       </Card>
       <Modal

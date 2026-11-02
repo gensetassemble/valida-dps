@@ -44,7 +44,9 @@ export function RenewalCleanupDialog({
         title={label}
         description={
           closed
-            ? "Histori proses disembunyikan dari daftar. Sertifikat, hasil perpanjangan, dan jejak audit tetap tersimpan."
+            ? status === "renewed"
+              ? "Reset mengembalikan seluruh data sertifikat sebelumnya, termasuk nomor, penerbit, tanggal terbit, interval dan tanggal berakhir. Sertifikat hasil perpanjangan diarsipkan dari monitoring; jejak audit tetap tersimpan."
+              : "Histori proses disembunyikan dari daftar. Sertifikat dan jejak audit tetap tersimpan."
             : "Proses dihentikan dan dapat diajukan ulang. Tanggal maupun status masa berlaku sertifikat tidak berubah."
         }
       >

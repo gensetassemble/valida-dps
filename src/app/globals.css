@@ -50,6 +50,86 @@ input {
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+/* One scroll surface keeps the full, merged header and three identity columns frozen. */
+.calibration-table-scroll {
+  --frozen-number: 3.5rem;
+  --frozen-name: 12.5rem;
+  --frozen-tag: 9rem;
+  max-height: min(70dvh, 48rem);
+  overflow: auto;
+  isolation: isolate;
+  scrollbar-gutter: stable;
+  contain: paint;
+}
+.calibration-frozen-table {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: calc(
+    var(--frozen-number) + var(--frozen-name) + var(--frozen-tag) + 171rem
+  );
+}
+.calibration-frozen-table col:nth-child(1) {
+  width: var(--frozen-number);
+}
+.calibration-frozen-table col:nth-child(2) {
+  width: var(--frozen-name);
+}
+.calibration-frozen-table col:nth-child(3) {
+  width: var(--frozen-tag);
+}
+.calibration-frozen-table col:nth-child(n + 4) {
+  width: 9rem;
+}
+.calibration-frozen-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.calibration-frozen-table th {
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 -1px var(--color-border);
+}
+.calibration-frozen-table [data-frozen] {
+  position: sticky;
+  z-index: 10;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.calibration-frozen-table [data-frozen="number"] {
+  left: 0;
+}
+.calibration-frozen-table [data-frozen="name"] {
+  left: var(--frozen-number);
+}
+.calibration-frozen-table [data-frozen="tag"] {
+  left: calc(var(--frozen-number) + var(--frozen-name));
+  box-shadow:
+    1px 0 var(--color-border),
+    5px 0 8px -6px #64748b;
+}
+.calibration-frozen-table tbody [data-frozen] {
+  background: var(--color-card);
+}
+.calibration-frozen-table tbody tr:hover [data-frozen] {
+  background: var(--color-surface-muted);
+}
+.calibration-frozen-table td > span,
+.calibration-frozen-table td > a > span {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 639px) {
+  .calibration-table-scroll {
+    --frozen-number: 2.25rem;
+    --frozen-name: 7.75rem;
+    --frozen-tag: 6rem;
+  }
+  .calibration-frozen-table tbody [data-frozen] {
+    padding-inline: 0.5rem;
+  }
+}
 :focus-visible {
   outline: 2px solid #16845a;
   outline-offset: 3px;

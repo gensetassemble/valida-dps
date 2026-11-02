@@ -1,6 +1,6 @@
 import { AccessDenied } from "@/components/ui/access-denied";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -77,6 +77,28 @@ export async function OperationList({
     </>
   );
 }
+async function redirectResetCertificate(
+  entity: string,
+  branch: string,
+  id: string,
+) {
+  if (entity !== "kompetensi-personil") return;
+  const db = await masterClient();
+  const { data, error } = await db
+    .from("personnel_renewal_cases")
+    .select("certificate_id")
+    .eq("replacement_certificate_id", id)
+    .eq("branch_code", branch)
+    .eq("status", "renewed")
+    .not("history_deleted_at", "is", null)
+    .maybeSingle();
+  if (error) throw Error("Referensi reset sertifikat belum dapat dimuat.");
+  if (data)
+    redirect(
+      `/kompetensi-personil/${data.certificate_id}?branch=${encodeURIComponent(branch)}`,
+    );
+}
+
 export async function OperationEditor({
   entity,
   id,
@@ -91,7 +113,10 @@ export async function OperationEditor({
   const c = await pageEntityContext(entity, params.branch, true);
   if (!c) return <AccessDenied />;
   const row = id ? await getRecord(c.entity, c.branch, id) : undefined;
-  if (id && !row) notFound();
+  if (id && !row) {
+    await redirectResetCertificate(entity, c.branch, id);
+    notFound();
+  }
   if (parent) {
     const parentEntity =
       entity === "riwayat-kalibrasi" ? "kalibrasi-alat" : null;
@@ -132,7 +157,10 @@ export async function OperationDetail({
   const c = await pageEntityContext(entity, params.branch);
   if (!c) return <AccessDenied />;
   const row = await getRecord(c.entity, c.branch, id);
-  if (!row) notFound();
+  if (!row) {
+    await redirectResetCertificate(entity, c.branch, id);
+    notFound();
+  }
   const canEditRow =
     c.canWrite &&
     (entity !== "sertifikat-klien" ||
@@ -460,8 +488,9 @@ export async function OperationDetail({
       )}
       {entity === "kompetensi-personil" && (
         <>
-          {!!(row.previous_certificate_id ||
-            row.superseded_by_certificate_id) && (
+          {!!(
+            row.previous_certificate_id || row.superseded_by_certificate_id
+          ) && (
             <Card className="mb-4 space-y-2 p-4 text-sm">
               <p>
                 {row.superseded_by_certificate_id
