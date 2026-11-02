@@ -14,6 +14,7 @@ export async function readNotifications(ids: string[] | null) {
     .from("user_notifications")
     .update({ read_at: new Date().toISOString() }, { count: "exact" })
     .eq("profile_id", user.id)
+    .is("archived_at", null)
     .is("read_at", null);
   if (ids !== null) query = query.in("id", [...new Set(ids)]);
   const { count, error } = await query;

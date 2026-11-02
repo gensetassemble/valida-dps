@@ -47,7 +47,7 @@ export function EquipmentRequestCleanup({
         title={label}
         description={
           deleting
-            ? "Pengajuan ini dihapus dari daftar histori. Jejak audit tetap tersimpan. Data alat dan hasil kalibrasi tidak dihapus."
+            ? "Pengajuan ini dihapus dari daftar histori. Notifikasi terkait diarsipkan dari inbox dan hitungan belum dibaca. Jejak audit tetap tersimpan. Data alat dan hasil kalibrasi tidak dihapus."
             : "Pengajuan dihentikan dan berstatus Dibatalkan. Anda dapat membuat pengajuan baru setelahnya."
         }
       >

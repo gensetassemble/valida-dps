@@ -151,6 +151,7 @@ export async function markNotificationRead(id: string) {
     .update({ read_at: new Date().toISOString() })
     .eq("id", id)
     .eq("profile_id", user.id)
+    .is("archived_at", null)
     .is("read_at", null);
   revalidatePath("/", "layout");
 }

@@ -98,6 +98,7 @@ select pg_temp.expect_workflow_failure($q$select public.manage_equipment_request
 select pg_temp.expect_workflow_failure($q$select public.manage_equipment_request('af800000-0000-4000-8000-000000000002',99,'cancel')$q$,'stale version rejected');
 select public.manage_equipment_request('af800000-0000-4000-8000-000000000002',1,'cancel');
 select pg_temp.assert_workflow((select status='cancelled' and version=2 from public.calibration_requests where id='af800000-0000-4000-8000-000000000002'),'creator coordinator cancels');
+select pg_temp.assert_workflow(exists(select 1 from public.notification_inbox_records n join public.calibration_request_events e on e.id=n.event_id where e.request_id='af800000-0000-4000-8000-000000000002'),'ordinary cancellation remains visible before history cleanup');
 select pg_temp.expect_workflow_failure($q$select public.manage_equipment_request('af800000-0000-4000-8000-000000000002',2,'delete_history')$q$,'coordinator cannot delete history');
 select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
 select pg_temp.expect_workflow_failure($q$select public.manage_equipment_request('af800000-0000-4000-8000-000000000002',2,'delete_history')$q$,'PTK cannot delete history');
@@ -166,6 +167,19 @@ select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000002'
 select pg_temp.expect_workflow_failure($q$select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000009','DPS',1,'cancel','[CONTOH] coordinator forbidden')$q$,'coordinator cannot cancel HRGA process');
 select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000007',true);
 select pg_temp.expect_workflow_failure($q$select public.manage_personnel_renewal('af900000-0000-4000-8000-000000000009','DPS',1,'cancel','[CONTOH] wrong branch forbidden')$q$,'cross branch cleanup denied');
+reset role;
+
+-- Archival removes only the exact deleted process from inboxes, never event/audit data.
+select pg_temp.assert_workflow(exists(select 1 from public.user_notifications n join public.calibration_request_events e on e.id=n.event_id where e.request_id='af800000-0000-4000-8000-000000000002') and not exists(select 1 from public.user_notifications n join public.calibration_request_events e on e.id=n.event_id where e.request_id='af800000-0000-4000-8000-000000000002' and n.archived_at is null),'all equipment request recipients archived without deleting records');
+select pg_temp.assert_workflow(not exists(select 1 from public.notification_inbox_records n join public.calibration_request_events e on e.id=n.event_id where e.request_id='af800000-0000-4000-8000-000000000002'),'deleted equipment request absent from inbox projection');
+select pg_temp.assert_workflow(exists(select 1 from public.user_notifications n join public.personnel_renewal_events e on e.id=n.event_id where e.case_id='af900000-0000-4000-8000-000000000001') and not exists(select 1 from public.user_notifications n join public.personnel_renewal_events e on e.id=n.event_id where e.case_id='af900000-0000-4000-8000-000000000001' and n.archived_at is null),'completed renewal reset archives all recipients');
+select pg_temp.assert_workflow(exists(select 1 from public.user_notifications n join public.personnel_renewal_events e on e.id=n.event_id where e.case_id='af900000-0000-4000-8000-000000000009' and n.archived_at is null),'new process for same certificate stays in inbox');
+select pg_temp.assert_workflow(exists(select 1 from public.user_notifications n join public.calibration_request_events e on e.id=n.event_id where e.request_id='af800000-0000-4000-8000-000000000003' and n.archived_at is null),'another cancelled process on same equipment stays in inbox');
+select pg_temp.assert_workflow(exists(select 1 from public.user_notifications where archived_at is not null and read_at is null),'archive does not pretend unread entries were read');
+select pg_temp.assert_workflow(not has_column_privilege('authenticated','public.user_notifications','archived_at','UPDATE') and not has_function_privilege('authenticated','private.archive_workflow_notifications()','EXECUTE'),'clients cannot forge archival or call internal archive trigger');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
+set local role authenticated;
+select pg_temp.assert_workflow((select count(*) from public.user_notifications where archived_at is null and read_at is null)=(select count(*) from public.notification_inbox_records where read_at is null),'sidebar unread count equals active inbox for PTK');
 reset role;
 
 select pass('Coordinator submission, PTK progress, scope, independent calibration, HRGA evidence, immutable history and inbox isolation');

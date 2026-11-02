@@ -4,7 +4,7 @@ Penyempurnaan halaman `/notifikasi` pada aplikasi VALIDA yang ada. Sidebar, navb
 
 ## Desain dan interaksi
 
-- Kartu putih dengan border halus, radius 15px, ikon 42px, label kategori dan penanda unread kecil. Warna kategori: klien biru, personil ungu, alat teal, sistem slate. Status workflow memiliki badge tersendiri.
+- Halaman memakai lebar konten penuh dengan padding desktop 16px. Kartu putih dipadatkan: radius 10px, ikon 34px, padding 10px dan jarak kartu 6px. Label kategori dan penanda unread tetap terbaca. Warna kategori: klien biru, personil ungu, alat teal, sistem slate. Status workflow memiliki badge tersendiri.
 - Hierarki: kategori/status → judul singkat → nama pemilik/pelanggan → nomor/tag → perubahan nomor bila berbeda → waktu WITA. Nomor baru yang sama tidak diulang pada ringkasan; detail event tetap memuatnya.
 - Public Sans untuk isi dan Space Grotesk untuk heading, dimuat sebagai font lokal dan diterapkan hanya di Pusat Notifikasi. Background halaman `#F4F6F1`; navigasi global tidak diganti.
 - Filter kategori, status baca dan pencarian otomatis dengan debounce 300ms. Semua hitungan adalah jumlah sebenarnya dari inbox pengguna yang berhak diakses, bukan hitungan dari satu halaman. URL menyimpan filter.
@@ -22,6 +22,16 @@ View diperlukan agar pencarian nomor/nama/tag dan pagination dilakukan di server
 Server action read-state selalu memverifikasi pengguna, menyaring `profile_id=user.id`, hanya memperbarui `read_at` yang kosong, dan tetap tunduk pada RLS serta grant UPDATE(read_at). Aksi grup dibatasi 25 UUID. Aksi semua mencakup inbox yang benar-benar dapat diakses, termasuk notifikasi di luar halaman/filter yang sedang tampil.
 
 Tidak ada perubahan logika email, penerima, jadwal reminder, ambang masa berlaku, atau eskalasi. Migrasi telah diterapkan pada Supabase development yang terhubung sebagai tambahan baca saja; aplikasi produksi lama tetap memakai view lama. Rekaman notifikasi dan status baca nyata tidak dihapus, direset, atau diubah dalam QA.
+
+## Arsip ketika histori proses dihapus
+
+Rilis `2026.11.02-notification-compact.1` menambahkan migrasi `20261102011300_archive_deleted_workflow_notifications.sql`, sesuai pilihan pengguna. Ketika histori pengajuan alat atau perpanjangan personil dihapus, trigger internal mengisi `archived_at` dan alasan pada notifikasi semua penerima berdasarkan event proses yang persis sama dan cabang yang sama. Inbox, jumlah kategori, unread sidebar dan aksi baca mengabaikan arsip. Proses lain pada sertifikat/alat yang sama tetap terpisah. Pembatalan biasa tetap menjadi notifikasi aktif sampai historinya dihapus.
+
+Rekonsiliasi awal mengarsipkan 57 notifikasi yang seluruh sumber prosesnya sudah dihapus historinya; tidak ada penghapusan fisik notifikasi, event, sertifikat atau audit, dan `read_at` tetap. Pengiriman event terlambat dari proses yang sudah diarsipkan juga mendapat penanda arsip. Klien tidak diberi hak UPDATE kolom arsip, dan fungsi trigger private tidak dapat dipanggil langsung oleh authenticated/anon.
+
+Untuk salah operasi: pembatalan serta pengajuan ulang tetap memakai gate akses dan versi data. Dialog penghapusan menjelaskan efek reset dan arsip, meminta konfirmasi; reset HRGA memerlukan alasan. Jejak proses lama tetap tersedia untuk penelusuran administrator. Belum tersedia tombol Undo/pemulihan histori otomatis; pemulihan penuh memerlukan pemeriksaan administratif agar sertifikat dan proses yang lebih baru tidak tertimpa.
+
+Verifikasi tambahan: SQL workflow mencakup pembatalan sebelum arsip, pengarsipan seluruh penerima, proses lain tetap aktif, `read_at` tidak dipalsukan menjadi dibaca, larangan klien mengubah kolom arsip, dan kesamaan jumlah unread inbox/sidebar. Semua fixture di-rollback. Inbox nyata setelah rekonsiliasi berjumlah nol; tampilan kartu compact diuji di browser menggunakan enam fixture SSR lokal tanpa seed database, pada desktop 1440px dan ponsel 390px.
 
 ## Berkas
 

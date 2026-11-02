@@ -1,6 +1,6 @@
 .center {
-  max-width: 1060px;
-  margin: 0 auto;
+  width: 100%;
+  min-width: 0;
   color: #0b2545;
   font-family: "Public Sans", sans-serif;
 }
@@ -9,8 +9,8 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 8px 0 24px;
+  gap: 12px;
+  padding: 0 0 12px;
 }
 .heading {
   display: flex;
@@ -43,7 +43,7 @@
   letter-spacing: -0.035em;
 }
 .subtitle {
-  margin-top: 8px;
+  margin-top: 4px;
   color: #607083;
   font-size: 12px;
   line-height: 1.6;
@@ -65,7 +65,7 @@
   gap: 4px;
   align-items: center;
   overflow-x: auto;
-  padding: 12px 12px 10px;
+  padding: 6px 10px;
   border-bottom: 1px solid #edf0ed;
   scrollbar-width: thin;
 }
@@ -112,7 +112,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 15px;
+  padding: 7px 12px;
 }
 .search {
   display: flex;
@@ -159,7 +159,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 2px 5px;
+  padding: 9px 2px 2px;
   font-size: 11px;
   color: #657587;
 }
@@ -169,13 +169,13 @@
   pointer-events: none;
 }
 .dateSection {
-  margin-top: 19px;
+  margin-top: 10px;
 }
 .dateHeading {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 2px 11px;
+  margin: 0 2px 6px;
 }
 .dateHeading h2 {
   font-family: "Public Sans", sans-serif;
@@ -194,16 +194,16 @@
 }
 .cards {
   display: grid;
-  gap: 9px;
+  gap: 6px;
 }
 .card {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
-  padding: 17px 17px 15px;
+  gap: 10px;
+  padding: 10px 12px;
   border: 1px solid #e1e7e4;
   border-left: 3px solid #e1e7e4;
-  border-radius: 15px;
+  border-radius: 10px;
   background: #fff;
   box-shadow: 0 2px 5px #0b254504;
   transition:
@@ -221,9 +221,9 @@
 .categoryIcon {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   color: var(--notice-accent);
   background: var(--notice-soft);
   flex-shrink: 0;
@@ -237,7 +237,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 7px;
-  margin-bottom: 7px;
+  margin-bottom: 3px;
 }
 .categoryLabel {
   font-size: 10px;
@@ -306,16 +306,17 @@
   font-weight: 700;
 }
 .context {
-  margin-top: 6px;
+  margin-top: 3px;
   font-size: 12px;
   font-weight: 500;
   color: #40566c;
   overflow-wrap: anywhere;
 }
 .metadata {
+  display: inline-block;
   font-size: 11px;
   color: #657587;
-  margin-top: 4px;
+  margin-top: 3px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -335,8 +336,8 @@
   color: #667587;
 }
 .timestamp {
-  display: block;
-  margin-top: 9px;
+  display: inline-block;
+  margin: 3px 0 0 10px;
   color: #64748b;
   font-size: 10px;
 }
@@ -344,8 +345,8 @@
   display: flex;
   align-items: flex-end;
   flex-direction: column;
-  gap: 11px;
-  padding-top: 3px;
+  gap: 5px;
+  padding-top: 0;
   flex-shrink: 0;
   max-width: 165px;
 }
@@ -396,9 +397,8 @@
   line-height: 1.5;
 }
 .activity {
-  margin-top: 10px;
-  border-top: 1px solid #edf1ef;
-  padding-top: 8px;
+  margin-top: 3px;
+  padding-top: 0;
 }
 .activity summary {
   display: flex;
@@ -475,8 +475,8 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 22px;
-  padding-top: 15px;
+  margin-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid #dfe6df;
   font-size: 11px;
   color: #657587;
@@ -486,7 +486,7 @@
   gap: 7px;
 }
 .footnote {
-  margin-top: 20px;
+  margin-top: 12px;
   font-size: 10px;
   line-height: 1.6;
   color: #657365;
@@ -532,8 +532,8 @@
 }
 @media (max-width: 639px) {
   .header {
-    gap: 17px;
-    padding: 4px 0 20px;
+    gap: 10px;
+    padding: 0 0 12px;
   }
   .headerIcon {
     width: 39px;
@@ -556,8 +556,8 @@
   }
   .searchRow {
     flex-wrap: wrap;
-    gap: 10px;
-    padding: 12px;
+    gap: 6px;
+    padding: 8px 10px;
   }
   .search {
     flex-basis: 100%;
@@ -575,9 +575,9 @@
   .card {
     display: grid;
     grid-template-columns: 35px minmax(0, 1fr);
-    gap: 10px;
-    padding: 14px 12px;
-    border-radius: 14px;
+    gap: 7px;
+    padding: 10px;
+    border-radius: 10px;
   }
   .categoryIcon {
     width: 35px;

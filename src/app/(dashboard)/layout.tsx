@@ -15,6 +15,7 @@ export default async function DashboardLayout({
     .from("user_notifications")
     .select("id", { count: "exact", head: true })
     .eq("profile_id", user.id)
+    .is("archived_at", null)
     .is("read_at", null);
   if (error) throw Error("Jumlah notifikasi belum dapat dimuat.");
   return (

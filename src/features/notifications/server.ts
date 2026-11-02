@@ -63,7 +63,8 @@ export async function loadInbox(filters: Filters, page: number) {
       let count = db
         .from("user_notifications")
         .select("id", { count: "exact", head: true })
-        .eq("profile_id", user.id);
+        .eq("profile_id", user.id)
+        .is("archived_at", null);
       if (key === "unread") count = count.is("read_at", null);
       else if (key === "personnel")
         count = count.like("href", "/kompetensi-personil/%");

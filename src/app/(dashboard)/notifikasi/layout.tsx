@@ -11,7 +11,7 @@ export default function NotificationLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="-m-4 min-h-[calc(100dvh-8rem)] bg-[#F4F6F1] p-4 sm:-m-6 sm:p-6 lg:-m-8 lg:p-8">
+    <div className="-m-4 min-h-[calc(100dvh-8rem)] bg-[#F4F6F1] p-3 sm:-m-6 sm:p-4 lg:-m-8">
       {children}
     </div>
   );

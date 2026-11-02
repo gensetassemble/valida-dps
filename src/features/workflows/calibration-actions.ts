@@ -17,6 +17,7 @@ const inputSchema = z
   })
   .strict();
 function refresh() {
+  revalidatePath("/", "layout");
   revalidatePath("/kalibrasi-alat", "layout");
   revalidatePath("/master-data/alat");
   revalidatePath("/notifikasi");

@@ -3020,6 +3020,8 @@ export type Database = {
       };
       user_notifications: {
         Row: {
+          archived_at: string | null;
+          archive_reason: string | null;
           branch_code: string;
           created_at: string;
           event_id: string;
@@ -3031,6 +3033,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          archived_at?: string | null;
+          archive_reason?: string | null;
           branch_code: string;
           created_at?: string;
           event_id: string;
@@ -3042,6 +3046,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          archived_at?: string | null;
+          archive_reason?: string | null;
           branch_code?: string;
           created_at?: string;
           event_id?: string;
