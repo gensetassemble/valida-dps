@@ -42,7 +42,9 @@ describe("manual UMA Excel handoff", () => {
     );
     const output = await JSZip.loadAsync(Buffer.from(bytes));
     for (const name of Object.keys(source.files).filter(
-      (n) => !source.files[n].dir && n !== "xl/worksheets/sheet1.xml",
+      (n) =>
+        !source.files[n].dir &&
+        !["xl/worksheets/sheet1.xml", "xl/styles.xml"].includes(n),
     )) {
       expect(await output.file(name)!.async("uint8array"), name).toEqual(
         await source.file(name)!.async("uint8array"),
@@ -54,9 +56,27 @@ describe("manual UMA Excel handoff", () => {
     const after = await output
       .file("xl/worksheets/sheet1.xml")!
       .async("string");
-    // Filling changes cell contents only; all source geometry, row heights and print settings stay identical.
+    expect(s.getCell("E15").alignment.wrapText).toBe(true);
+    for (const tag of ["fonts", "fills", "borders"]) {
+      const pattern = new RegExp("<" + tag + "\\b[\\s\\S]*?</" + tag + ">");
+      expect(
+        (await output.file("xl/styles.xml")!.async("string")).match(
+          pattern,
+        )?.[0],
+      ).toBe(
+        (await source.file("xl/styles.xml")!.async("string")).match(
+          pattern,
+        )?.[0],
+      );
+    }
+    expect(s.getCell("E15").master.address).toBe("E15");
+    expect(s.getCell("H15").master.address).toBe("E15");
+    // Native columns and print settings stay intact; writing areas merge and row heights grow for wrapped content.
     const withoutCells = (x: string) =>
-      x.replace(/<c\b[^>]*(?:\/>|>[\s\S]*?<\/c>)/g, "");
+      x
+        .replace(/<c\b[^>]*(?:\/>|>[\s\S]*?<\/c>)/g, "")
+        .replace(/\s+(?:ht|customHeight)="[^"]*"/g, "")
+        .replace(/<mergeCells\b[\s\S]*?<\/mergeCells>/, "");
     expect(withoutCells(after)).toBe(withoutCells(before));
   });
 });

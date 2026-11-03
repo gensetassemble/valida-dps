@@ -8,6 +8,8 @@ import { addPersonnelSheet } from "@/features/operations/personnel-export";
 import { personnelExportData } from "@/features/operations/personnel-export-data";
 import { monitoringExportData } from "@/features/operations/monitoring-export-data";
 import { personnelFilename } from "@/features/operations/export-context";
+import { readableXlsx } from "@/lib/xlsx-readability";
+import { exportContinuationRows } from "@/lib/export-continuation";
 import {
   entityContext,
   listRecords,
@@ -127,22 +129,25 @@ export async function GET(request: NextRequest) {
       pattern: "solid",
       fgColor: { argb: "FF0B2545" },
     };
-    for (const row of rows)
-      sheet.addRow(
-        Object.fromEntries(
-          c.entity.columns.map((k) => [
-            k,
-            row[k] === null ? "" : String(row[k] ?? ""),
-          ]),
-        ),
+    for (const row of rows) {
+      const values = c.entity.columns.map((k) =>
+        row[k] === null ? "" : String(row[k] ?? ""),
       );
+      for (const piece of exportContinuationRows(
+        values,
+        values.map(() => 24),
+      ))
+        sheet.addRow(piece);
+    }
     sheet.views = [{ state: "frozen", ySplit: 1 }];
     sheet.autoFilter = {
       from: "A1",
       to: { row: 1, column: c.entity.columns.length },
     };
   }
-  const bytes = await book.xlsx.writeBuffer();
+  const bytes = await readableXlsx(
+    new Uint8Array(await book.xlsx.writeBuffer()),
+  );
   return new NextResponse(new Uint8Array(bytes), {
     headers: {
       "Content-Type":

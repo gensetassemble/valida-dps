@@ -6,6 +6,10 @@ Monitoring footer names are resolved at export time from the active, nonarchived
 
 Personnel export filenames use `Status Kompetensi Personil - Cabang {location}_{month} {year}.xlsx`, based on the same export date.
 
+All Excel exports enable Wrap Text and remove Shrink to Fit. Export-time layout calculates row heights using column widths, fonts and merged-cell spans; native report fonts, borders, logos and print setup remain intact. Monitoring text columns are wider. Oversized table text continues on additional rows to respect Excel's row-height limit. UMA cover and annex, client/personnel exports and import templates use the same readability pass.
+
+The login screen displays the original generated VALIDA identity together with the supplied Sucofindo identity. Both assets are stored under `public/branding` and served through Next.js image optimization.
+
 Internal/external and significant yes/no report marks are complementary. Selecting either member updates its counterpart. Server validation rejects contradictory pairs; report ticks use `√` and negatives use `-`. Historical imported values are not rewritten in bulk.
 
 Dashboard category controls respect existing account scopes. The priority list includes at most 20 recently expired and 20 upcoming records within 90 days. Lifetime and unknown dates remain excluded. Composition segments have white separators.

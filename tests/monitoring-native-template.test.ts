@@ -51,7 +51,7 @@ describe("FOR/SCI-UMA/198 native monitoring template", () => {
       size: 14,
       bold: true,
     });
-    expect(s.getColumn(2).width).toBe(22.7109375);
+    expect(s.getColumn(2).width).toBe(28);
     expect(s.pageSetup.orientation).toBe("landscape");
     expect(s.pageSetup.fitToHeight).toBe(0);
     expect(s.pageSetup.printTitlesRow).toBe("1:8");
@@ -61,9 +61,19 @@ describe("FOR/SCI-UMA/198 native monitoring template", () => {
       await readFile("src/assets/forms/FOR-SCI-UMA-198-Rev-03.xlsx"),
     );
     const out = await JSZip.loadAsync(bytes);
-    expect(await out.file("xl/styles.xml")!.async("uint8array")).toEqual(
-      await source.file("xl/styles.xml")!.async("uint8array"),
-    );
+    const outputStyles = await out.file("xl/styles.xml")!.async("string");
+    const sourceStyles = await source.file("xl/styles.xml")!.async("string");
+    for (const tag of ["fonts", "fills", "borders"])
+      expect(
+        outputStyles.match(
+          new RegExp("<" + tag + "\\b[\\s\\S]*?</" + tag + ">"),
+        )?.[0],
+      ).toEqual(
+        sourceStyles.match(
+          new RegExp("<" + tag + "\\b[\\s\\S]*?</" + tag + ">"),
+        )?.[0],
+      );
+    expect(s.getCell("B9").alignment.wrapText).toBe(true);
     const all = (
       await Promise.all(
         Object.keys(out.files)

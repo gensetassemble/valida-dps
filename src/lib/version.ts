@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.03-export-officials.1";
+export const APPLICATION_RELEASE = "2026.11.03-branding-wrapped-exports.1";

@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { exportContinuationRows } from "@/lib/export-continuation";
 import { RENEWAL_STATUSES } from "@/features/workflows/model";
 import { businessNotes } from "./notes";
 import {
@@ -158,77 +159,83 @@ export function addPersonnelSheet(
               "unprocessed") as keyof typeof RENEWAL_STATUSES
           ] || "Belum Diproses",
     ];
-    const row = sheet.addRow(values as ExcelJS.CellValue[]);
-    row.font = { name: "Arial", size: 10 };
-    row.alignment = { vertical: "middle", wrapText: true };
-    for (const col of [1, 2, 7, 8, 9])
-      row.getCell(col).alignment = {
-        vertical: "middle",
-        horizontal: "center",
-        wrapText: true,
-      };
-    row.getCell(2).numFmt = "@";
-    row.getCell(11).numFmt = "@";
-    row.getCell(7).numFmt = "dd mmm yyyy";
-    row.getCell(9).numFmt = "dd mmm yyyy";
-    row.getCell(8).numFmt = "0";
-    if (url)
-      row.getCell(10).font = {
-        name: "Arial",
-        size: 10,
-        color: { argb: "FF0563C1" },
-        underline: true,
-      };
-    if (days !== null)
-      row.getCell(9).fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: {
-          argb: days < 0 ? "FFFEE2E2" : days <= 90 ? "FFFEF3C7" : "FFE2F0E8",
-        },
-      };
-    if (lifetime)
-      row.getCell(9).fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFDBEAFE" },
-      };
-    if (record.employee_inactive) {
-      for (let col = 1; col <= personnelExportHeaders.length; col++)
-        row.getCell(col).fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "FFFFE4CC" },
-        };
-      row.getCell(3).font = {
-        name: "Arial",
-        size: 10,
-        bold: true,
-        color: { argb: "FF9A3412" },
-      };
-      row.getCell(12).font = {
-        name: "Arial",
-        size: 10,
-        bold: true,
-        color: { argb: "FF9A3412" },
-      };
-    }
-    const lines = values.map((value, i) => {
-      const text =
-        value instanceof Date
-          ? ""
-          : typeof value === "object" && value && "text" in value
-            ? String(value.text)
-            : String(value ?? "");
-      return text
-        .split(/\r?\n/)
-        .reduce(
-          (sum, line) =>
-            sum + Math.max(1, Math.ceil(line.length / (widths[i] - 3))),
-          0,
-        );
-    });
-    row.height = Math.max(24, Math.max(...lines) * 14 + 6);
+    exportContinuationRows(values as ExcelJS.CellValue[], widths).forEach(
+      (piece, part) => {
+        if (part) piece[0] = `${index + 1} (lanjutan)`;
+        const row = sheet.addRow(piece);
+        row.font = { name: "Arial", size: 10 };
+        row.alignment = { vertical: "middle", wrapText: true };
+        for (const col of [1, 2, 7, 8, 9])
+          row.getCell(col).alignment = {
+            vertical: "middle",
+            horizontal: "center",
+            wrapText: true,
+          };
+        row.getCell(2).numFmt = "@";
+        row.getCell(11).numFmt = "@";
+        row.getCell(7).numFmt = "dd mmm yyyy";
+        row.getCell(9).numFmt = "dd mmm yyyy";
+        row.getCell(8).numFmt = "0";
+        if (url)
+          row.getCell(10).font = {
+            name: "Arial",
+            size: 10,
+            color: { argb: "FF0563C1" },
+            underline: true,
+          };
+        if (days !== null)
+          row.getCell(9).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: {
+              argb:
+                days < 0 ? "FFFEE2E2" : days <= 90 ? "FFFEF3C7" : "FFE2F0E8",
+            },
+          };
+        if (lifetime)
+          row.getCell(9).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFDBEAFE" },
+          };
+        if (record.employee_inactive) {
+          for (let col = 1; col <= personnelExportHeaders.length; col++)
+            row.getCell(col).fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFFFE4CC" },
+            };
+          row.getCell(3).font = {
+            name: "Arial",
+            size: 10,
+            bold: true,
+            color: { argb: "FF9A3412" },
+          };
+          row.getCell(12).font = {
+            name: "Arial",
+            size: 10,
+            bold: true,
+            color: { argb: "FF9A3412" },
+          };
+        }
+        const lines = piece.map((value, i) => {
+          const text =
+            value instanceof Date
+              ? ""
+              : typeof value === "object" && value && "text" in value
+                ? String(value.text)
+                : String(value ?? "");
+          return text
+            .split(/\r?\n/)
+            .reduce(
+              (sum, line) =>
+                sum + Math.max(1, Math.ceil(line.length / (widths[i] - 3))),
+              0,
+            );
+        });
+        row.height = Math.max(24, Math.max(...lines) * 14 + 6);
+      },
+    );
   });
   for (let r = 4; r <= sheet.rowCount; r++)
     for (let c = 1; c <= personnelExportHeaders.length; c++)

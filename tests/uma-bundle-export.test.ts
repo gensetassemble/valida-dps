@@ -90,7 +90,11 @@ describe("UMA portfolio bundle export", () => {
     );
     const output = await JSZip.loadAsync(bytes);
     const geometry = (x: string) =>
-      x.replace(/<c\b[^>]*(?:\/>|>[\s\S]*?<\/c>)/g, "");
+      x
+        .replace(/<c\b[^>]*(?:\/>|>[\s\S]*?<\/c>)/g, "")
+        .replace(/\s+(?:ht|customHeight)="[^"]*"/g, "")
+        .replace(/<mergeCells\b[\s\S]*?<\/mergeCells>/, "");
+    expect(cover.getCell("H15").master.address).toBe("E15");
     expect(
       geometry(await output.file("xl/worksheets/sheet1.xml")!.async("string")),
     ).toBe(

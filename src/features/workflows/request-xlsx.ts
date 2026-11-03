@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { umaApproverTitle, umaSignatureDate } from "./uma-format";
 import { addUmaAnnex } from "./uma-annex";
+import { applyXlsxReadability } from "@/lib/xlsx-readability";
 type Row = Record<string, unknown>;
 const xmlText = (value: unknown) =>
   String(value ?? "")
@@ -85,7 +86,45 @@ export async function calibrationRequestXlsx(request: Row) {
   if (date) {
     set("G36", date);
   }
+  // The original cover uses text overflow across blank cells. Merge those intended
+  // writing areas before wrapping, otherwise Excel confines labels to narrow cells.
+  const writingAreas = [
+    "A6:D6",
+    "B7:D7",
+    "A8:D8",
+    "F8:H8",
+    "A9:D10",
+    "F9:H10",
+    "B13:D13",
+    "E13:H13",
+    "B21:D22",
+    "E21:H22",
+    "B27:D27",
+    "B29:D30",
+    "E29:H30",
+    "B31:D31",
+    "E31:H31",
+    "B32:D33",
+    "E32:H33",
+    "B36:D36",
+    "G36:H36",
+    "G37:H37",
+    "B42:D42",
+    "G42:H42",
+    "B43:D43",
+    "G43:H43",
+    ...[15, 16, 17, 18, 19, 20, 23, 24].flatMap((r) => [
+      `B${r}:D${r}`,
+      `E${r}:H${r}`,
+    ]),
+  ];
+  xml = xml.replace(
+    /<mergeCells\b[^>]*>([\s\S]*?)<\/mergeCells>/,
+    (_, existing: string) =>
+      `<mergeCells count="${2 + writingAreas.length}">${existing}${writingAreas.map((ref) => `<mergeCell ref="${ref}"/>`).join("")}</mergeCells>`,
+  );
   zip.file("xl/worksheets/sheet1.xml", xml);
   if (items.length) await addUmaAnnex(zip, request, items);
+  await applyXlsxReadability(zip);
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }

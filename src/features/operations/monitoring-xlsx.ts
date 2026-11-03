@@ -6,6 +6,7 @@ import { businessNotes } from "./notes";
 import { todayWita, validDate } from "@/lib/domain/validity";
 import { xmlText } from "@/features/workflows/uma-annex";
 import { longExportDate } from "./export-context";
+import { applyXlsxReadability } from "@/lib/xlsx-readability";
 
 type ReportContext = {
   acknowledgedBy: string;
@@ -89,7 +90,16 @@ function worksheet(
   let next = 9;
   (records.length ? records : [null]).forEach((record, index) => {
     const corrections = record
-      ? monitoringValue(record, "correction_factor").split(/\r?\n/)
+      ? monitoringValue(record, "correction_factor")
+          .split(/\r?\n/)
+          .flatMap((line) => {
+            const chars = [...line],
+              parts: string[] = [];
+            do {
+              parts.push(chars.splice(0, 240).join(""));
+            } while (chars.length);
+            return parts;
+          })
       : [];
     const count = Math.max(11, corrections.length);
     for (let i = 0; i < count; i++) {
@@ -168,6 +178,27 @@ function worksheet(
       `<mergeCells count="${merges.length}">${merges.map((ref) => `<mergeCell ref="${ref}"/>`).join("")}</mergeCells>`,
     )
     .replace(/<dimension[^>]*\/>/, `<dimension ref="A1:V${42 + delta}"/>`);
+  const reportWidths: Record<number, number> = {
+    2: 28,
+    3: 22,
+    4: 18,
+    5: 18,
+    10: 26,
+    11: 22,
+    12: 22,
+    13: 25,
+    14: 22,
+    15: 25,
+    18: 26,
+    19: 20,
+    22: 30,
+  };
+  xml = xml.replace(/<col\b[^>]*\/>/g, (col) => {
+    const index = Number(col.match(/\bmin="(\d+)"/)?.[1]);
+    return reportWidths[index]
+      ? col.replace(/\bwidth="[^"]*"/, `width="${reportWidths[index]}"`)
+      : col;
+  });
   // Repeat the native eight-row header when printing, without shrinking a whole portfolio to one page.
   xml = xml.replace(
     /<pageSetup\b([^>]*)\/>/,
@@ -277,5 +308,6 @@ export async function monitoringXlsx(
     "[Content_Types].xml",
     content.replace("</Types>", types.join("") + "</Types>"),
   );
+  await applyXlsxReadability(zip);
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }

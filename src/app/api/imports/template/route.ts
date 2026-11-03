@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { z } from "zod";
 import { importApiContext } from "@/features/imports/server";
 import { DOMAINS, FIELDS } from "@/features/imports/normalize";
+import { readableXlsx } from "@/lib/xlsx-readability";
 export async function GET(r: NextRequest) {
   if (
     !(await importApiContext(r.nextUrl.searchParams.get("branch") || undefined))
@@ -65,7 +66,7 @@ export async function GET(r: NextRequest) {
     "Nama pelanggan/jenis sertifikat pada template klien dipetakan ke master yang sudah ada saat review. AM dan wilayah mengikuti pelanggan; tidak dibuat otomatis dari nama. Gunakan tanggal ISO YYYY-MM-DD atau sel tanggal Excel.",
   ]);
   s.getColumn(1).numFmt = "@";
-  const b = await book.xlsx.writeBuffer();
+  const b = await readableXlsx(new Uint8Array(await book.xlsx.writeBuffer()));
   return new NextResponse(new Uint8Array(b), {
     headers: {
       "Content-Type":
