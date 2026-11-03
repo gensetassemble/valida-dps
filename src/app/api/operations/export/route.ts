@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
-import { addMonitoringSheets } from "@/features/operations/monitoring-export";
+import {
+  monitoringXlsx,
+  monitoringFilename,
+} from "@/features/operations/monitoring-xlsx";
 import { addPersonnelSheet } from "@/features/operations/personnel-export";
 import { personnelExportData } from "@/features/operations/personnel-export-data";
 import {
@@ -63,9 +66,19 @@ export async function GET(request: NextRequest) {
   }
   const book = new ExcelJS.Workbook();
   book.creator = "VALIDA";
-  if (c.entity.key === "kalibrasi-alat")
-    addMonitoringSheets(book, rows, c.branch);
-  else if (c.entity.key === "kompetensi-personil") {
+  if (c.entity.key === "kalibrasi-alat") {
+    const bytes = await monitoringXlsx(rows, c.branch);
+    const filename = monitoringFilename(rows);
+    return new NextResponse(new Uint8Array(bytes), {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } else if (c.entity.key === "kompetensi-personil") {
     try {
       const data = await personnelExportData(
         await masterClient(),

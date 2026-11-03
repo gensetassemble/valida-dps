@@ -24,6 +24,7 @@ supabase/.branches/
 !src/assets/forms/FOR-SCI-UMA-197-Rev-02.pdf
 *.xlsx
 !src/assets/forms/FOR-SCI-UMA-197-Rev-02.xlsx
+!src/assets/forms/FOR-SCI-UMA-198-Rev-03.xlsx
 *.xls
 .DS_Store
 Thumbs.db

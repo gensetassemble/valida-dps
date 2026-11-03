@@ -111,6 +111,7 @@ export function DashboardOverview({
               .map((s) => (
                 <span
                   key={s.name}
+                  className="border-r-2 border-white last:border-r-0"
                   style={{
                     width: `${sum ? (s.value / sum) * 100 : 0}%`,
                     background: s.color,

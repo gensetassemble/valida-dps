@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Next.js development logs Server Function arguments by default, including login inputs.
   logging: { serverFunctions: false },
   outputFileTracingIncludes: {
+    "/api/operations/export": [
+      "./src/assets/forms/FOR-SCI-UMA-198-Rev-03.xlsx",
+    ],
     "/api/workflows/form": [
       "./src/assets/forms/*.pdf",
       "./src/assets/forms/*.xlsx",

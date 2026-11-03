@@ -24,9 +24,12 @@ export function ExpiringTable({
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div>
-          <h2 className="text-sm font-bold text-brand-navy">Segera Berakhir</h2>
+          <h2 className="text-sm font-bold text-brand-navy">
+            Segera Berakhir &amp; Expired
+          </h2>
           <p className="mt-1 text-[10px] text-muted-foreground">
-            20 prioritas terdekat dalam 90 hari sesuai akses akun.
+            Maksimal 20 expired dan 20 yang berakhir dalam 90 hari, sesuai akses
+            akun.
           </p>
         </div>
         <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-800">
@@ -36,7 +39,7 @@ export function ExpiringTable({
       <div
         className="relative max-h-[480px] overflow-auto"
         role="region"
-        aria-label="Daftar segera berakhir"
+        aria-label="Daftar segera berakhir dan expired"
         tabIndex={0}
       >
         <table className="w-full min-w-[900px] border-separate border-spacing-0 text-left text-xs">

@@ -36,7 +36,7 @@ export async function loadInbox(filters: Filters, page: number) {
   let query = db
     .from("notification_inbox_records")
     .select(
-      "id,category,title,event_status,context_name,entity_title,reference_number,replacement_certificate_number,portfolio_code,expires_on,event_notes,target_href,activity_group_id,process_reset,read_at,created_at",
+      "id,category,title,event_status,current_status,context_name,entity_title,reference_number,replacement_certificate_number,portfolio_code,expires_on,event_notes,target_href,activity_group_id,process_reset,read_at,created_at",
       { count: "exact" },
     )
     .eq("profile_id", user.id);

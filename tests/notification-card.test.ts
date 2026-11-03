@@ -34,6 +34,20 @@ const html = (events: Notification[]) =>
     }),
   );
 describe("notification card presentation", () => {
+  it("shows the shared current status on the card while keeping original event labels in history", () => {
+    const output = html([
+      notice({
+        category: "calibrations",
+        entity_title: "[CONTOH] Caliper",
+        event_status: "submitted",
+        current_status: "cancelled",
+        title: "Permintaan alat: Sedang Diajukan",
+      }),
+    ]);
+    expect(output).toContain("Dibatalkan");
+    // Historical delivery text is preserved rather than rewriting the original event.
+    expect(output).toContain("Permintaan alat: Sedang Diajukan");
+  });
   it("keeps long names/references and the new number accessible, with HTML escaped", () => {
     const reference = "QA/" + "1234567890".repeat(15),
       name = "[CONTOH] Long name ".repeat(15);

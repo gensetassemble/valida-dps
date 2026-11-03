@@ -1,4 +1,5 @@
 import type { Field } from "@/features/master-data/registry";
+import { calibrationMark, pairedCalibrationField } from "./calibration-marks";
 
 // One contract for the website table and the monitoring workbook.
 export const monitoringColumns = [
@@ -138,24 +139,19 @@ export const monitoringCalibrationFields: Field[] = [
     label: "Jenis kalibrasi — Internal",
     kind: "select",
     options: [
-      { value: "", label: "Belum dicatat" },
       { value: "√", label: "Ya" },
       { value: "-", label: "Tidak" },
-      { value: "N/A", label: "Tidak berlaku (N/A)" },
     ],
     max: 200,
-    hint: "Pilihan disimpan sebagai tanda pada laporan monitoring.",
+    hint: "Internal dan Eksternal saling menyesuaikan. Ya = ✓, Tidak = -.",
   },
   {
     key: "calibration_external",
     label: "Jenis kalibrasi — Eksternal",
     kind: "select",
     options: [
-      { value: "", label: "Belum dicatat" },
       { value: "√", label: "Ya" },
       { value: "-", label: "Tidak" },
-      { value: "N/A", label: "Tidak berlaku (N/A)" },
-      { value: "'√", label: "Ya (tanda asli sumber)" },
     ],
     max: 200,
   },
@@ -170,10 +166,8 @@ export const monitoringCalibrationFields: Field[] = [
     label: "Signifikan — kolom Ya",
     kind: "select",
     options: [
-      { value: "", label: "Belum dicatat" },
-      { value: "√", label: "Ditandai" },
-      { value: "-", label: "Tidak ditandai" },
-      { value: "N/A", label: "Tidak berlaku (N/A)" },
+      { value: "√", label: "Ya" },
+      { value: "-", label: "Tidak" },
     ],
     max: 200,
   },
@@ -182,10 +176,8 @@ export const monitoringCalibrationFields: Field[] = [
     label: "Signifikan — kolom Tidak",
     kind: "select",
     options: [
-      { value: "", label: "Belum dicatat" },
-      { value: "√", label: "Ditandai" },
-      { value: "-", label: "Tidak ditandai" },
-      { value: "N/A", label: "Tidak berlaku (N/A)" },
+      { value: "√", label: "Ya" },
+      { value: "-", label: "Tidak" },
     ],
     max: 200,
   },
@@ -254,7 +246,9 @@ export function monitoringValue(
     groups.some((group) => key in group)
   ) {
     const values = groups.map((group) =>
-      String(group[key] ?? row[key] ?? "").replace(/\\n/g, "\n"),
+      pairedCalibrationField(key)
+        ? calibrationMark(group[key] ?? row[key])
+        : String(group[key] ?? row[key] ?? "").replace(/\\n/g, "\n"),
     );
     if (
       new Set(values).size > 1 ||
@@ -270,5 +264,7 @@ export function monitoringValue(
     return String(row[key] || row.calibration_date_original || "");
   if (key === "latest_due_date")
     return String(row[key] || row.due_date_original || "");
-  return String(row[key] ?? "");
+  return pairedCalibrationField(key)
+    ? calibrationMark(row[key])
+    : String(row[key] ?? "");
 }

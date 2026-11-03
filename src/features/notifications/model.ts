@@ -32,6 +32,7 @@ export type Notification = {
   category: Category;
   title: string;
   event_status: string | null;
+  current_status?: string | null;
   context_name: string | null;
   entity_title: string | null;
   reference_number: string | null;
@@ -91,7 +92,8 @@ export const EVENT_LABELS: Record<string, string> = {
 };
 export function eventLabel(n: Notification) {
   return (
-    (n.event_status && EVENT_LABELS[n.event_status]) ||
+    ((n.current_status || n.event_status) &&
+      EVENT_LABELS[n.current_status || n.event_status || ""]) ||
     (/expired|kedaluwarsa/i.test(n.title)
       ? "Expired"
       : /kritis/i.test(n.title)
@@ -114,11 +116,12 @@ export function eventTone(n: Notification) {
           : "neutral";
 }
 export function shortTitle(n: Notification) {
+  const status = n.current_status || n.event_status;
   if (n.category === "personnel" && n.entity_title) {
-    if (!n.event_status) return n.title;
-    return n.event_status === "renewed"
+    if (!status) return n.title;
+    return status === "renewed"
       ? `Sertifikat ${n.entity_title} diperpanjang`
-      : `Perpanjangan ${n.entity_title} ${n.event_status === "processing" ? "sedang diproses" : n.event_status === "cancelled" ? "dibatalkan" : "belum diproses"}`;
+      : `Perpanjangan ${n.entity_title} ${status === "processing" ? "sedang diproses" : status === "cancelled" ? "dibatalkan" : "belum diproses"}`;
   }
   if (n.category === "calibrations" && n.entity_title)
     return n.event_status

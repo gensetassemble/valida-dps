@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { calibrationMarkPairs } from "@/features/operations/calibration-marks";
 import type { EntityConfig, Field } from "./registry";
 import { ALL_ROLES } from "@/lib/auth/permissions";
 import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
@@ -147,6 +148,31 @@ export function recordSchema(entity: EntityConfig, editing = false) {
           : null;
       const fail = (path: string, message: string) =>
         context.addIssue({ code: "custom", path: [path], message });
+      const markPrefix =
+        entity.key === "riwayat-kalibrasi"
+          ? ""
+          : entity.key === "kalibrasi-alat" &&
+              !editing &&
+              values.initial_enabled
+            ? "initial_"
+            : null;
+      if (markPrefix !== null) {
+        for (const [a, b] of calibrationMarkPairs) {
+          const left = values[markPrefix + a],
+            right = values[markPrefix + b];
+          if (
+            (left || right) &&
+            !(
+              (left === "√" && right === "-") ||
+              (left === "-" && right === "√")
+            )
+          )
+            fail(
+              markPrefix + b,
+              "Pilih Ya pada satu kolom dan Tidak pada pasangannya.",
+            );
+        }
+      }
       if (
         entity.key === "kalibrasi-alat" &&
         !editing &&

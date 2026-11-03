@@ -39,7 +39,11 @@ export default async function DashboardPage({
     c = await requireActiveUser(),
     branch = activeBranch(c.scopes, c.profile.branch_code, requested.branch),
     db = await masterClient();
-  const { domains, category } = dashboardScope(c.scopes, branch);
+  const { domains, category } = dashboardScope(
+    c.scopes,
+    branch,
+    requested.category,
+  );
   const p = dashboardFilters({}, category);
   const showClients =
     domains.includes("clients") && ["all", "clients"].includes(category);
@@ -218,6 +222,40 @@ export default async function DashboardPage({
           Ringkasan sesuai akses akun · Bali, NTB, NTT
         </p>
       </div>
+      <nav
+        aria-label="Filter kategori dashboard"
+        className="flex flex-wrap gap-2"
+      >
+        {[
+          ...(domains.length > 1 ? [{ id: "all", label: "Semua" }] : []),
+          ...domains.map((id) => ({
+            id,
+            label:
+              id === "clients"
+                ? "Sertifikat Klien"
+                : id === "personnel"
+                  ? "Sertifikat Personil"
+                  : "Sertifikat Kalibrasi Alat",
+          })),
+        ].map((option) => (
+          <Link
+            key={option.id}
+            href={
+              "/dashboard?" +
+              new URLSearchParams({ branch, category: option.id })
+            }
+            aria-current={category === option.id ? "page" : undefined}
+            className={
+              "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
+              (category === option.id
+                ? "border-brand-navy bg-brand-navy text-white"
+                : "border-border bg-white text-brand-navy hover:border-primary hover:bg-emerald-50")
+            }
+          >
+            {option.label}
+          </Link>
+        ))}
+      </nav>
       <DashboardOverview
         total={s.total}
         buckets={s.buckets}

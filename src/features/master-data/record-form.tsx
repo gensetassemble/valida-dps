@@ -26,6 +26,11 @@ import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
+import {
+  calibrationMark,
+  pairedCalibrationField,
+  oppositeCalibrationMark,
+} from "@/features/operations/calibration-marks";
 type Option = { value: string; label: string };
 function Lookup({
   entity,
@@ -347,6 +352,12 @@ export function RecordForm({
     ]),
   );
   if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key)) {
+    for (const field of editableFields) {
+      if (pairedCalibrationField(field.key)) {
+        const value = calibrationMark(defaults[field.key]);
+        defaults[field.key] = ["√", "-"].includes(value) ? value : "";
+      }
+    }
     defaults.measurement_groups = measurementInputs(
       row ? { ...measurementDefaults, ...row } : measurementDefaults,
       entity.key === "kalibrasi-alat" || !row,
@@ -746,9 +757,24 @@ export function RecordForm({
                   ) : field.kind === "select" ? (
                     <select
                       {...common}
-                      {...register(field.key)}
+                      {...register(field.key, {
+                        onChange: (event) => {
+                          const pair = pairedCalibrationField(field.key);
+                          if (pair)
+                            setValue(
+                              pair,
+                              oppositeCalibrationMark(event.target.value),
+                              { shouldDirty: true, shouldValidate: true },
+                            );
+                        },
+                      })}
                       className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
                     >
+                      {pairedCalibrationField(field.key) && (
+                        <option value="" disabled>
+                          Pilih Ya / Tidak
+                        </option>
+                      )}
                       {field.options!.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}

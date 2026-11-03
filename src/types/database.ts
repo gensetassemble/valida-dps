@@ -4144,6 +4144,7 @@ export type Database = {
           category: string | null;
           context_name: string | null;
           created_at: string | null;
+          current_status: string | null;
           entity_title: string | null;
           event_id: string | null;
           event_notes: string | null;

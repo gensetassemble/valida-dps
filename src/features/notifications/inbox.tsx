@@ -78,6 +78,19 @@ export function NotificationInbox({
   if (search.base !== filters.q)
     setSearch({ ...search, base: filters.q, value: q });
   const queryString = params.toString();
+  useEffect(() => {
+    function refresh() {
+      if (document.visibilityState === "visible") start(() => router.refresh());
+    }
+    const timer = setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [router]);
   function navigate(patch: Record<string, string>) {
     const next = new URLSearchParams(queryString);
     next.delete("page");
@@ -469,8 +482,11 @@ export function NotificationCard({
             {events.map((event) => (
               <li key={event.id}>
                 <div className={styles.activityHeading}>
-                  <span className={styles.badge} data-tone={eventTone(event)}>
-                    {eventLabel(event)}
+                  <span
+                    className={styles.badge}
+                    data-tone={eventTone({ ...event, current_status: null })}
+                  >
+                    {eventLabel({ ...event, current_status: null })}
                   </span>
                   <time dateTime={event.created_at}>
                     {time(event.created_at)}
