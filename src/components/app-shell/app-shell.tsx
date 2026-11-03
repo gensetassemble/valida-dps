@@ -1,6 +1,7 @@
 "use client";
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Dialog } from "radix-ui";
 import {
@@ -213,18 +214,26 @@ export function AppShell({
             className="flex min-w-0 items-center gap-2.5"
             aria-label="VALIDA — Dashboard"
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-navy text-white">
-              <Archive size={19} />
-            </span>
-            {!compact && (
-              <div>
-                <span className="text-lg font-bold tracking-tight text-brand-navy">
-                  VALIDA<span className="text-primary">.</span>
-                </span>
-                <p className="text-[9px] font-medium text-muted-foreground">
-                  Validity Alert &amp; Data Archive
-                </p>
-              </div>
+            {compact ? (
+              <span className="relative block h-9 w-9 overflow-hidden">
+                <Image
+                  src="/branding/valida-logo.png"
+                  alt="VALIDA"
+                  width={112}
+                  height={37}
+                  className="absolute left-0 top-0 h-auto w-28 max-w-none"
+                />
+              </span>
+            ) : (
+              <Image
+                src="/branding/valida-logo.png"
+                alt="VALIDA — Validity Alert & Data Archive"
+                width={208}
+                height={69}
+                sizes="208px"
+                className="h-auto w-52"
+                priority
+              />
             )}
           </Link>
         </div>

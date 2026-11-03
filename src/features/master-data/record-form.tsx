@@ -480,6 +480,8 @@ export function RecordForm({
       }
       notify(result.message);
       onSaved();
+      if (entity.key === "pengguna" && !editing && result.id)
+        router.push(`/pengaturan/pengguna/${result.id}?branch=${branch}`);
       router.refresh();
     } catch {
       setFailure(

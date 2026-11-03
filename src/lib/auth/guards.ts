@@ -40,5 +40,6 @@ export const requireActiveUser = cache(async () => {
       ? [{ role_code: grant.role_code, branch_code: grant.branch_code }]
       : [],
   );
+  if (!scopes.length) redirect("/login?status=unassigned");
   return { user: data.user, profile, scopes, branches: branches ?? [] };
 });

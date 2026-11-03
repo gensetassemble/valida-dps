@@ -18,7 +18,7 @@ select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,('af200000-0000-
 -- Employee activation/verification is not a login gate; the account and role are.
 update public.employee_directory set is_active=false,verification_status='pending' where id='af200000-0000-4000-8000-000000000005';
 insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason)
-select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,(array['admin','coordinator','equipment_manager','hrga','inspector','branch_head','admin','department_head','unit_head'])[i],'[CONTOH] Transaction-only regression' from generate_series(1,9)i;
+select ('af100000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=7 then 'WFQ' else 'DPS' end,(array['super_admin','coordinator','equipment_manager','hrga','inspector','branch_head','super_admin','department_head','unit_head'])[i],'[CONTOH] Transaction-only regression' from generate_series(1,9)i;
 insert into public.employee_portfolio_assignments(employee_id,portfolio_id,branch_code,assignment_type,effective_from,verification_status,is_active) values
  ('af200000-0000-4000-8000-000000000002','af300000-0000-4000-8000-000000000001','DPS','coordinator','2020-01-01','verified',true),
  ('af200000-0000-4000-8000-000000000003','af300000-0000-4000-8000-000000000001','DPS','equipment_responsible','2020-01-01','verified',true),
@@ -61,6 +61,11 @@ select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003'
 select pg_temp.assert_workflow(exists(select 1 from public.notification_inbox_records where event_status='submitted' and current_status='cancelled' and read_at is not null and activity_group_id='calibrations:af800000-0000-4000-8000-000000000001'),'PTK old read delivery resolves to cancellation without rewriting history');
 select pg_temp.assert_workflow(exists(select 1 from public.notification_inbox_records where event_status='cancelled' and current_status='cancelled' and read_at is null and activity_group_id='calibrations:af800000-0000-4000-8000-000000000001'),'PTK receives unread cancellation');
 select pg_temp.assert_workflow(not exists(select 1 from public.notification_inbox_records where profile_id<>auth.uid()),'other recipients remain private');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000001',true);
+select pg_temp.assert_workflow((select count(*)=2 from public.notification_inbox_records where activity_group_id='calibrations:af800000-0000-4000-8000-000000000001' and current_status='cancelled' and read_at is null),'Super Admin receives submission and cancellation with current shared status');
+update public.user_notifications set read_at=now() where profile_id=auth.uid() and event_id in (select id from public.calibration_request_events where request_id='af800000-0000-4000-8000-000000000001');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
+select pg_temp.assert_workflow(exists(select 1 from public.notification_inbox_records where event_status='cancelled' and read_at is null and activity_group_id='calibrations:af800000-0000-4000-8000-000000000001'),'Super Admin read state does not mark PTK inbox read');
 insert into public.calibrations(equipment_id,branch_code,calibration_date,due_date) values
  ('af400000-0000-4000-8000-000000000001','DPS',(now() at time zone 'Asia/Makassar')::date-366,(now() at time zone 'Asia/Makassar')::date-1),
  ('af400000-0000-4000-8000-000000000003','DPS',(now() at time zone 'Asia/Makassar')::date-100,(now() at time zone 'Asia/Makassar')::date+10);

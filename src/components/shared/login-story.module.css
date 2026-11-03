@@ -1,0 +1,226 @@
+.panel {
+  position: relative;
+  isolation: isolate;
+  display: none;
+  width: 48%;
+  min-height: 100dvh;
+  overflow: hidden;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem 3rem;
+  color: #fff;
+  background: #0b2545;
+}
+.panel:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.15;
+  background-image: radial-gradient(#8cb1c4 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(140deg, transparent 25%, #000);
+}
+.glow {
+  position: absolute;
+  z-index: -1;
+  width: 38rem;
+  height: 38rem;
+  right: -22rem;
+  top: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #168b7770, transparent 67%);
+  animation: drift 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.75rem;
+  color: #bdd0e0;
+}
+.company {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: white;
+}
+.content {
+  position: relative;
+  margin-block: 2rem;
+  max-width: 32rem;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.61rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #9fe0c7;
+}
+.eyebrow > span {
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background: #6fd3a3;
+  box-shadow: 0 0 0 5px #6fd3a314;
+}
+.content h2 {
+  margin-top: 1.3rem;
+  font-size: clamp(2.35rem, 3.4vw, 3.65rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.12;
+}
+.content h2 > span {
+  color: #85dfb8;
+}
+.intro {
+  margin-top: 1.3rem;
+  font-size: 0.82rem;
+  line-height: 1.9;
+  color: #c2d2e3;
+}
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 2rem;
+}
+.tabs button {
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #ffffff24;
+  font-size: 0.7rem;
+  color: #c6d5e5;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+.tabs button:hover {
+  background: #ffffff10;
+  color: white;
+}
+.tabs button[aria-selected="true"] {
+  background: #dff8ec;
+  color: #103b32;
+  border-color: #dff8ec;
+}
+.card {
+  margin-top: 0.85rem;
+  border: 1px solid #ffffff24;
+  border-radius: 1rem;
+  background: linear-gradient(120deg, #ffffff10, #ffffff06);
+  padding: 0.9rem 1.3rem;
+  box-shadow: 0 16px 50px #02132526;
+  backdrop-filter: blur(8px);
+}
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.68rem;
+  color: #bed5e7;
+}
+.cardHeader > svg {
+  margin-left: auto;
+  color: #93b5c9;
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #8ee0bc;
+  background: #72d7ad13;
+  border: 1px solid #72d7ad33;
+}
+.card h3 {
+  font-size: 0.97rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin-top: 0.9rem;
+}
+.card p {
+  font-size: 0.72rem;
+  line-height: 1.8;
+  color: #bed0e0;
+  margin-top: 0.4rem;
+  min-height: 2.6rem;
+}
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ffffff16;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.56rem;
+  color: #b5cddd;
+}
+.steps li > span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #ffffff25;
+  border-radius: 50%;
+  color: #9ce0c3;
+}
+.steps li:first-child > span {
+  background: #2c8d6b;
+  color: #ecfff6;
+  border-color: #2c8d6b;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid #ffffff18;
+  padding-top: 1.2rem;
+  color: #a8c1d6;
+  font-size: 0.63rem;
+}
+.reveal {
+  animation: arrive 0.28s ease-out;
+}
+@keyframes drift {
+  from {
+    transform: translateY(-25px) scale(1);
+  }
+  to {
+    transform: translateY(70px) scale(1.12);
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0.3;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (min-width: 1024px) {
+  .panel {
+    display: flex;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glow,
+  .reveal {
+    animation: none;
+  }
+  .tabs button {
+    transition: none;
+  }
+}

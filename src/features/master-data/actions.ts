@@ -161,7 +161,9 @@ export async function saveRecord(
     return {
       ok: true,
       id: result.id,
-      message: "Identitas pengguna tersimpan.",
+      message: scope.data.id
+        ? "Identitas pengguna tersimpan."
+        : "Akun tersimpan. Tambahkan Penugasan Peran pada detail pengguna agar akun dapat mengakses aplikasi.",
     };
   }
   if (entity.key === "riwayat-kalibrasi" && measurementGroups) {
