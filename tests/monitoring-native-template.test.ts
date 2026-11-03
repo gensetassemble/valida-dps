@@ -134,5 +134,17 @@ describe("FOR/SCI-UMA/198 native monitoring template", () => {
     );
     expect(book.worksheets.map((s) => s.name)).toEqual(["PIK", "BBR"]);
     expect(book.worksheets.every((s) => s.getImages().length === 1)).toBe(true);
+    const zip = await JSZip.loadAsync(await monitoringXlsx(rows, "DPS"));
+    const logo = await zip.file("xl/media/logo.png")!.async("nodebuffer");
+    for (const id of [1, 2]) {
+      const drawing = await zip.file(`xl/drawings/drawing${id}.xml`)!.async("string");
+      expect(drawing).toContain("<xdr:oneCellAnchor>");
+      expect(drawing).not.toContain("<xdr:twoCellAnchor");
+      const extent = drawing.match(/<xdr:ext cx="(\d+)" cy="(\d+)"/)!;
+      expect(Number(extent[1]) / Number(extent[2])).toBeCloseTo(
+        logo.readUInt32BE(16) / logo.readUInt32BE(20), 5,
+      );
+      expect(drawing).toContain('noChangeAspect="1"');
+    }
   });
 });

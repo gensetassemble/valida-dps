@@ -222,7 +222,25 @@ export async function monitoringXlsx(
     ),
   );
   const template = await zip.file("xl/worksheets/sheet1.xml")!.async("string");
-  const drawing = await zip.file("xl/drawings/drawing1.xml")!.async("string");
+  const nativeDrawing = await zip.file("xl/drawings/drawing1.xml")!.async("string");
+  const logo = await zip.file("xl/media/logo.png")!.async("nodebuffer");
+  const logoRatio = logo.readUInt32BE(16) / logo.readUInt32BE(20);
+  // Column widths are widened for readable table data. A two-cell image anchor
+  // stretches with those columns even with noChangeAspect set. Keep the native
+  // logo's physical dimensions independent of the worksheet grid instead.
+  const drawing = nativeDrawing.replace(
+    /<xdr:twoCellAnchor\b[^>]*>([\s\S]*?)<\/xdr:twoCellAnchor>/g,
+    (_, body: string) => {
+      const extent = body.match(/<a:xfrm\b[^>]*>[\s\S]*?<a:ext cx="(\d+)" cy="(\d+)"/);
+      if (!extent) throw Error("Ukuran logo template monitoring tidak ditemukan.");
+      const width = Math.round(Number(extent[2]) * logoRatio);
+      body = body.replace(/<a:ext cx="\d+" cy="\d+"\/>/, `<a:ext cx="${width}" cy="${extent[2]}"/>`);
+      return "<xdr:oneCellAnchor>" + body.replace(
+        /<xdr:to>[\s\S]*?<\/xdr:to>/,
+        `<xdr:ext cx="${width}" cy="${extent[2]}"/>`,
+      ) + "</xdr:oneCellAnchor>";
+    },
+  );
   const drawingRel = await zip
     .file("xl/drawings/_rels/drawing1.xml.rels")!
     .async("string");

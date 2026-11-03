@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.03-monitoring-table-wrap.1";
+export const APPLICATION_RELEASE = "2026.11.03-monitoring-logo-ratio.1";
