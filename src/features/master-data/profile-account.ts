@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthAdminClient } from "@/lib/supabase/auth-admin";
 import { publicDatabaseError } from "./server";
+import { hasSecondFactor } from "@/lib/auth/security";
 
 export async function saveProfileAccount({
   db,
@@ -18,10 +19,12 @@ export async function saveProfileAccount({
   password?: string | null;
   superAdmin: boolean;
 }): Promise<{ id?: string; error?: string }> {
-  if (password && !superAdmin)
+  if (!superAdmin)
     return {
-      error: "Hanya Super Admin yang dapat membuat atau mengganti password.",
+      error: "Hanya Super Admin yang dapat mengelola akun pengguna.",
     };
+  if (!(await hasSecondFactor(db)))
+    return { error: "Verifikasi MFA diperlukan sebelum mengelola akun." };
   const admin = password ? getAuthAdminClient() : null;
   if (password && !admin)
     return {

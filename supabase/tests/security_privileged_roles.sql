@@ -1,0 +1,53 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+set local search_path=public,extensions;
+select plan(1);
+create function pg_temp.security_assert(v boolean,msg text) returns void language plpgsql as $$begin if v is distinct from true then raise exception 'Security regression: %',msg;end if;end $$;
+create function pg_temp.security_denied(q text) returns void language plpgsql as $$begin begin execute q;exception when insufficient_privilege then return;end;raise exception 'Expected authorization denial';end $$;
+insert into public.branches(code,name) values('SECQA','[CONTOH] Isolated security branch');
+insert into auth.users(id,email) select ('d3030000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'security.'||i||'@example.invalid' from generate_series(1,4)i;
+insert into public.profiles(id,branch_code,full_name,is_active) select ('d3030000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,case when i=4 then 'SECQA' else 'DPS' end,'[CONTOH] Security fixture '||i,true from generate_series(1,4)i;
+insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values
+ ('d3030000-0000-4000-8000-000000000001','DPS','admin','[CONTOH] Security regression fixture'),
+ ('d3030000-0000-4000-8000-000000000002','DPS','super_admin','[CONTOH] Security regression fixture'),
+ ('d3030000-0000-4000-8000-000000000003','DPS','tester','[CONTOH] Security regression fixture'),
+ ('d3030000-0000-4000-8000-000000000004','SECQA','super_admin','[CONTOH] Security regression fixture');
+insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason,is_active) values ('d3030000-0000-4000-8000-000000000003','DPS','super_admin','[CONTOH] Inactive fixture grant',false);
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','d3030000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+select pg_temp.security_denied($q$insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000003','DPS','admin','[CONTOH] Forbidden peer promotion')$q$);
+update public.user_role_assignments set is_active=true where profile_id='d3030000-0000-4000-8000-000000000003' and role_code='super_admin';
+select pg_temp.security_assert(not exists(select 1 from public.user_role_assignments where profile_id='d3030000-0000-4000-8000-000000000003' and role_code='super_admin' and is_active),'Admin cannot reactivate a higher role');
+update public.profiles set full_name='[CONTOH] Forbidden profile edit' where id='d3030000-0000-4000-8000-000000000003';
+select pg_temp.security_assert(not exists(select 1 from public.profiles where full_name='[CONTOH] Forbidden profile edit'),'Admin cannot bypass account administration');
+select set_config('request.jwt.claim.sub','d3030000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claims','{"aal":"aal1"}',true);
+select pg_temp.security_assert(not private.has_role('DPS',array['admin']),'AAL1 cannot use privileged capability');
+select pg_temp.security_denied($q$insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000003','DPS','admin','[CONTOH] Forbidden AAL1 promotion')$q$);
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000003','DPS','admin','[CONTOH] Authorized AAL2 administration');
+select pg_temp.security_assert(private.has_role('DPS',array['super_admin']),'AAL2 Super Admin retains access');
+select pg_temp.security_denied($q$insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000002','DPS','admin','[CONTOH] Forbidden self grant')$q$);
+select set_config('request.jwt.claim.sub','d3030000-0000-4000-8000-000000000004',true);
+select pg_temp.security_assert(not private.has_role('DPS',array['admin']),'AAL2 does not cross branch boundaries');
+reset role;
+select set_config('request.jwt.claim.sub','',true);
+insert into auth.sessions(id,user_id,created_at,updated_at,aal) values('d3030000-0000-4000-8000-000000000010','d3030000-0000-4000-8000-000000000003',now(),now(),'aal1');
+insert into auth.mfa_amr_claims(id,session_id,created_at,updated_at,authentication_method) values(gen_random_uuid(),'d3030000-0000-4000-8000-000000000010',now(),now(),'password');
+select set_config('request.jwt.claim.sub','d3030000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claims','{"aal":"aal1","session_id":"d3030000-0000-4000-8000-000000000010"}',true);
+set local role authenticated;
+select pg_temp.security_assert(not public.password_recovery_session(),'Ordinary password session cannot reset without the old password');
+reset role;
+update auth.mfa_amr_claims set authentication_method='recovery' where session_id='d3030000-0000-4000-8000-000000000010';
+set local role authenticated;
+select pg_temp.security_assert(public.password_recovery_session(),'Auth-backed recovery session is accepted');
+reset role;
+update auth.sessions set created_at=now()-interval '16 minutes' where id='d3030000-0000-4000-8000-000000000010';
+set local role authenticated;
+select pg_temp.security_assert(not public.password_recovery_session(),'Expired recovery session is denied');
+reset role;
+select pass('Privileged role, AAL2, branch, profile and recovery boundaries');
+select * from finish();
+rollback;

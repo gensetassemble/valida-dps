@@ -1,5 +1,7 @@
 -- Synthetic identities and records exist only inside this rolled-back transaction.
 begin;
+-- Positive privileged fixtures represent a completed MFA verification.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select plan(1);

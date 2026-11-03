@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/shared/auth-form";
 import { getSupabaseConfig } from "@/lib/env/public";
 import { createClient } from "@/lib/supabase/server";
+import { hasRecoverySession } from "@/lib/auth/security";
 export default async function UpdatePage() {
   if (!getSupabaseConfig()) redirect("/login");
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) redirect("/login?status=callback-error");
+  if (!(await hasRecoverySession(supabase))) redirect("/login?status=callback-error");
   return (
     <>
       <h1 className="text-2xl font-bold">Perbarui kata sandi</h1>

@@ -1,5 +1,7 @@
 -- Synthetic, rolled-back tests for the requested workflow capabilities.
 begin;
+-- Positive privileged fixtures represent a completed MFA verification.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select plan(1);

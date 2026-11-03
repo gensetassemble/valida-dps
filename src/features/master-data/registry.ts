@@ -566,7 +566,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     labelKey: "full_name",
     detail: "/pengaturan/pengguna",
     readRoles: admin,
-    writeRoles: admin,
+    writeRoles: ["super_admin"],
     description:
       "Kelola identitas dan akun login. Password hanya dapat dikelola Super Admin.",
     fields: [
@@ -617,7 +617,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     path: "/pengaturan/roles",
     labelKey: "role_code",
     readRoles: admin,
-    writeRoles: admin,
+    writeRoles: ["super_admin"],
     description:
       "Satu akun dapat memiliki beberapa peran. Penugasan sendiri ditolak database; seluruh grant/revoke dicatat.",
     fields: [

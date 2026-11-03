@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseConfig } from "@/lib/env/public";
 import { cache } from "react";
 import { isRole, type Scope } from "./permissions";
+import { hasSecondFactor } from "./security";
 export const requireActiveUser = cache(async () => {
   if (!getSupabaseConfig()) redirect("/login?status=unconfigured");
   const supabase = await createClient();
@@ -41,5 +42,7 @@ export const requireActiveUser = cache(async () => {
       : [],
   );
   if (!scopes.length) redirect("/login?status=unassigned");
+  if (scopes.some(s => ["admin", "super_admin"].includes(s.role_code)) && !(await hasSecondFactor(supabase)))
+    redirect("/mfa");
   return { user: data.user, profile, scopes, branches: branches ?? [] };
 });

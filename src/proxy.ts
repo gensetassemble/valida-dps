@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "@/lib/env/public";
+import { assertDatabaseEnvironment } from "@/lib/env/runtime";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   response.headers.set("Cache-Control", "private, no-store");
@@ -8,6 +9,7 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/auth/logout") return response;
   const config = getSupabaseConfig();
   if (!config) return response;
+  assertDatabaseEnvironment(config.url);
   const supabase = createServerClient(config.url, config.key, {
     cookieOptions: {
       path: "/",
@@ -48,6 +50,9 @@ export const config = {
     "/profil",
     "/audit",
     "/login",
+    "/mfa",
+    "/notifikasi/:path*",
+    "/api/workflows/:path*",
     "/reset-password",
     "/update-password",
     "/auth/:path*",

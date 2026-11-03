@@ -1,5 +1,7 @@
 -- Synthetic identities and records exist only inside this rolled-back transaction.
 begin;
+-- Positive privileged fixtures represent a completed MFA verification.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select plan(1);
@@ -17,7 +19,7 @@ insert into public.profiles(id,employee_id,branch_code,is_active,activated_at,fu
  select ('20000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,('30000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,case when n=11 then 'TEST' else 'DPS' end,n<>10,case when n<>10 then now() end,'[CONTOH] Akun Uji '||n from generate_series(1,11)n;
 insert into public.user_role_assignments(profile_id,role_code,branch_code,grant_reason)
  select ('20000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
- (array['admin','account_manager','account_manager','hrga','coordinator','qshe','equipment_manager','inspector','branch_head','admin','admin'])[n],
+ (array['super_admin','account_manager','account_manager','hrga','coordinator','qshe','equipment_manager','inspector','branch_head','admin','admin'])[n],
  case when n=11 then 'TEST' else 'DPS' end,'[CONTOH] Penugasan pengujian RLS.' from generate_series(1,11)n;
 insert into public.user_role_assignments(profile_id,role_code,branch_code,grant_reason)
  values('20000000-0000-4000-8000-000000000005','inspector','DPS','[CONTOH] Peran tambahan terotorisasi.');

@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { importContext } from "./server";
+import { isProductionEnvironment } from "@/lib/env/runtime";
 import {
   DOMAINS,
   FIELDS,
@@ -77,10 +78,7 @@ export async function commitBatch(form: FormData) {
   const batch = z.uuid().safeParse(form.get("batch"));
   if (!batch.success || form.get("confirmation") !== "IMPOR DPS DEVELOPMENT")
     return { error: "Ketik IMPOR DPS DEVELOPMENT sebagai konfirmasi." };
-  if (
-    new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.local")
-      .hostname !== "vzxmnkmvcbzxrkzdtxuy.supabase.co"
-  )
+  if (isProductionEnvironment())
     return {
       error:
         "Target bukan development yang disetujui. Impor kanonis dihentikan.",

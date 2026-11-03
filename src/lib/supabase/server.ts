@@ -4,9 +4,11 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabaseConfig } from "@/lib/env/public";
 import type { Database } from "@/types/database";
+import { assertDatabaseEnvironment } from "@/lib/env/runtime";
 export const createClient = cache(async () => {
   const config = getSupabaseConfig();
   if (!config) throw new Error("Supabase belum dikonfigurasi dengan benar.");
+  assertDatabaseEnvironment(config.url);
   const store = await cookies();
   return createServerClient<Database>(config.url, config.key, {
     cookieOptions: {

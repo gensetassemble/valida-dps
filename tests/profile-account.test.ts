@@ -3,7 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   databaseError: vi.fn(() => "Database error"),
+  secondFactor: vi.fn(),
 }));
+vi.mock("@/lib/auth/security", () => ({ hasSecondFactor: mocks.secondFactor }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/auth-admin", () => ({
   getAuthAdminClient: mocks.admin,
@@ -35,6 +37,7 @@ describe("Super Admin account provisioning", () => {
     });
   beforeEach(() => {
     vi.resetAllMocks();
+    mocks.secondFactor.mockResolvedValue(true);
     rpc.mockResolvedValue({ data: "test-id", error: null });
     createUser.mockResolvedValue({
       data: { user: { id: "test-id" } },
@@ -47,7 +50,7 @@ describe("Super Admin account provisioning", () => {
     });
   });
   it("links existing Auth identity without privileged credentials when password is blank", async () => {
-    expect(await run({ superAdmin: false })).toEqual({ id: "test-id" });
+    expect(await run()).toEqual({ id: "test-id" });
     expect(mocks.admin).not.toHaveBeenCalled();
     expect(rpc).toHaveBeenCalledWith("save_profile_identity", {
       b: "DPS",
@@ -68,6 +71,12 @@ describe("Super Admin account provisioning", () => {
     expect((await run({ password: "SyntheticPassword123!" })).error).toMatch(
       /belum dikonfigurasi/,
     );
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it("rejects provisioning before any write when MFA is absent", async () => {
+    mocks.secondFactor.mockResolvedValue(false);
+    expect((await run({ password: "SyntheticPassword123!" })).error).toMatch(/MFA/);
+    expect(createUser).not.toHaveBeenCalled();
     expect(rpc).not.toHaveBeenCalled();
   });
   it("creates Auth without email and keeps password outside profile RPC payload", async () => {

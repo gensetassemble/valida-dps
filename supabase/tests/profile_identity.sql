@@ -1,4 +1,6 @@
 begin;
+-- Positive privileged fixtures represent a completed MFA verification.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select plan(1);
@@ -7,7 +9,7 @@ insert into auth.users(id,email) values('ef100000-0000-4000-8000-000000000001','
 insert into public.employee_directory(id,branch_code,full_name,npp,employment_status,verification_status,is_active) values('ef200000-0000-4000-8000-000000000001','DPS','[CONTOH] Profile QA','99381','active','verified',true);
 insert into public.employee_directory(id,branch_code,full_name,npp,employment_status,verification_status,is_active) values('ef200000-0000-4000-8000-000000000002','DPS','[CONTOH] Admin QA','99382','active','verified',true);
 insert into public.profiles(id,employee_id,branch_code,full_name,is_active,activated_at) values('ef100000-0000-4000-8000-000000000001','ef200000-0000-4000-8000-000000000002','DPS','[CONTOH] Profile Admin',true,now());
-insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('ef100000-0000-4000-8000-000000000001','DPS','admin','[CONTOH] Rollback profile test');
+insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('ef100000-0000-4000-8000-000000000001','DPS','super_admin','[CONTOH] Rollback profile test');
 select set_config('request.jwt.claim.sub','ef100000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 select public.save_profile_identity('DPS',null,'{"full_name":"[CONTOH] Profile User","email":"staff.profile.qa@example.invalid","npp":"99381","whatsapp":"08123456789","is_active":false}');

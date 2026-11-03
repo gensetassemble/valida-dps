@@ -5,6 +5,7 @@ import { getSupabaseConfig } from "@/lib/env/public";
 import { getAppConfig } from "@/lib/env/server";
 import { loginSchema, resetSchema, passwordSchema } from "@/lib/auth/schemas";
 import { signOutCurrentDevice } from "@/lib/auth/logout";
+import { hasRecoverySession } from "@/lib/auth/security";
 export async function login(input: unknown) {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return { error: "Periksa alamat email dan kata sandi." };
@@ -49,11 +50,10 @@ export async function updatePassword(input: unknown) {
   if (!parsed.success)
     return { error: "Gunakan kata sandi minimal 12 karakter." };
   const supabase = await createClient();
-  const { data, error: userError } = await supabase.auth.getUser();
-  if (userError || !data.user)
+  if (!(await hasRecoverySession(supabase)))
     return { error: "Tautan pemulihan tidak valid atau telah expired." };
   const { error } = await supabase.auth.updateUser(parsed.data);
   if (error) return { error: "Kata sandi belum dapat diperbarui." };
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: "global" });
   redirect("/login?status=password-updated");
 }

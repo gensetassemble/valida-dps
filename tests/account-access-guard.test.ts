@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
-const mocks = vi.hoisted(() => ({ from: vi.fn(), getUser: vi.fn() }));
+const mocks = vi.hoisted(() => ({ from: vi.fn(), getUser: vi.fn(), secondFactor: vi.fn() }));
+vi.mock("@/lib/auth/security", () => ({ hasSecondFactor: mocks.secondFactor }));
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({ cache: (fn: unknown) => fn }));
 vi.mock("next/navigation", () => ({
@@ -21,6 +22,7 @@ describe("application access requires an assigned active role", () => {
   let grants: Record<string, unknown>[];
   beforeEach(() => {
     grants = [];
+    mocks.secondFactor.mockResolvedValue(true);
     mocks.getUser.mockResolvedValue({
       data: { user: { id: "qa-user" } },
       error: null,
@@ -63,5 +65,14 @@ describe("application access requires an assigned active role", () => {
     await expect(requireActiveUser()).rejects.toThrow(
       "REDIRECT:/login?status=unassigned",
     );
+  });
+  it("requires MFA for privileged sessions", async () => {
+    grants = [{ role_code: "super_admin", branch_code: "DPS" }];
+    mocks.secondFactor.mockResolvedValue(false);
+    await expect(requireActiveUser()).rejects.toThrow("REDIRECT:/mfa");
+  });
+  it("allows a verified privileged session", async () => {
+    grants = [{ role_code: "super_admin", branch_code: "DPS" }];
+    expect((await requireActiveUser()).scopes[0].role_code).toBe("super_admin");
   });
 });
