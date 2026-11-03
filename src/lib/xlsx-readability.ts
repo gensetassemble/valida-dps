@@ -49,8 +49,9 @@ export function wrappedLineCount(value: string, width: number, fontSize = 11) {
       0,
     );
 }
-/** Retain native fonts, borders, merges and drawings; wrap every style and fit row heights explicitly (Excel cannot autofit merged cells). */
-export async function applyXlsxReadability(zip: JSZip) {
+type RowRanges = Record<string, { first: number; last: number }>;
+/** Wrap selected table rows and fit their heights; preserve native layout outside the range. */
+export async function applyXlsxReadability(zip: JSZip, ranges?: RowRanges) {
   const file = zip.file("xl/styles.xml");
   if (!file) return;
   let styles = await file.async("string");
@@ -60,12 +61,11 @@ export async function applyXlsxReadability(zip: JSZip) {
     ),
   ].map((m) => Number(m[0].match(/<sz\b[^>]*val="([^"]+)"/)?.[1] || 11));
   const sizes: number[] = [];
+  let originalStyleCount = 0;
   styles = styles.replace(
     /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/,
-    (whole, body: string) =>
-      whole.replace(
-        body,
-        body.replace(/<xf\b[^>]*?(?:\/>|>[\s\S]*?<\/xf>)/g, (xf) => {
+    (whole, body: string) => {
+      const wrapped = body.replace(/<xf\b[^>]*?(?:\/>|>[\s\S]*?<\/xf>)/g, (xf) => {
           sizes.push(fonts[Number(attribute(xf, "fontId", "0"))] || 11);
           let open = xf
             .match(/^<xf\b[^>]*?\/?>/)![0]
@@ -85,8 +85,14 @@ export async function applyXlsxReadability(zip: JSZip) {
             : inside + '<alignment wrapText="1"/>';
           open += wrapped + "</xf>";
           return open;
-        }),
-      ),
+        });
+      originalStyleCount = sizes.length;
+      if (!ranges) return whole.replace(body, wrapped);
+      // Shared styles may also be used by the title or signature. Clone instead
+      // of changing those original styles in place.
+      sizes.push(...sizes);
+      return whole.replace(body, body + wrapped).replace(/\bcount="\d+"/, `count="${originalStyleCount * 2}"`);
+    },
   );
   zip.file("xl/styles.xml", styles);
   const sharedFile = zip.file("xl/sharedStrings.xml");
@@ -100,7 +106,17 @@ export async function applyXlsxReadability(zip: JSZip) {
   for (const name of Object.keys(zip.files).filter((n) =>
     /^xl\/worksheets\/sheet\d+\.xml$/.test(n),
   )) {
+    const range = ranges?.[name];
+    if (ranges && !range) continue;
     let xml = await zip.file(name)!.async("string");
+    if (range)
+      xml = xml.replace(/<row\b[^>]*\br="(\d+)"[^>]*?(?:\/>|>[\s\S]*?<\/row>)/g, (row, n: string) => {
+        if (+n < range.first || +n > range.last) return row;
+        return row.replace(/<c\b[^>]*\/?>/g, (cell) => {
+          const index = Number(attribute(cell, "s", "0")) + originalStyleCount;
+          return cell.replace(/\s+s="[^"]*"/, "").replace(/(\/?>)$/, ` s="${index}"$1`);
+        });
+      });
     const widths = new Map<number, number>();
     for (const m of xml.matchAll(/<col\b[^>]*\/>/g))
       for (
@@ -126,7 +142,8 @@ export async function applyXlsxReadability(zip: JSZip) {
         Number(attribute(r.xml.match(/^<row[^>]*>/)![0], "ht", "15")),
       ]),
     );
-    for (const row of rows)
+    for (const row of rows) {
+      if (range && (row.n < range.first || row.n > range.last)) continue;
       for (const m of row.xml.matchAll(
         /<c\b([^>]*?\br="([A-Z]+)(\d+)"[^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g,
       )) {
@@ -157,6 +174,7 @@ export async function applyXlsxReadability(zip: JSZip) {
               ),
             );
       }
+    }
     xml = xml.replace(
       /<row\b[^>]*\br="(\d+)"[^>]*?\/?>/g,
       (open, n: string) => {

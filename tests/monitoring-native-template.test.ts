@@ -7,6 +7,34 @@ import {
   monitoringFilename,
 } from "@/features/operations/monitoring-xlsx";
 describe("FOR/SCI-UMA/198 native monitoring template", () => {
+  it("preserves title and footer row geometry and styles while wrapping only the table on every sheet", async () => {
+    const source = await JSZip.loadAsync(await readFile("src/assets/forms/FOR-SCI-UMA-198-Rev-03.xlsx"));
+    const original = await source.file("xl/worksheets/sheet1.xml")!.async("string");
+    const out = await JSZip.loadAsync(await monitoringXlsx([
+      { name: "Nama alat panjang ".repeat(20), portfolio_code: "PIK" },
+      { name: "Alat kedua", portfolio_code: "PIK" },
+      { name: "Alat lain", portfolio_code: "BBR" },
+    ], "DPS", "2026-11-03", {
+      acknowledgedBy: "Nama pejabat panjang ".repeat(8),
+      preparedBy: "Nama penyiap panjang ".repeat(8),
+      location: "Denpasar",
+    }));
+    const sourceStyles = (await source.file("xl/styles.xml")!.async("string")).match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/)![1];
+    const outputStyles = (await out.file("xl/styles.xml")!.async("string")).match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/)![1];
+    expect(outputStyles.startsWith(sourceStyles)).toBe(true);
+    for (const [sheet, delta] of [[1, 11], [2, 0]]) {
+      const xml = await out.file(`xl/worksheets/sheet${sheet}.xml`)!.async("string");
+      for (const match of original.matchAll(/<row\b[^>]*\br="(\d+)"[^>]*>[\s\S]*?<\/row>/g)) {
+        const n = Number(match[1]);
+        if (n >= 6 && n <= 19) continue;
+        const target = n >= 20 ? n + delta : n;
+        const row = xml.match(new RegExp(`<row\\b[^>]*\\br="${target}"[^>]*>[\\s\\S]*?<\\/row>`))![0];
+        expect(row.match(/^<row[^>]*>/)![0].replace(`r="${target}"`, `r="${n}"`)).toBe(match[0].match(/^<row[^>]*>/)![0]);
+        const styleIds = (value: string) => [...value.matchAll(/<c\b[^>]*\bs="(\d+)"/g)].map(m => m[1]);
+        expect(styleIds(row)).toEqual(styleIds(match[0]));
+      }
+    }
+  });
   it("retains native geometry, logo, revision, dates and correction rows, without example records or signatures", async () => {
     const rows = [
       {

@@ -207,7 +207,7 @@ function worksheet(
       a.replace(/\s+fitToHeight="[^"]*"/g, "") +
       ' fitToHeight="0"/>',
   );
-  return { xml, last: 42 + delta };
+  return { xml, last: 42 + delta, tableLast: next - 1 };
 }
 /** Native FOR/SCI-UMA/198 Rev.03: preserve layout, fonts, logo, header, footer and print geometry. */
 export async function monitoringXlsx(
@@ -242,6 +242,7 @@ export async function monitoringXlsx(
     relationships: string[] = [],
     types: string[] = [];
   const used = new Set<string>();
+  const tableRanges: Record<string, { first: number; last: number }> = {};
   let index = 0;
   for (const [portfolio, records] of groups) {
     const id = ++index,
@@ -260,6 +261,10 @@ export async function monitoringXlsx(
       context,
     );
     zip.file(`xl/worksheets/sheet${id}.xml`, output.xml);
+    tableRanges[`xl/worksheets/sheet${id}.xml`] = {
+      first: 6,
+      last: output.tableLast,
+    };
     zip.file(
       `xl/worksheets/_rels/sheet${id}.xml.rels`,
       sheetRel.replace("drawing1.xml", `drawing${id}.xml`),
@@ -308,6 +313,6 @@ export async function monitoringXlsx(
     "[Content_Types].xml",
     content.replace("</Types>", types.join("") + "</Types>"),
   );
-  await applyXlsxReadability(zip);
+  await applyXlsxReadability(zip, tableRanges);
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
