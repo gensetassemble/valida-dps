@@ -6,6 +6,8 @@ import {
 } from "@/features/operations/monitoring-xlsx";
 import { addPersonnelSheet } from "@/features/operations/personnel-export";
 import { personnelExportData } from "@/features/operations/personnel-export-data";
+import { monitoringExportData } from "@/features/operations/monitoring-export-data";
+import { personnelFilename } from "@/features/operations/export-context";
 import {
   entityContext,
   listRecords,
@@ -66,8 +68,23 @@ export async function GET(request: NextRequest) {
   }
   const book = new ExcelJS.Workbook();
   book.creator = "VALIDA";
+  let filename = c.entity.key + "-sesuai-akses.xlsx";
   if (c.entity.key === "kalibrasi-alat") {
-    const bytes = await monitoringXlsx(rows, c.branch);
+    let context;
+    try {
+      context = await monitoringExportData(await masterClient(), c.branch);
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Data pejabat ekspor belum dapat dimuat.",
+        },
+        { status: 503 },
+      );
+    }
+    const bytes = await monitoringXlsx(rows, c.branch, undefined, context);
     const filename = monitoringFilename(rows);
     return new NextResponse(new Uint8Array(bytes), {
       headers: {
@@ -87,6 +104,7 @@ export async function GET(request: NextRequest) {
         request.nextUrl.searchParams.get("include_inactive") === "true",
       );
       addPersonnelSheet(book, data.rows, data.branchName);
+      filename = personnelFilename(data.branchName);
     } catch {
       return NextResponse.json(
         {
@@ -129,8 +147,7 @@ export async function GET(request: NextRequest) {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition":
-        'attachment; filename="' + c.entity.key + '-sesuai-akses.xlsx"',
+      "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
       "Cache-Control": "private, no-store",
     },
   });

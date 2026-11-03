@@ -5,6 +5,13 @@ import { monitoringColumns, monitoringValue } from "./monitoring";
 import { businessNotes } from "./notes";
 import { todayWita, validDate } from "@/lib/domain/validity";
 import { xmlText } from "@/features/workflows/uma-annex";
+import { longExportDate } from "./export-context";
+
+type ReportContext = {
+  acknowledgedBy: string;
+  preparedBy: string;
+  location: string;
+};
 type Row = Record<string, unknown>;
 export function monitoringFilename(rows: Row[], today = todayWita()) {
   const codes = [
@@ -54,6 +61,7 @@ function worksheet(
   portfolio: string,
   branch: string,
   today: string,
+  context?: ReportContext,
 ) {
   const sourceRows = [
     ...template.matchAll(
@@ -129,7 +137,22 @@ function worksheet(
   const delta = next - 20;
   const footer = sourceRows
     .filter((r) => r.n >= 20)
-    .map((r) => shiftRow(r.xml, delta));
+    .map((r) => {
+      let xml = r.xml;
+      if (context) {
+        if (r.n === 22)
+          xml = setCell(
+            xml,
+            "R22",
+            `${context.location}, ${longExportDate(today)}`,
+          );
+        if (r.n === 29) {
+          xml = setCell(xml, "A29", `(${context.acknowledgedBy})`);
+          xml = setCell(xml, "R29", `(${context.preparedBy})`);
+        }
+      }
+      return shiftRow(xml, delta);
+    });
   for (const m of template.matchAll(/<mergeCell ref="([^"]+)"\/>/g)) {
     const nums = [...m[1].matchAll(/\d+/g)].map((n) => +n[0]);
     if (nums[1] <= 8) merges.push(m[1]);
@@ -160,6 +183,7 @@ export async function monitoringXlsx(
   rows: Row[],
   branch: string,
   today = todayWita(),
+  context?: ReportContext,
 ) {
   const zip = await JSZip.loadAsync(
     await readFile(
@@ -196,7 +220,14 @@ export async function monitoringXlsx(
       suffix = 1;
     while (used.has(name.toLowerCase())) name = base + " " + suffix++;
     used.add(name.toLowerCase());
-    const output = worksheet(template, records, portfolio, branch, today);
+    const output = worksheet(
+      template,
+      records,
+      portfolio,
+      branch,
+      today,
+      context,
+    );
     zip.file(`xl/worksheets/sheet${id}.xml`, output.xml);
     zip.file(
       `xl/worksheets/_rels/sheet${id}.xml.rels`,

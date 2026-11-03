@@ -2,6 +2,10 @@
 
 Calibration XLSX exports use the native Rev.03 layout from the supplied PIK workbook. The sanitized template retains column widths, row heights, Arial styles, merged headers, yellow sections, print settings, revision notes and Sucofindo logo. Source equipment, signatures and personal names are excluded. Each portfolio has its own worksheet; multi-portfolio downloads use `ALL` in the filename.
 
+Monitoring footer names are resolved at export time from the active, nonarchived employee directory in the selected branch: Kepala Cabang / Kepala Unit Kerja for acknowledgement, and Kepala Bidang Inspeksi dan Pengujian for preparation. Names are not hardcoded or cached. The date is the export date in WITA, formatted with the branch location and a full Indonesian month. Missing or ambiguous office holders return a clear export error. No handwritten signature is inserted.
+
+Personnel export filenames use `Status Kompetensi Personil - Cabang {location}_{month} {year}.xlsx`, based on the same export date.
+
 Internal/external and significant yes/no report marks are complementary. Selecting either member updates its counterpart. Server validation rejects contradictory pairs; report ticks use `√` and negatives use `-`. Historical imported values are not rewritten in bulk.
 
 Dashboard category controls respect existing account scopes. The priority list includes at most 20 recently expired and 20 upcoming records within 90 days. Lifetime and unknown dates remain excluded. Composition segments have white separators.
