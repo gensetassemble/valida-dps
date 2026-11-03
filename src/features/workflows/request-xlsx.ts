@@ -1,7 +1,8 @@
 import JSZip from "jszip";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { draftBusinessDate } from "./request-form-model";
+import { umaApproverTitle, umaSignatureDate } from "./uma-format";
+import { addUmaAnnex } from "./uma-annex";
 type Row = Record<string, unknown>;
 const xmlText = (value: unknown) =>
   String(value ?? "")
@@ -39,6 +40,10 @@ export async function calibrationRequestXlsx(request: Row) {
     );
   };
   const e = (request.equipment_snapshot || {}) as Row;
+  const items = Array.isArray(request.items_snapshot)
+    ? (request.items_snapshot as Row[])
+    : [];
+  const bundled = items.length > 1;
   const field = (cell: string, value: unknown) => {
     if (value != null && value !== "") set(cell, "  : " + String(value));
   };
@@ -61,23 +66,26 @@ export async function calibrationRequestXlsx(request: Row) {
   if (request.notes) set("E22", "");
   field("E23", request.request_kind === "repair" ? "Perbaikan" : "Kalibrasi");
   field("E24", request.laboratory);
+  if (bundled) {
+    field("E15", "Berbagai peralatan (terlampir)");
+    field("E16", items.length + " unit");
+    for (const cell of ["E17", "E18", "E19", "E20"]) field(cell, "Terlampir");
+  } else if (items.length === 1) {
+    field("E20", items[0].resolution_class || request.resolution_class);
+  }
   // Keep the original dotted blanks in section B for manual completion; never export estimates.
   if (request.supervisor_name) set("B42", `(${request.supervisor_name})`);
+  const supervisorTitle = String(
+    request.supervisor_title || umaApproverTitle(request.supervisor_name),
+  );
+  if (supervisorTitle) set("B43", supervisorTitle);
   if (request.requester_name) set("G42", `(${request.requester_name})`);
   set("G43", "NPP.  " + String(request.requester_npp || "Non-NPP"));
-  const date = draftBusinessDate(request.created_at);
+  const date = umaSignatureDate(request.created_at, request.signature_place);
   if (date) {
-    set(
-      "G36",
-      new Intl.DateTimeFormat("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        timeZone: "Asia/Makassar",
-      }).format(new Date(date + "T04:00:00Z")),
-    );
+    set("G36", date);
   }
   zip.file("xl/worksheets/sheet1.xml", xml);
+  if (items.length) await addUmaAnnex(zip, request, items);
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }

@@ -150,6 +150,14 @@ export type Database = {
       };
       calibration_requests: {
         Row: {
+          equipment_ids: string[] | null;
+          items_snapshot: Json;
+          item_details: Json;
+          portfolio_code_snapshot: string | null;
+          supervisor_title: string | null;
+          signature_place: string;
+          certificate_name: string;
+          certificate_address: string | null;
           branch_code: string;
           calibration_id: string | null;
           created_at: string;
@@ -182,6 +190,14 @@ export type Database = {
           version: number;
         };
         Insert: {
+          equipment_ids?: string[] | null;
+          items_snapshot?: Json;
+          item_details?: Json;
+          portfolio_code_snapshot?: string | null;
+          supervisor_title?: string | null;
+          signature_place?: string;
+          certificate_name?: string;
+          certificate_address?: string | null;
           branch_code: string;
           calibration_id?: string | null;
           created_at?: string;
@@ -214,6 +230,14 @@ export type Database = {
           version?: number;
         };
         Update: {
+          equipment_ids?: string[] | null;
+          items_snapshot?: Json;
+          item_details?: Json;
+          portfolio_code_snapshot?: string | null;
+          supervisor_title?: string | null;
+          signature_place?: string;
+          certificate_name?: string;
+          certificate_address?: string | null;
           branch_code?: string;
           calibration_id?: string | null;
           created_at?: string;

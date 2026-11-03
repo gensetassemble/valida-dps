@@ -356,7 +356,7 @@ export async function WorkflowOverview({
     )
     .select(
       kind === "calibration"
-        ? "id,status,equipment_id,request_number,updated_at"
+        ? "id,status,equipment_id,request_number,updated_at,quantity,portfolio_code_snapshot"
         : "id,status,certificate_id,updated_at",
     )
     .eq("branch_code", branch)
@@ -444,6 +444,12 @@ export async function WorkflowOverview({
                 <>
                   {String(r.request_number || "Permintaan kalibrasi")} ·{" "}
                   {labels[String(r.status)]}
+                  {Number(r.quantity) > 1 && (
+                    <span className="mt-1 block text-muted-foreground">
+                      Bundel {String(r.quantity)} alat ·{" "}
+                      {String(r.portfolio_code_snapshot || "")}
+                    </span>
+                  )}
                 </>
               )}
               <span className="mt-1 block text-muted-foreground">

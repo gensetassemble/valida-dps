@@ -24,6 +24,7 @@ import { OperationalFilters } from "./filters";
 import { monitoringColumns } from "./monitoring";
 import { businessNotes } from "./notes";
 import { WorkflowPanel, WorkflowOverview } from "@/features/workflows/panels";
+import { EquipmentRequestForm } from "@/features/workflows/calibration-controls";
 export async function OperationList({
   entity,
   params,
@@ -36,6 +37,10 @@ export async function OperationList({
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-3">
+        {entity === "kalibrasi-alat" &&
+          c.scopes.some(
+            (s) => s.branch_code === c.branch && s.role_code === "coordinator",
+          ) && <EquipmentRequestForm branch={c.branch} />}
         {c.canWrite &&
           !["kompetensi-personil", "kalibrasi-alat"].includes(entity) && (
             <Button asChild>
@@ -65,6 +70,23 @@ export async function OperationList({
             Ekspor XLSX sesuai filter
           </a>
         </Button>
+        {entity === "kompetensi-personil" && (
+          <Button asChild variant="outline">
+            <a
+              href={
+                "/api/operations/export?" +
+                new URLSearchParams({
+                  ...params,
+                  entity,
+                  branch: c.branch,
+                  include_inactive: "true",
+                } as Record<string, string>)
+              }
+            >
+              Ekspor termasuk personil nonaktif
+            </a>
+          </Button>
+        )}
       </div>
       <OperationalFilters entity={entity} branch={c.branch} params={params} />
       {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (

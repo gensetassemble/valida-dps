@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
         await masterClient(),
         rows,
         c.branch,
+        request.nextUrl.searchParams.get("include_inactive") === "true",
       );
       addPersonnelSheet(book, data.rows, data.branchName);
     } catch {

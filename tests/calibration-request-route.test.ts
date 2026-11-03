@@ -18,7 +18,7 @@ describe("private calibration PDF endpoint", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toContain("spreadsheetml.sheet");
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
-    expect(response.headers.get("Content-Disposition")).toContain("QA-197.xlsx");
+    expect(response.headers.get("Content-Disposition")).toContain("Pengajuan Kalibrasi Alat DPS.xlsx");
     const bytes = new Uint8Array(await response.arrayBuffer());
     expect([...bytes.slice(0, 2)]).toEqual([80, 75]);
   });

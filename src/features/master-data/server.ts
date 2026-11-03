@@ -187,6 +187,7 @@ export async function listRecords(
   if (archives)
     query = query
       .not("archived_at", "is", null)
+      .not("full_name", "ilike", "[CONTOH]%")
       .is("merged_into_employee_id", null);
   if (entity.key !== "roles")
     query = query.eq(entity.key === "cabang" ? "code" : "branch_code", branch);

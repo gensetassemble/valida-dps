@@ -1,24 +1,18 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
-import { dashboardStatusHref } from "@/lib/domain/dashboard-filter";
 import {
   dashboardFilters,
   dashboardScope,
   MODULE_ACCESS,
 } from "@/lib/auth/module-access";
-import { DeadlineDate } from "@/components/ui/deadline-date";
-import { ScrollMore } from "@/components/ui/scroll-more";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { activeBranch } from "@/lib/auth/permissions";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
-import { OperationalFilters } from "@/features/operations/filters";
 import { ExpiringTable } from "@/features/operations/expiring-table";
 import type { ExpiringItem } from "@/features/operations/expiring-priorities";
-import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
-import { todayWita, VALIDITY_DESCRIPTIONS } from "@/lib/domain/validity";
+import { todayWita } from "@/lib/domain/validity";
+import { DashboardOverview } from "@/features/operations/dashboard-overview";
 type Item = ExpiringItem;
 type Summary = {
   total: number;
@@ -36,16 +30,6 @@ const routes: Record<string, string> = {
   personnel: "/kompetensi-personil",
   calibrations: "/kalibrasi-alat",
 };
-function EquipmentContext({ item }: { item: Item }) {
-  return item.domain === "calibrations" ? (
-    <span className="mt-1.5 block space-y-0.5 text-[10px] text-muted-foreground">
-      <span className="block">
-        Portofolio: <strong>{item.portfolio_code || "Belum dipetakan"}</strong>
-      </span>
-      <span className="block">Lokasi: {item.location || "Belum dicatat"}</span>
-    </span>
-  ) : null;
-}
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -55,22 +39,16 @@ export default async function DashboardPage({
     c = await requireActiveUser(),
     branch = activeBranch(c.scopes, c.profile.branch_code, requested.branch),
     db = await masterClient();
-  const { domains, category } = dashboardScope(
-    c.scopes,
-    branch,
-    requested.category,
-  );
-  const p = dashboardFilters(requested, category);
+  const { domains, category } = dashboardScope(c.scopes, branch);
+  const p = dashboardFilters({}, category);
   const showClients =
     domains.includes("clients") && ["all", "clients"].includes(category);
-  const showPersonnel =
-    domains.includes("personnel") && ["all", "personnel"].includes(category);
   const showCalibrations =
     domains.includes("calibrations") &&
     ["all", "calibrations"].includes(category);
   const { data, error } = await db.rpc("operational_summary", {
     b: branch,
-    filters: { ...p, scroll: "true" },
+    filters: { ...p },
   });
   if (error) {
     console.error("Dashboard query failed", {
@@ -82,7 +60,7 @@ export default async function DashboardPage({
   const s = data as Summary;
   const equipmentIds = [
     ...new Set(
-      [...(s.soon || []), ...(s.records || [])]
+      (s.soon || [])
         .filter((r) => r.domain === "calibrations")
         .map((r) => r.id),
     ),
@@ -120,7 +98,7 @@ export default async function DashboardPage({
         : { data: [], error: null };
     if (coordinatorError)
       throw Error("Koordinator prioritas alat belum dapat dimuat.");
-    for (const item of [...(s.soon || []), ...(s.records || [])])
+    for (const item of s.soon || [])
       if (item.domain === "calibrations") {
         const asset = byId.get(item.id);
         item.portfolio_code = asset?.portfolio_code;
@@ -225,267 +203,92 @@ export default async function DashboardPage({
         (e) => e.id === item.responsible_id,
       )?.full_name;
   }
-  const tabs = [
-    ...(domains.length > 1 ? [["all", "Semua"]] : []),
-    ...domains.map((d) => [d, MODULE_ACCESS[d].label]),
-  ];
   return (
-    <>
-      <PageHeader
-        title={
-          domains.length === 1
-            ? "Dashboard " + MODULE_ACCESS[domains[0]].label
-            : "Dashboard"
-        }
-        eyebrow={
-          "Cabang " + branch + " · " + formatBusinessDate(todayWita()) + " WITA"
-        }
-        description="Pemantauan masa berlaku dan tindak lanjut dari data yang dapat Anda akses."
-      />
-      <div className="mb-5 flex flex-wrap gap-2">
-        {tabs.map(([key, label]) => (
-          <Link
-            key={key}
-            className={
-              "rounded-lg border px-4 py-2 text-xs font-semibold " +
-              ((p.category || "all") === key
-                ? "border-brand-navy bg-brand-navy text-white"
-                : "border-border bg-white")
-            }
-            href={
-              "/dashboard?" +
-              new URLSearchParams({ ...p, branch, category: key } as Record<
-                string,
-                string
-              >)
-            }
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
-      <OperationalFilters
-        clearPath="/dashboard"
-        entity={
-          p.category === "personnel"
-            ? "kompetensi-personil"
-            : p.category === "calibrations"
-              ? "kalibrasi-alat"
-              : p.category === "clients"
-                ? "sertifikat-klien"
-                : "dashboard-all"
-        }
-        branch={branch}
-        params={p}
-      />
-      <div className="mb-5 flex flex-wrap justify-between gap-3 text-xs">
-        <p>{s.total} rekaman aktif sesuai akses dan filter.</p>
-        {showClients && (
-          <Link
-            className="underline"
-            href={
-              "/dashboard?" +
-              new URLSearchParams({
-                ...p,
-                branch,
-                examples: p.examples === "true" ? "false" : "true",
-              } as Record<string, string>)
-            }
-          >
-            {p.examples === "true"
-              ? "Sembunyikan data [CONTOH]"
-              : "Tampilkan juga data [CONTOH]"}
-          </Link>
-        )}
-      </div>
-      {s.example_count > 0 && (
-        <p className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs">
-          Tampilan mencakup {s.example_count} rekaman [CONTOH]. Nilai peluang
-          riil selalu mengecualikan data contoh.
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary-hover">
+            Cabang {branch} · {formatBusinessDate(todayWita())} WITA
+          </p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-brand-navy">
+            Dashboard
+          </h1>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Ringkasan sesuai akses akun · Bali, NTB, NTT
         </p>
-      )}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          "Expired",
-          "Kritis",
-          "Perhatian",
-          "Pantau",
-          "Aman",
-          "Tanggal Belum Diisi",
-          "Berlaku Seumur Hidup",
-        ]
-          .filter(
-            (status) => status !== "Berlaku Seumur Hidup" || showPersonnel,
-          )
-          .map((status) => {
-            const selected = p.validity === status;
-            const activeColor =
-              status === "Expired"
-                ? "border-red-500 bg-red-50 ring-red-500"
-                : ["Kritis", "Perhatian", "Pantau"].includes(status)
-                  ? "border-amber-500 bg-amber-50 ring-amber-500"
-                  : status === "Aman" || status === "Berlaku Seumur Hidup"
-                    ? "border-emerald-600 bg-emerald-50 ring-emerald-600"
-                    : "border-slate-500 bg-slate-100 ring-slate-500";
-            return (
-              <Link
-                key={status}
-                href={dashboardStatusHref(p, branch, status)}
-                aria-current={selected ? "true" : undefined}
-                aria-label={`${status}: ${s.buckets[status] || 0} rekaman. ${VALIDITY_DESCRIPTIONS[status]}. ${selected ? "Filter aktif, klik untuk melepas" : "Klik untuk memfilter"}`}
-                className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-navy"
-              >
-                <Card
-                  className={
-                    "h-full p-4 transition-colors " +
-                    (selected
-                      ? `ring-2 ${activeColor}`
-                      : "hover:border-slate-400 hover:bg-slate-50")
-                  }
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <StatusBadge value={status} />
-                    {selected && (
-                      <span className="flex items-center gap-1 text-xs font-semibold text-brand-navy">
-                        <Check size={14} aria-hidden="true" />
-                        Aktif · klik untuk reset
-                      </span>
-                    )}
-                  </div>
-                  <strong className="mt-4 block text-3xl tabular-nums text-brand-navy">
-                    {s.buckets[status] || 0}
-                  </strong>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {VALIDITY_DESCRIPTIONS[status]}
-                  </p>
-                </Card>
-              </Link>
-            );
-          })}
-        {showClients && (
-          <Card className="p-4">
-            <p className="text-xs font-semibold text-muted-foreground">
-              Nilai Peluang Perpanjangan
-            </p>
-            <strong className="mt-4 block text-xl tabular-nums text-primary-hover">
-              {s.real_client_count
-                ? formatRupiah(s.opportunity || "0")
-                : "Belum ada data"}
-            </strong>
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              Sertifikat klien yang berakhir dalam 90 hari; data contoh
-              dikecualikan.
-            </p>
-          </Card>
-        )}
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {showPersonnel && (
-          <Link
-            href={
-              "/dashboard?branch=" +
-              branch +
-              "&category=personnel&kind=lifetime"
-            }
-          >
-            <Card className="p-4">
-              <p className="text-xs font-semibold">Kompetensi seumur hidup</p>
-              <strong className="mt-2 block text-2xl tabular-nums">
-                {s.lifetime_count || 0}
-              </strong>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Terpisah dari bucket expired dan pengingat.
+      <DashboardOverview
+        total={s.total}
+        buckets={s.buckets}
+        lifetime={s.lifetime_count}
+        unfit={s.unfit_equipment_count}
+        showCalibrations={showCalibrations}
+      />
+      {showClients && (
+        <Card className="border-brand-navy bg-brand-navy px-4 py-4 text-white">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-bold">
+                Peluang Perpanjangan Komersial
+              </h2>
+              <p className="mt-1 text-[11px] text-slate-300">
+                Sertifikat klien yang akan berakhir dalam 90 hari; data contoh
+                dikecualikan.
               </p>
-            </Card>
-          </Link>
-        )}
-        {showCalibrations && (
-          <Link
-            href={
-              "/kalibrasi-alat?branch=" +
-              branch +
-              "&eligibility=" +
-              encodeURIComponent("Tidak Layak Pakai")
-            }
-          >
-            <Card className="p-4">
-              <StatusBadge value="Tidak Layak Pakai" />
-              <strong className="mt-2 block text-2xl tabular-nums text-red-900">
-                {s.unfit_equipment_count || 0}
-              </strong>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Masa berlaku yang belum berakhir tidak mengesampingkan hasil
-                kalibrasi gagal.
+            </div>
+            <Link
+              href={"/pipeline-perpanjangan?branch=" + branch}
+              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
+            >
+              Buka Pipeline →
+            </Link>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 border-t border-white/15 pt-3">
+            <div>
+              <p className="text-[10px] text-slate-300">
+                Estimasi nilai kontrak sebelumnya
               </p>
-            </Card>
-          </Link>
-        )}
-      </div>
-      {(p.validity || p.kind) && (
-        <Card className="mt-6 overflow-hidden">
-          <div className="border-b border-border p-5">
-            <h2 className="text-sm font-bold">Rekaman Sesuai Filter</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {s.total} rekaman sesuai kewenangan. Baris berikutnya dimuat saat
-              discroll.
-            </p>
+              <p className="mt-1 text-xl font-bold">
+                {s.opportunity === null
+                  ? "Belum ada data"
+                  : formatRupiah(s.opportunity)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-300">
+                Sertifikat klien dalam radar
+              </p>
+              <p className="mt-1 text-xl font-bold text-emerald-300">
+                {s.real_client_count} sertifikat
+              </p>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-xs">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="p-4">Pemilik / objek</th>
-                  <th className="p-4">Nomor / judul</th>
-                  <th className="p-4">Tanggal akhir</th>
-                  <th className="p-4">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(s.records || []).map((r) => (
-                  <tr key={r.domain + r.id} className="border-t border-border">
-                    <td className="p-4">
-                      {r.entity_name}
-                      <EquipmentContext item={r} />
-                    </td>
-                    <td className="p-4">
-                      <Link
-                        className="text-primary-hover underline"
-                        href={
-                          routes[r.domain] + "/" + r.id + "?branch=" + branch
-                        }
-                      >
-                        {r.title || "Lihat rekaman"}
-                      </Link>
-                    </td>
-                    <td className="p-4">
-                      {<DeadlineDate value={r.expiry_date} />}
-                    </td>
-                    <td className="p-4">
-                      <StatusBadge value={r.validity_status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!s.records?.length && (
-              <p className="p-5 text-sm">Belum ada data sesuai filter.</p>
-            )}
-          </div>
-          <ScrollMore
-            shown={s.records?.length || 0}
-            total={Math.min(1000, s.total)}
-            href={
-              "?" +
-              new URLSearchParams({
-                ...p,
-                branch,
-                page: String(Number(p.page || 1) + 1),
-              } as Record<string, string>)
-            }
-          />
         </Card>
       )}
+      <nav
+        aria-label="Modul monitoring"
+        className={
+          "grid gap-2 " +
+          (domains.length > 2
+            ? "sm:grid-cols-3"
+            : domains.length > 1
+              ? "sm:grid-cols-2"
+              : "")
+        }
+      >
+        {domains.map((d) => (
+          <Link
+            key={d}
+            href={routes[d] + "?branch=" + branch}
+            className="flex items-center justify-between rounded-lg border border-border bg-white px-3 py-3 text-xs font-semibold text-brand-navy hover:border-primary hover:bg-emerald-50"
+          >
+            <span>{MODULE_ACCESS[d].label}</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        ))}
+      </nav>
       <ExpiringTable items={s.soon} branch={branch} today={todayWita()} />
-    </>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ export async function personnelExportData(
   db: SupabaseClient<Database>,
   rows: DataRow[],
   branch: string,
+  includeInactive = false,
 ) {
   const employeeIds = [...new Set(rows.map((r) => String(r.employee_id)))];
   const portfolioIds = [
@@ -25,12 +26,16 @@ export async function personnelExportData(
         npp: string | null;
         position: string | null;
         employment_category: string | null;
+        employment_status: string;
+        archived_at: string | null;
       }
     >();
     for (let offset = 0; offset < employeeIds.length; offset += 200) {
       const { data, error } = await db
         .from("employee_directory")
-        .select("id,full_name,npp,position,employment_category")
+        .select(
+          "id,full_name,npp,position,employment_category,employment_status,archived_at",
+        )
         .eq("branch_code", branch)
         .in("id", employeeIds.slice(offset, offset + 200))
         .limit(200);
@@ -63,25 +68,30 @@ export async function personnelExportData(
     throw Error("Nama cabang untuk ekspor belum dapat dimuat.");
   return {
     branchName: branchResult.data.name,
-    rows: rows.map((r) => {
-      const employee = people.get(String(r.employee_id));
-      if (!employee)
-        throw Error(
-          "Identitas pegawai untuk ekspor tidak tersedia dalam cakupan akun.",
-        );
-      const codes = (Array.isArray(r.portfolio_ids) ? r.portfolio_ids : [])
-        .map((id) => plots.get(String(id)))
-        .filter((v): v is string => !!v);
-      return {
-        ...r,
-        employee_name: employee.full_name,
-        npp: employee.npp,
-        position: employee.position,
-        employment_category: employee.employment_category,
-        portfolio_plot: [...new Set(codes)]
-          .sort((a, b) => a.localeCompare(b, "id"))
-          .join(" / "),
-      };
-    }),
+    rows: rows
+      .map((r) => {
+        const employee = people.get(String(r.employee_id));
+        if (!employee)
+          throw Error(
+            "Identitas pegawai untuk ekspor tidak tersedia dalam cakupan akun.",
+          );
+        const codes = (Array.isArray(r.portfolio_ids) ? r.portfolio_ids : [])
+          .map((id) => plots.get(String(id)))
+          .filter((v): v is string => !!v);
+        return {
+          ...r,
+          employee_name: employee.full_name,
+          npp: employee.npp,
+          position: employee.position,
+          employment_category: employee.employment_category,
+          employment_status: employee.employment_status,
+          employee_inactive:
+            employee.employment_status === "inactive" || !!employee.archived_at,
+          portfolio_plot: [...new Set(codes)]
+            .sort((a, b) => a.localeCompare(b, "id"))
+            .join(" / "),
+        };
+      })
+      .filter((r) => includeInactive || !r.employee_inactive),
   };
 }

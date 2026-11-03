@@ -33,17 +33,13 @@ export async function CalibrationRequestPanel({
     .from("calibration_requests")
     .select("*")
     .eq("branch_code", branch)
-    .eq("equipment_id", row.id)
+    .or(`equipment_id.eq.${row.id},equipment_ids.cs.{${row.id}}`)
     .order("created_at", { ascending: false });
   if (error) throw Error("Pengajuan belum dapat dimuat.");
   const records = (data || []) as DataRow[];
   const active = records.some(
     (r) => !["completed", "cancelled"].includes(String(r.status)),
   );
-  const { data: heads } =
-    coordinator && !active
-      ? await db.rpc("calibration_request_supervisors", { b: branch })
-      : { data: [] };
   return (
     <Card className="mb-5 space-y-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -51,17 +47,7 @@ export async function CalibrationRequestPanel({
           Permintaan perbaikan / kalibrasi · FOR/SCI-UMA/197
         </h2>
         {coordinator && !active && (
-          <EquipmentRequestForm
-            branch={branch}
-            equipment={String(row.id)}
-            unit={String(row.unit || row.location || "")}
-            supervisors={(heads || []).map(
-              (h: { id: string; full_name: string }) => ({
-                id: h.id,
-                label: h.full_name,
-              }),
-            )}
-          />
+          <EquipmentRequestForm branch={branch} equipment={String(row.id)} />
         )}
       </div>
       <p className="text-xs text-muted-foreground">
@@ -103,11 +89,31 @@ export async function CalibrationRequestPanel({
               </span>
             </div>
             <p className="text-xs">
+              {Number(r.quantity) > 1 && (
+                <strong className="mr-2">
+                  Bundel {String(r.quantity)} alat · Progres seluruh bundel
+                </strong>
+              )}
               {r.request_kind === "repair" ? "Perbaikan" : "Kalibrasi"} ·{" "}
               {formatTimestamp(String(r.created_at))} ·{" "}
               {String(r.requester_name || "Pengaju")}
             </p>
             <p className="whitespace-pre-wrap text-xs">{String(r.notes)}</p>
+            {Array.isArray(r.items_snapshot) && r.items_snapshot.length > 1 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer font-semibold">
+                  Daftar alat dalam bundel ({r.items_snapshot.length})
+                </summary>
+                <ul className="mt-2 space-y-1">
+                  {(r.items_snapshot as DataRow[]).map((item) => (
+                    <li key={String(item.id)}>
+                      {String(item.name)} ·{" "}
+                      {String(item.tag || item.asset_id || "Tanpa tag")}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <Button size="sm" variant="outline" asChild>
                 <a

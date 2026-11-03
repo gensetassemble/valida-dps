@@ -6,13 +6,27 @@ import { masterClient } from "@/features/master-data/server";
 const inputSchema = z
   .object({
     equipment_id: z.uuid(),
+    equipment_ids: z.array(z.uuid()).min(1).max(50),
     request_kind: z.enum(["repair", "calibration"]),
-    request_number: z.string().trim().min(2).max(200),
-    unit_name: z.string().trim().min(2).max(200),
-    quantity: z.coerce.number().int().min(1).max(10000),
+    request_number: z
+      .string()
+      .trim()
+      .regex(/^\d{1,4}$/),
+    signature_place: z.string().trim().min(1).max(100),
+    certificate_name: z.string().trim().min(1).max(250),
+    certificate_address: z.string().trim().max(1000),
+    item_details: z.record(
+      z.uuid(),
+      z
+        .object({
+          resolution_class: z.string().max(200),
+          instrument_reading: z.string().max(12000),
+        })
+        .strict(),
+    ),
     laboratory: z.string().trim().max(200),
     resolution_class: z.string().trim().max(200),
-    supervisor_profile_id: z.uuid().nullable(),
+    supervisor_profile_id: z.uuid(),
     notes: z.string().trim().min(8).max(4000),
   })
   .strict();
@@ -51,6 +65,72 @@ export async function submitEquipmentRequest(branch: string, input: unknown) {
     };
   refresh();
   return { id: String(data.id) };
+}
+
+export async function equipmentRequestOptions(branch: string) {
+  const c = await requireActiveUser();
+  if (
+    !c.scopes.some(
+      (s) => s.branch_code === branch && s.role_code === "coordinator",
+    )
+  )
+    return { error: "Pengajuan hanya untuk Koordinator Operasional." };
+  const db = await masterClient();
+  const [equipment, portfolios, requests, heads] = await Promise.all([
+    db
+      .from("equipment")
+      .select("id,name,tag,portfolio_id,location")
+      .eq("branch_code", branch)
+      .eq("ownership", "internal")
+      .eq("is_active", true)
+      .order("name")
+      .limit(1000),
+    db
+      .from("portfolios")
+      .select("id,code")
+      .eq("branch_code", branch)
+      .eq("is_active", true)
+      .limit(100),
+    db
+      .from("calibration_requests")
+      .select("equipment_id,equipment_ids")
+      .eq("branch_code", branch)
+      .not("status", "in", "(completed,cancelled)")
+      .limit(1000),
+    db.rpc("calibration_request_supervisors", { b: branch }),
+  ]);
+  if (
+    equipment.error ||
+    portfolios.error ||
+    requests.error ||
+    heads.error ||
+    equipment.data.length === 1000 ||
+    requests.data.length === 1000
+  )
+    return {
+      error: "Pilihan alat belum dapat dimuat seluruhnya. Silakan coba lagi.",
+    };
+  const busy = new Set<string>(
+    requests.data.flatMap((r) => r.equipment_ids || [r.equipment_id]),
+  );
+  const codes = new Map<string, string>(
+    portfolios.data.map((p) => [p.id, p.code]),
+  );
+  return {
+    tools: equipment.data
+      .filter((e) => codes.has(e.portfolio_id))
+      .map((e) => ({
+        ...e,
+        code: codes.get(e.portfolio_id)!,
+        unavailable: busy.has(e.id),
+      })),
+    supervisors: (heads.data || []).map(
+      (h: { id: string; full_name: string }) => ({
+        id: h.id,
+        label: h.full_name,
+      }),
+    ),
+  };
 }
 export async function updateEquipmentRequestProgress(
   branch: string,

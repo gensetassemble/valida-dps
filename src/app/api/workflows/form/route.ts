@@ -4,6 +4,7 @@ import { requireActiveUser } from "@/lib/auth/guards";
 import { masterClient } from "@/features/master-data/server";
 import { calibrationRequestHtml } from "@/features/workflows/print-form";
 import { resolveRequestIdentity } from "@/features/workflows/request-identity";
+import { umaFilename } from "@/features/workflows/uma-format";
 export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   await requireActiveUser();
@@ -21,14 +22,12 @@ export async function GET(request: NextRequest) {
     const { calibrationRequestXlsx } =
       await import("@/features/workflows/request-xlsx");
     const bytes = await calibrationRequestXlsx(form);
-    const name = String(data.request_number || data.id)
-      .replace(/[^A-Za-z0-9_-]/g, "-")
-      .slice(0, 64);
+    const name = umaFilename(form);
     return new NextResponse(Buffer.from(bytes), {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="FOR-SCI-UMA-197-${name}.xlsx"`,
+        "Content-Disposition": `attachment; filename="${name}.xlsx"; filename*=UTF-8''${encodeURIComponent(name + ".xlsx")}`,
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
       },

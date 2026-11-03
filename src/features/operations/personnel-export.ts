@@ -137,7 +137,19 @@ export function addPersonnelSheet(
         ? { text: url, hyperlink: url, tooltip: "Buka folder sertifikat" }
         : null,
       String(record.certificate_number || ""),
-      businessNotes(record.notes),
+      [
+        record.employee_inactive
+          ? "PERSONIL NONAKTIF" +
+            (record.employment_status === "active"
+              ? " — Direktori diarsipkan"
+              : "")
+          : record.employment_status === "unknown"
+            ? "STATUS KEPEGAWAIAN BELUM DIKONFIRMASI"
+            : "",
+        businessNotes(record.notes),
+      ]
+        .filter(Boolean)
+        .join("\n"),
       days,
       lifetime
         ? "Tidak perlu perpanjangan"
@@ -181,6 +193,26 @@ export function addPersonnelSheet(
         pattern: "solid",
         fgColor: { argb: "FFDBEAFE" },
       };
+    if (record.employee_inactive) {
+      for (let col = 1; col <= personnelExportHeaders.length; col++)
+        row.getCell(col).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFFE4CC" },
+        };
+      row.getCell(3).font = {
+        name: "Arial",
+        size: 10,
+        bold: true,
+        color: { argb: "FF9A3412" },
+      };
+      row.getCell(12).font = {
+        name: "Arial",
+        size: 10,
+        bold: true,
+        color: { argb: "FF9A3412" },
+      };
+    }
     const lines = values.map((value, i) => {
       const text =
         value instanceof Date
