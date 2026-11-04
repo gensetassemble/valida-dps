@@ -174,7 +174,7 @@ export async function listRecords(
     ? params.sort!
     : entity.key === "kalibrasi-alat"
       ? "portfolio_code"
-      : entity.columns[0];
+      : entity.key === "sertifikat-klien" ? "expiry_date" : entity.columns[0];
   const archives = entity.key === "pegawai" && params.archived === "true";
   if (archives) {
     const context = await requireActiveUser();
