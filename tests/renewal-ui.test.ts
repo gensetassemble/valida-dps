@@ -30,6 +30,9 @@ describe("renewal interaction contracts", () => {
       ),
     );
     expect(url.origin).toBe("https://outlook.office.com");
+    expect(url.href).not.toContain("+");
+    expect(url.href).toContain("%20");
+    expect(decodeURIComponent(url.search.split("body=")[1])).toBe("Yth. PIC,\nObjek A&B\nTerima kasih");
     expect(url.searchParams.get("to")).toBe("pic+qa@example.invalid");
     expect(url.searchParams.get("subject")).toBe("Penawaran A & B? #1");
     expect(url.searchParams.get("body")).toBe(

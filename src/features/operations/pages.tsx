@@ -36,13 +36,17 @@ export async function OperationList({
   if (!c) return <AccessDenied />;
   return (
     <>
+      {entity === "sertifikat-klien" && <div className="mb-3">
+        <h1 className="text-2xl font-bold tracking-tight text-brand-navy">Sertifikat Klien</h1>
+        <p className="mt-1 text-xs text-muted-foreground">Arsip bertahap · PIC [UJI] untuk pengujian internal.</p>
+      </div>}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {entity === "kalibrasi-alat" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",
           ) && <EquipmentRequestForm branch={c.branch} />}
         {c.canWrite &&
-          !["kompetensi-personil", "kalibrasi-alat"].includes(entity) && (
+          !["kompetensi-personil", "kalibrasi-alat", "sertifikat-klien"].includes(entity) && (
             <Button asChild>
               <Link href={"/" + entity + "/baru?branch=" + c.branch}>
                 Tambah rekaman
@@ -93,16 +97,13 @@ export async function OperationList({
         <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>
       </nav>}
       <OperationalFilters entity={entity} branch={c.branch} params={params} />
-      {entity === "sertifikat-klien" && <p className="mb-4 rounded-lg border border-border bg-white px-4 py-3 text-xs leading-5 text-muted-foreground">
-        Arsip diisi bertahap dan belum mencakup seluruh sertifikat cabang. PIC berlabel [UJI] adalah penerima pengujian internal, bukan PIC resmi perusahaan.
-      </p>}
       {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
         <WorkflowOverview
           kind={entity === "kalibrasi-alat" ? "calibration" : "personnel"}
           branch={c.branch}
         />
       )}
-      <MasterPage entity={entity} params={params} />
+      {entity === "sertifikat-klien" ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
     </>
   );
 }
@@ -204,11 +205,7 @@ export async function OperationDetail({
     await redirectResetCertificate(entity, c.branch, id);
     notFound();
   }
-  const canEditRow =
-    c.canWrite &&
-    (entity !== "sertifikat-klien" ||
-      hasPermission(c.scopes, c.branch, ["admin"]) ||
-      row.account_manager_id === c.user.id);
+  const canEditRow = c.canWrite;
   const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
   if (

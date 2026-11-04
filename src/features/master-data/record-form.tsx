@@ -90,7 +90,7 @@ function Lookup({
         setOptions(loaded);
         setStatus(
           loaded.length
-            ? "Maksimal 20 pilihan sesuai akses."
+            ? field.lookup === "wilayah" ? "Ketik nama provinsi atau kabupaten/kota untuk mencari seluruh katalog; maksimal 20 hasil ditampilkan." : "Maksimal 20 pilihan sesuai akses."
             : "Tidak ada pilihan yang dapat diakses.",
         );
       } catch (error) {
@@ -105,14 +105,14 @@ function Lookup({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [entity, field.key, branch, q, value]);
+  }, [entity, field.key, field.lookup, branch, q, value]);
   return (
     <div className="space-y-2">
       {!disabled && (
         <Input
           value={q}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Cari pilihan di server…"
+          placeholder={field.lookup === "wilayah" ? "Cari provinsi atau kabupaten/kota…" : "Cari pilihan di server…"}
           aria-label={`Cari pilihan ${field.label}`}
           maxLength={100}
         />

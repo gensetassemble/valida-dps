@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/cahyadsn/wilayah",
+  "path": "db/wilayah.sql",
+  "git_blob_sha": "182a51a9cf48935bedc1adca6d110d5659453cc1",
+  "sha256": "c4c3396d9380d4edee072af1d9dff83573b574d7cd00a6562cf82e200e954031",
+  "retrieved": "2026-11-04",
+  "provinces": 38,
+  "regencies_cities": 514,
+  "license": "MIT",
+  "note": "Names extracted as data only; upstream SQL is never executed. README cites Kepmendagri 300.2.2-2430/2025; file header cites 300.2.2-2138/2025."
+}

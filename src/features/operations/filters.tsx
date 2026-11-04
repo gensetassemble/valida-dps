@@ -81,7 +81,7 @@ export async function OperationalFilters({
         .select("id," + label)
         .eq("branch_code", branch)
         .order(label)
-        .limit(500);
+        .limit(table === "work_areas" ? 1000 : 500);
       if(entity==="sertifikat-klien") {
         q=q.eq("is_active",true);
         if(table==="clients")q=q.eq("is_example",false);
@@ -100,7 +100,7 @@ export async function OperationalFilters({
       };
     }),
   );
-  if (["kalibrasi-alat", "kompetensi-personil"].includes(entity))
+  if (["kalibrasi-alat", "kompetensi-personil", "sertifikat-klien"].includes(entity))
     return (
       <CompactOperationalFilters
         entity={entity}

@@ -1,0 +1,3314 @@
+[
+  {
+    "code": "11",
+    "name": "Aceh",
+    "province": "Aceh",
+    "label": "Aceh"
+  },
+  {
+    "code": "11.01",
+    "name": "Kabupaten Aceh Selatan",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Selatan · Aceh"
+  },
+  {
+    "code": "11.02",
+    "name": "Kabupaten Aceh Tenggara",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Tenggara · Aceh"
+  },
+  {
+    "code": "11.03",
+    "name": "Kabupaten Aceh Timur",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Timur · Aceh"
+  },
+  {
+    "code": "11.04",
+    "name": "Kabupaten Aceh Tengah",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Tengah · Aceh"
+  },
+  {
+    "code": "11.05",
+    "name": "Kabupaten Aceh Barat",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Barat · Aceh"
+  },
+  {
+    "code": "11.06",
+    "name": "Kabupaten Aceh Besar",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Besar · Aceh"
+  },
+  {
+    "code": "11.07",
+    "name": "Kabupaten Pidie",
+    "province": "Aceh",
+    "label": "Kabupaten Pidie · Aceh"
+  },
+  {
+    "code": "11.08",
+    "name": "Kabupaten Aceh Utara",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Utara · Aceh"
+  },
+  {
+    "code": "11.09",
+    "name": "Kabupaten Simeulue",
+    "province": "Aceh",
+    "label": "Kabupaten Simeulue · Aceh"
+  },
+  {
+    "code": "11.10",
+    "name": "Kabupaten Aceh Singkil",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Singkil · Aceh"
+  },
+  {
+    "code": "11.11",
+    "name": "Kabupaten Bireuen",
+    "province": "Aceh",
+    "label": "Kabupaten Bireuen · Aceh"
+  },
+  {
+    "code": "11.12",
+    "name": "Kabupaten Aceh Barat Daya",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Barat Daya · Aceh"
+  },
+  {
+    "code": "11.13",
+    "name": "Kabupaten Gayo Lues",
+    "province": "Aceh",
+    "label": "Kabupaten Gayo Lues · Aceh"
+  },
+  {
+    "code": "11.14",
+    "name": "Kabupaten Aceh Jaya",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Jaya · Aceh"
+  },
+  {
+    "code": "11.15",
+    "name": "Kabupaten Nagan Raya",
+    "province": "Aceh",
+    "label": "Kabupaten Nagan Raya · Aceh"
+  },
+  {
+    "code": "11.16",
+    "name": "Kabupaten Aceh Tamiang",
+    "province": "Aceh",
+    "label": "Kabupaten Aceh Tamiang · Aceh"
+  },
+  {
+    "code": "11.17",
+    "name": "Kabupaten Bener Meriah",
+    "province": "Aceh",
+    "label": "Kabupaten Bener Meriah · Aceh"
+  },
+  {
+    "code": "11.18",
+    "name": "Kabupaten Pidie Jaya",
+    "province": "Aceh",
+    "label": "Kabupaten Pidie Jaya · Aceh"
+  },
+  {
+    "code": "11.71",
+    "name": "Kota Banda Aceh",
+    "province": "Aceh",
+    "label": "Kota Banda Aceh · Aceh"
+  },
+  {
+    "code": "11.72",
+    "name": "Kota Sabang",
+    "province": "Aceh",
+    "label": "Kota Sabang · Aceh"
+  },
+  {
+    "code": "11.73",
+    "name": "Kota Lhokseumawe",
+    "province": "Aceh",
+    "label": "Kota Lhokseumawe · Aceh"
+  },
+  {
+    "code": "11.74",
+    "name": "Kota Langsa",
+    "province": "Aceh",
+    "label": "Kota Langsa · Aceh"
+  },
+  {
+    "code": "11.75",
+    "name": "Kota Subulussalam",
+    "province": "Aceh",
+    "label": "Kota Subulussalam · Aceh"
+  },
+  {
+    "code": "12",
+    "name": "Sumatera Utara",
+    "province": "Sumatera Utara",
+    "label": "Sumatera Utara"
+  },
+  {
+    "code": "12.01",
+    "name": "Kabupaten Tapanuli Tengah",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Tapanuli Tengah · Sumatera Utara"
+  },
+  {
+    "code": "12.02",
+    "name": "Kabupaten Tapanuli Utara",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Tapanuli Utara · Sumatera Utara"
+  },
+  {
+    "code": "12.03",
+    "name": "Kabupaten Tapanuli Selatan",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Tapanuli Selatan · Sumatera Utara"
+  },
+  {
+    "code": "12.04",
+    "name": "Kabupaten Nias",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Nias · Sumatera Utara"
+  },
+  {
+    "code": "12.05",
+    "name": "Kabupaten Langkat",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Langkat · Sumatera Utara"
+  },
+  {
+    "code": "12.06",
+    "name": "Kabupaten Karo",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Karo · Sumatera Utara"
+  },
+  {
+    "code": "12.07",
+    "name": "Kabupaten Deli Serdang",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Deli Serdang · Sumatera Utara"
+  },
+  {
+    "code": "12.08",
+    "name": "Kabupaten Simalungun",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Simalungun · Sumatera Utara"
+  },
+  {
+    "code": "12.09",
+    "name": "Kabupaten Asahan",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Asahan · Sumatera Utara"
+  },
+  {
+    "code": "12.10",
+    "name": "Kabupaten Labuhanbatu",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Labuhanbatu · Sumatera Utara"
+  },
+  {
+    "code": "12.11",
+    "name": "Kabupaten Dairi",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Dairi · Sumatera Utara"
+  },
+  {
+    "code": "12.12",
+    "name": "Kabupaten Toba",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Toba · Sumatera Utara"
+  },
+  {
+    "code": "12.13",
+    "name": "Kabupaten Mandailing Natal",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Mandailing Natal · Sumatera Utara"
+  },
+  {
+    "code": "12.14",
+    "name": "Kabupaten Nias Selatan",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Nias Selatan · Sumatera Utara"
+  },
+  {
+    "code": "12.15",
+    "name": "Kabupaten Pakpak Bharat",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Pakpak Bharat · Sumatera Utara"
+  },
+  {
+    "code": "12.16",
+    "name": "Kabupaten Humbang Hasundutan",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Humbang Hasundutan · Sumatera Utara"
+  },
+  {
+    "code": "12.17",
+    "name": "Kabupaten Samosir",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Samosir · Sumatera Utara"
+  },
+  {
+    "code": "12.18",
+    "name": "Kabupaten Serdang Bedagai",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Serdang Bedagai · Sumatera Utara"
+  },
+  {
+    "code": "12.19",
+    "name": "Kabupaten Batu Bara",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Batu Bara · Sumatera Utara"
+  },
+  {
+    "code": "12.20",
+    "name": "Kabupaten Padang Lawas Utara",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Padang Lawas Utara · Sumatera Utara"
+  },
+  {
+    "code": "12.21",
+    "name": "Kabupaten Padang Lawas",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Padang Lawas · Sumatera Utara"
+  },
+  {
+    "code": "12.22",
+    "name": "Kabupaten Labuhanbatu Selatan",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Labuhanbatu Selatan · Sumatera Utara"
+  },
+  {
+    "code": "12.23",
+    "name": "Kabupaten Labuhanbatu Utara",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Labuhanbatu Utara · Sumatera Utara"
+  },
+  {
+    "code": "12.24",
+    "name": "Kabupaten Nias Utara",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Nias Utara · Sumatera Utara"
+  },
+  {
+    "code": "12.25",
+    "name": "Kabupaten Nias Barat",
+    "province": "Sumatera Utara",
+    "label": "Kabupaten Nias Barat · Sumatera Utara"
+  },
+  {
+    "code": "12.71",
+    "name": "Kota Medan",
+    "province": "Sumatera Utara",
+    "label": "Kota Medan · Sumatera Utara"
+  },
+  {
+    "code": "12.72",
+    "name": "Kota Pematangsiantar",
+    "province": "Sumatera Utara",
+    "label": "Kota Pematangsiantar · Sumatera Utara"
+  },
+  {
+    "code": "12.73",
+    "name": "Kota Sibolga",
+    "province": "Sumatera Utara",
+    "label": "Kota Sibolga · Sumatera Utara"
+  },
+  {
+    "code": "12.74",
+    "name": "Kota Tanjungbalai",
+    "province": "Sumatera Utara",
+    "label": "Kota Tanjungbalai · Sumatera Utara"
+  },
+  {
+    "code": "12.75",
+    "name": "Kota Binjai",
+    "province": "Sumatera Utara",
+    "label": "Kota Binjai · Sumatera Utara"
+  },
+  {
+    "code": "12.76",
+    "name": "Kota Tebing Tinggi",
+    "province": "Sumatera Utara",
+    "label": "Kota Tebing Tinggi · Sumatera Utara"
+  },
+  {
+    "code": "12.77",
+    "name": "Kota Padangsidimpuan",
+    "province": "Sumatera Utara",
+    "label": "Kota Padangsidimpuan · Sumatera Utara"
+  },
+  {
+    "code": "12.78",
+    "name": "Kota Gunungsitoli",
+    "province": "Sumatera Utara",
+    "label": "Kota Gunungsitoli · Sumatera Utara"
+  },
+  {
+    "code": "13",
+    "name": "Sumatera Barat",
+    "province": "Sumatera Barat",
+    "label": "Sumatera Barat"
+  },
+  {
+    "code": "13.01",
+    "name": "Kabupaten Pesisir Selatan",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Pesisir Selatan · Sumatera Barat"
+  },
+  {
+    "code": "13.02",
+    "name": "Kabupaten Solok",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Solok · Sumatera Barat"
+  },
+  {
+    "code": "13.03",
+    "name": "Kabupaten Sijunjung",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Sijunjung · Sumatera Barat"
+  },
+  {
+    "code": "13.04",
+    "name": "Kabupaten Tanah Datar",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Tanah Datar · Sumatera Barat"
+  },
+  {
+    "code": "13.05",
+    "name": "Kabupaten Padang Pariaman",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Padang Pariaman · Sumatera Barat"
+  },
+  {
+    "code": "13.06",
+    "name": "Kabupaten Agam",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Agam · Sumatera Barat"
+  },
+  {
+    "code": "13.07",
+    "name": "Kabupaten Lima Puluh Kota",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Lima Puluh Kota · Sumatera Barat"
+  },
+  {
+    "code": "13.08",
+    "name": "Kabupaten Pasaman",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Pasaman · Sumatera Barat"
+  },
+  {
+    "code": "13.09",
+    "name": "Kabupaten Kepulauan Mentawai",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Kepulauan Mentawai · Sumatera Barat"
+  },
+  {
+    "code": "13.10",
+    "name": "Kabupaten Dharmasraya",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Dharmasraya · Sumatera Barat"
+  },
+  {
+    "code": "13.11",
+    "name": "Kabupaten Solok Selatan",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Solok Selatan · Sumatera Barat"
+  },
+  {
+    "code": "13.12",
+    "name": "Kabupaten Pasaman Barat",
+    "province": "Sumatera Barat",
+    "label": "Kabupaten Pasaman Barat · Sumatera Barat"
+  },
+  {
+    "code": "13.71",
+    "name": "Kota Padang",
+    "province": "Sumatera Barat",
+    "label": "Kota Padang · Sumatera Barat"
+  },
+  {
+    "code": "13.72",
+    "name": "Kota Solok",
+    "province": "Sumatera Barat",
+    "label": "Kota Solok · Sumatera Barat"
+  },
+  {
+    "code": "13.73",
+    "name": "Kota Sawahlunto",
+    "province": "Sumatera Barat",
+    "label": "Kota Sawahlunto · Sumatera Barat"
+  },
+  {
+    "code": "13.74",
+    "name": "Kota Padang Panjang",
+    "province": "Sumatera Barat",
+    "label": "Kota Padang Panjang · Sumatera Barat"
+  },
+  {
+    "code": "13.75",
+    "name": "Kota Bukittinggi",
+    "province": "Sumatera Barat",
+    "label": "Kota Bukittinggi · Sumatera Barat"
+  },
+  {
+    "code": "13.76",
+    "name": "Kota Payakumbuh",
+    "province": "Sumatera Barat",
+    "label": "Kota Payakumbuh · Sumatera Barat"
+  },
+  {
+    "code": "13.77",
+    "name": "Kota Pariaman",
+    "province": "Sumatera Barat",
+    "label": "Kota Pariaman · Sumatera Barat"
+  },
+  {
+    "code": "14",
+    "name": "Riau",
+    "province": "Riau",
+    "label": "Riau"
+  },
+  {
+    "code": "14.01",
+    "name": "Kabupaten Kampar",
+    "province": "Riau",
+    "label": "Kabupaten Kampar · Riau"
+  },
+  {
+    "code": "14.02",
+    "name": "Kabupaten Indragiri Hulu",
+    "province": "Riau",
+    "label": "Kabupaten Indragiri Hulu · Riau"
+  },
+  {
+    "code": "14.03",
+    "name": "Kabupaten Bengkalis",
+    "province": "Riau",
+    "label": "Kabupaten Bengkalis · Riau"
+  },
+  {
+    "code": "14.04",
+    "name": "Kabupaten Indragiri Hilir",
+    "province": "Riau",
+    "label": "Kabupaten Indragiri Hilir · Riau"
+  },
+  {
+    "code": "14.05",
+    "name": "Kabupaten Pelalawan",
+    "province": "Riau",
+    "label": "Kabupaten Pelalawan · Riau"
+  },
+  {
+    "code": "14.06",
+    "name": "Kabupaten Rokan Hulu",
+    "province": "Riau",
+    "label": "Kabupaten Rokan Hulu · Riau"
+  },
+  {
+    "code": "14.07",
+    "name": "Kabupaten Rokan Hilir",
+    "province": "Riau",
+    "label": "Kabupaten Rokan Hilir · Riau"
+  },
+  {
+    "code": "14.08",
+    "name": "Kabupaten Siak",
+    "province": "Riau",
+    "label": "Kabupaten Siak · Riau"
+  },
+  {
+    "code": "14.09",
+    "name": "Kabupaten Kuantan Singingi",
+    "province": "Riau",
+    "label": "Kabupaten Kuantan Singingi · Riau"
+  },
+  {
+    "code": "14.10",
+    "name": "Kabupaten Kepulauan Meranti",
+    "province": "Riau",
+    "label": "Kabupaten Kepulauan Meranti · Riau"
+  },
+  {
+    "code": "14.71",
+    "name": "Kota Pekanbaru",
+    "province": "Riau",
+    "label": "Kota Pekanbaru · Riau"
+  },
+  {
+    "code": "14.72",
+    "name": "Kota Dumai",
+    "province": "Riau",
+    "label": "Kota Dumai · Riau"
+  },
+  {
+    "code": "15",
+    "name": "Jambi",
+    "province": "Jambi",
+    "label": "Jambi"
+  },
+  {
+    "code": "15.01",
+    "name": "Kabupaten Kerinci",
+    "province": "Jambi",
+    "label": "Kabupaten Kerinci · Jambi"
+  },
+  {
+    "code": "15.02",
+    "name": "Kabupaten Merangin",
+    "province": "Jambi",
+    "label": "Kabupaten Merangin · Jambi"
+  },
+  {
+    "code": "15.03",
+    "name": "Kabupaten Sarolangun",
+    "province": "Jambi",
+    "label": "Kabupaten Sarolangun · Jambi"
+  },
+  {
+    "code": "15.04",
+    "name": "Kabupaten Batanghari",
+    "province": "Jambi",
+    "label": "Kabupaten Batanghari · Jambi"
+  },
+  {
+    "code": "15.05",
+    "name": "Kabupaten Muaro Jambi",
+    "province": "Jambi",
+    "label": "Kabupaten Muaro Jambi · Jambi"
+  },
+  {
+    "code": "15.06",
+    "name": "Kabupaten Tanjung Jabung Barat",
+    "province": "Jambi",
+    "label": "Kabupaten Tanjung Jabung Barat · Jambi"
+  },
+  {
+    "code": "15.07",
+    "name": "Kabupaten Tanjung Jabung Timur",
+    "province": "Jambi",
+    "label": "Kabupaten Tanjung Jabung Timur · Jambi"
+  },
+  {
+    "code": "15.08",
+    "name": "Kabupaten Bungo",
+    "province": "Jambi",
+    "label": "Kabupaten Bungo · Jambi"
+  },
+  {
+    "code": "15.09",
+    "name": "Kabupaten Tebo",
+    "province": "Jambi",
+    "label": "Kabupaten Tebo · Jambi"
+  },
+  {
+    "code": "15.71",
+    "name": "Kota Jambi",
+    "province": "Jambi",
+    "label": "Kota Jambi · Jambi"
+  },
+  {
+    "code": "15.72",
+    "name": "Kota Sungai Penuh",
+    "province": "Jambi",
+    "label": "Kota Sungai Penuh · Jambi"
+  },
+  {
+    "code": "16",
+    "name": "Sumatera Selatan",
+    "province": "Sumatera Selatan",
+    "label": "Sumatera Selatan"
+  },
+  {
+    "code": "16.01",
+    "name": "Kabupaten Ogan Komering Ulu",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Ogan Komering Ulu · Sumatera Selatan"
+  },
+  {
+    "code": "16.02",
+    "name": "Kabupaten Ogan Komering Ilir",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Ogan Komering Ilir · Sumatera Selatan"
+  },
+  {
+    "code": "16.03",
+    "name": "Kabupaten Muara Enim",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Muara Enim · Sumatera Selatan"
+  },
+  {
+    "code": "16.04",
+    "name": "Kabupaten Lahat",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Lahat · Sumatera Selatan"
+  },
+  {
+    "code": "16.05",
+    "name": "Kabupaten Musi Rawas",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Musi Rawas · Sumatera Selatan"
+  },
+  {
+    "code": "16.06",
+    "name": "Kabupaten Musi Banyuasin",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Musi Banyuasin · Sumatera Selatan"
+  },
+  {
+    "code": "16.07",
+    "name": "Kabupaten Banyuasin",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Banyuasin · Sumatera Selatan"
+  },
+  {
+    "code": "16.08",
+    "name": "Kabupaten Ogan Komering Ulu Timur",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Ogan Komering Ulu Timur · Sumatera Selatan"
+  },
+  {
+    "code": "16.09",
+    "name": "Kabupaten Ogan Komering Ulu Selatan",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Ogan Komering Ulu Selatan · Sumatera Selatan"
+  },
+  {
+    "code": "16.10",
+    "name": "Kabupaten Ogan Ilir",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Ogan Ilir · Sumatera Selatan"
+  },
+  {
+    "code": "16.11",
+    "name": "Kabupaten Empat Lawang",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Empat Lawang · Sumatera Selatan"
+  },
+  {
+    "code": "16.12",
+    "name": "Kabupaten Penukal Abab Lematang Ilir",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Penukal Abab Lematang Ilir · Sumatera Selatan"
+  },
+  {
+    "code": "16.13",
+    "name": "Kabupaten Musi Rawas Utara",
+    "province": "Sumatera Selatan",
+    "label": "Kabupaten Musi Rawas Utara · Sumatera Selatan"
+  },
+  {
+    "code": "16.71",
+    "name": "Kota Palembang",
+    "province": "Sumatera Selatan",
+    "label": "Kota Palembang · Sumatera Selatan"
+  },
+  {
+    "code": "16.72",
+    "name": "Kota Pagar Alam",
+    "province": "Sumatera Selatan",
+    "label": "Kota Pagar Alam · Sumatera Selatan"
+  },
+  {
+    "code": "16.73",
+    "name": "Kota Lubuk Linggau",
+    "province": "Sumatera Selatan",
+    "label": "Kota Lubuk Linggau · Sumatera Selatan"
+  },
+  {
+    "code": "16.74",
+    "name": "Kota Prabumulih",
+    "province": "Sumatera Selatan",
+    "label": "Kota Prabumulih · Sumatera Selatan"
+  },
+  {
+    "code": "17",
+    "name": "Bengkulu",
+    "province": "Bengkulu",
+    "label": "Bengkulu"
+  },
+  {
+    "code": "17.01",
+    "name": "Kabupaten Bengkulu Selatan",
+    "province": "Bengkulu",
+    "label": "Kabupaten Bengkulu Selatan · Bengkulu"
+  },
+  {
+    "code": "17.02",
+    "name": "Kabupaten Rejang Lebong",
+    "province": "Bengkulu",
+    "label": "Kabupaten Rejang Lebong · Bengkulu"
+  },
+  {
+    "code": "17.03",
+    "name": "Kabupaten Bengkulu Utara",
+    "province": "Bengkulu",
+    "label": "Kabupaten Bengkulu Utara · Bengkulu"
+  },
+  {
+    "code": "17.04",
+    "name": "Kabupaten Kaur",
+    "province": "Bengkulu",
+    "label": "Kabupaten Kaur · Bengkulu"
+  },
+  {
+    "code": "17.05",
+    "name": "Kabupaten Seluma",
+    "province": "Bengkulu",
+    "label": "Kabupaten Seluma · Bengkulu"
+  },
+  {
+    "code": "17.06",
+    "name": "Kabupaten Mukomuko",
+    "province": "Bengkulu",
+    "label": "Kabupaten Mukomuko · Bengkulu"
+  },
+  {
+    "code": "17.07",
+    "name": "Kabupaten Lebong",
+    "province": "Bengkulu",
+    "label": "Kabupaten Lebong · Bengkulu"
+  },
+  {
+    "code": "17.08",
+    "name": "Kabupaten Kepahiang",
+    "province": "Bengkulu",
+    "label": "Kabupaten Kepahiang · Bengkulu"
+  },
+  {
+    "code": "17.09",
+    "name": "Kabupaten Bengkulu Tengah",
+    "province": "Bengkulu",
+    "label": "Kabupaten Bengkulu Tengah · Bengkulu"
+  },
+  {
+    "code": "17.71",
+    "name": "Kota Bengkulu",
+    "province": "Bengkulu",
+    "label": "Kota Bengkulu · Bengkulu"
+  },
+  {
+    "code": "18",
+    "name": "Lampung",
+    "province": "Lampung",
+    "label": "Lampung"
+  },
+  {
+    "code": "18.01",
+    "name": "Kabupaten Lampung Selatan",
+    "province": "Lampung",
+    "label": "Kabupaten Lampung Selatan · Lampung"
+  },
+  {
+    "code": "18.02",
+    "name": "Kabupaten Lampung Tengah",
+    "province": "Lampung",
+    "label": "Kabupaten Lampung Tengah · Lampung"
+  },
+  {
+    "code": "18.03",
+    "name": "Kabupaten Lampung Utara",
+    "province": "Lampung",
+    "label": "Kabupaten Lampung Utara · Lampung"
+  },
+  {
+    "code": "18.04",
+    "name": "Kabupaten Lampung Barat",
+    "province": "Lampung",
+    "label": "Kabupaten Lampung Barat · Lampung"
+  },
+  {
+    "code": "18.05",
+    "name": "Kabupaten Tulang Bawang",
+    "province": "Lampung",
+    "label": "Kabupaten Tulang Bawang · Lampung"
+  },
+  {
+    "code": "18.06",
+    "name": "Kabupaten Tanggamus",
+    "province": "Lampung",
+    "label": "Kabupaten Tanggamus · Lampung"
+  },
+  {
+    "code": "18.07",
+    "name": "Kabupaten Lampung Timur",
+    "province": "Lampung",
+    "label": "Kabupaten Lampung Timur · Lampung"
+  },
+  {
+    "code": "18.08",
+    "name": "Kabupaten Way Kanan",
+    "province": "Lampung",
+    "label": "Kabupaten Way Kanan · Lampung"
+  },
+  {
+    "code": "18.09",
+    "name": "Kabupaten Pesawaran",
+    "province": "Lampung",
+    "label": "Kabupaten Pesawaran · Lampung"
+  },
+  {
+    "code": "18.10",
+    "name": "Kabupaten Pringsewu",
+    "province": "Lampung",
+    "label": "Kabupaten Pringsewu · Lampung"
+  },
+  {
+    "code": "18.11",
+    "name": "Kabupaten Mesuji",
+    "province": "Lampung",
+    "label": "Kabupaten Mesuji · Lampung"
+  },
+  {
+    "code": "18.12",
+    "name": "Kabupaten Tulang Bawang Barat",
+    "province": "Lampung",
+    "label": "Kabupaten Tulang Bawang Barat · Lampung"
+  },
+  {
+    "code": "18.13",
+    "name": "Kabupaten Pesisir Barat",
+    "province": "Lampung",
+    "label": "Kabupaten Pesisir Barat · Lampung"
+  },
+  {
+    "code": "18.71",
+    "name": "Kota Bandar Lampung",
+    "province": "Lampung",
+    "label": "Kota Bandar Lampung · Lampung"
+  },
+  {
+    "code": "18.72",
+    "name": "Kota Metro",
+    "province": "Lampung",
+    "label": "Kota Metro · Lampung"
+  },
+  {
+    "code": "19",
+    "name": "Kepulauan Bangka Belitung",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.01",
+    "name": "Kabupaten Bangka",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kabupaten Bangka · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.02",
+    "name": "Kabupaten Belitung",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kabupaten Belitung · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.03",
+    "name": "Kabupaten Bangka Selatan",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kabupaten Bangka Selatan · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.04",
+    "name": "Kabupaten Bangka Tengah",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kabupaten Bangka Tengah · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.05",
+    "name": "Kabupaten Bangka Barat",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kabupaten Bangka Barat · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.06",
+    "name": "Kabupaten Belitung Timur",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kabupaten Belitung Timur · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "19.71",
+    "name": "Kota Pangkal Pinang",
+    "province": "Kepulauan Bangka Belitung",
+    "label": "Kota Pangkal Pinang · Kepulauan Bangka Belitung"
+  },
+  {
+    "code": "21",
+    "name": "Kepulauan Riau",
+    "province": "Kepulauan Riau",
+    "label": "Kepulauan Riau"
+  },
+  {
+    "code": "21.01",
+    "name": "Kabupaten Bintan",
+    "province": "Kepulauan Riau",
+    "label": "Kabupaten Bintan · Kepulauan Riau"
+  },
+  {
+    "code": "21.02",
+    "name": "Kabupaten Karimun",
+    "province": "Kepulauan Riau",
+    "label": "Kabupaten Karimun · Kepulauan Riau"
+  },
+  {
+    "code": "21.03",
+    "name": "Kabupaten Natuna",
+    "province": "Kepulauan Riau",
+    "label": "Kabupaten Natuna · Kepulauan Riau"
+  },
+  {
+    "code": "21.04",
+    "name": "Kabupaten Lingga",
+    "province": "Kepulauan Riau",
+    "label": "Kabupaten Lingga · Kepulauan Riau"
+  },
+  {
+    "code": "21.05",
+    "name": "Kabupaten Kepulauan Anambas",
+    "province": "Kepulauan Riau",
+    "label": "Kabupaten Kepulauan Anambas · Kepulauan Riau"
+  },
+  {
+    "code": "21.71",
+    "name": "Kota Batam",
+    "province": "Kepulauan Riau",
+    "label": "Kota Batam · Kepulauan Riau"
+  },
+  {
+    "code": "21.72",
+    "name": "Kota Tanjung Pinang",
+    "province": "Kepulauan Riau",
+    "label": "Kota Tanjung Pinang · Kepulauan Riau"
+  },
+  {
+    "code": "31",
+    "name": "Daerah Khusus Ibukota Jakarta",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "31.01",
+    "name": "Kabupaten Administrasi Kepulauan Seribu",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Kabupaten Administrasi Kepulauan Seribu · Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "31.71",
+    "name": "Kota Administrasi Jakarta Pusat",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Kota Administrasi Jakarta Pusat · Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "31.72",
+    "name": "Kota Administrasi Jakarta Utara ",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Kota Administrasi Jakarta Utara  · Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "31.73",
+    "name": "Kota Administrasi Jakarta Barat",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Kota Administrasi Jakarta Barat · Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "31.74",
+    "name": "Kota Administrasi Jakarta Selatan",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Kota Administrasi Jakarta Selatan · Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "31.75",
+    "name": "Kota Administrasi Jakarta Timur",
+    "province": "Daerah Khusus Ibukota Jakarta",
+    "label": "Kota Administrasi Jakarta Timur · Daerah Khusus Ibukota Jakarta"
+  },
+  {
+    "code": "32",
+    "name": "Jawa Barat",
+    "province": "Jawa Barat",
+    "label": "Jawa Barat"
+  },
+  {
+    "code": "32.01",
+    "name": "Kabupaten Bogor",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Bogor · Jawa Barat"
+  },
+  {
+    "code": "32.02",
+    "name": "Kabupaten Sukabumi",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Sukabumi · Jawa Barat"
+  },
+  {
+    "code": "32.03",
+    "name": "Kabupaten Cianjur",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Cianjur · Jawa Barat"
+  },
+  {
+    "code": "32.04",
+    "name": "Kabupaten Bandung",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Bandung · Jawa Barat"
+  },
+  {
+    "code": "32.05",
+    "name": "Kabupaten Garut",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Garut · Jawa Barat"
+  },
+  {
+    "code": "32.06",
+    "name": "Kabupaten Tasikmalaya",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Tasikmalaya · Jawa Barat"
+  },
+  {
+    "code": "32.07",
+    "name": "Kabupaten Ciamis",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Ciamis · Jawa Barat"
+  },
+  {
+    "code": "32.08",
+    "name": "Kabupaten Kuningan",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Kuningan · Jawa Barat"
+  },
+  {
+    "code": "32.09",
+    "name": "Kabupaten Cirebon",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Cirebon · Jawa Barat"
+  },
+  {
+    "code": "32.10",
+    "name": "Kabupaten Majalengka",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Majalengka · Jawa Barat"
+  },
+  {
+    "code": "32.11",
+    "name": "Kabupaten Sumedang",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Sumedang · Jawa Barat"
+  },
+  {
+    "code": "32.12",
+    "name": "Kabupaten Indramayu",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Indramayu · Jawa Barat"
+  },
+  {
+    "code": "32.13",
+    "name": "Kabupaten Subang",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Subang · Jawa Barat"
+  },
+  {
+    "code": "32.14",
+    "name": "Kabupaten Purwakarta",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Purwakarta · Jawa Barat"
+  },
+  {
+    "code": "32.15",
+    "name": "Kabupaten Karawang",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Karawang · Jawa Barat"
+  },
+  {
+    "code": "32.16",
+    "name": "Kabupaten Bekasi",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Bekasi · Jawa Barat"
+  },
+  {
+    "code": "32.17",
+    "name": "Kabupaten Bandung Barat",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Bandung Barat · Jawa Barat"
+  },
+  {
+    "code": "32.18",
+    "name": "Kabupaten Pangandaran",
+    "province": "Jawa Barat",
+    "label": "Kabupaten Pangandaran · Jawa Barat"
+  },
+  {
+    "code": "32.71",
+    "name": "Kota Bogor",
+    "province": "Jawa Barat",
+    "label": "Kota Bogor · Jawa Barat"
+  },
+  {
+    "code": "32.72",
+    "name": "Kota Sukabumi",
+    "province": "Jawa Barat",
+    "label": "Kota Sukabumi · Jawa Barat"
+  },
+  {
+    "code": "32.73",
+    "name": "Kota Bandung",
+    "province": "Jawa Barat",
+    "label": "Kota Bandung · Jawa Barat"
+  },
+  {
+    "code": "32.74",
+    "name": "Kota Cirebon",
+    "province": "Jawa Barat",
+    "label": "Kota Cirebon · Jawa Barat"
+  },
+  {
+    "code": "32.75",
+    "name": "Kota Bekasi",
+    "province": "Jawa Barat",
+    "label": "Kota Bekasi · Jawa Barat"
+  },
+  {
+    "code": "32.76",
+    "name": "Kota Depok",
+    "province": "Jawa Barat",
+    "label": "Kota Depok · Jawa Barat"
+  },
+  {
+    "code": "32.77",
+    "name": "Kota Cimahi",
+    "province": "Jawa Barat",
+    "label": "Kota Cimahi · Jawa Barat"
+  },
+  {
+    "code": "32.78",
+    "name": "Kota Tasikmalaya",
+    "province": "Jawa Barat",
+    "label": "Kota Tasikmalaya · Jawa Barat"
+  },
+  {
+    "code": "32.79",
+    "name": "Kota Banjar",
+    "province": "Jawa Barat",
+    "label": "Kota Banjar · Jawa Barat"
+  },
+  {
+    "code": "33",
+    "name": "Jawa Tengah",
+    "province": "Jawa Tengah",
+    "label": "Jawa Tengah"
+  },
+  {
+    "code": "33.01",
+    "name": "Kabupaten Cilacap",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Cilacap · Jawa Tengah"
+  },
+  {
+    "code": "33.02",
+    "name": "Kabupaten Banyumas",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Banyumas · Jawa Tengah"
+  },
+  {
+    "code": "33.03",
+    "name": "Kabupaten Purbalingga",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Purbalingga · Jawa Tengah"
+  },
+  {
+    "code": "33.04",
+    "name": "Kabupaten Banjarnegara",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Banjarnegara · Jawa Tengah"
+  },
+  {
+    "code": "33.05",
+    "name": "Kabupaten Kebumen",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Kebumen · Jawa Tengah"
+  },
+  {
+    "code": "33.06",
+    "name": "Kabupaten Purworejo",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Purworejo · Jawa Tengah"
+  },
+  {
+    "code": "33.07",
+    "name": "Kabupaten Wonosobo",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Wonosobo · Jawa Tengah"
+  },
+  {
+    "code": "33.08",
+    "name": "Kabupaten Magelang",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Magelang · Jawa Tengah"
+  },
+  {
+    "code": "33.09",
+    "name": "Kabupaten Boyolali",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Boyolali · Jawa Tengah"
+  },
+  {
+    "code": "33.10",
+    "name": "Kabupaten Klaten",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Klaten · Jawa Tengah"
+  },
+  {
+    "code": "33.11",
+    "name": "Kabupaten Sukoharjo",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Sukoharjo · Jawa Tengah"
+  },
+  {
+    "code": "33.12",
+    "name": "Kabupaten Wonogiri",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Wonogiri · Jawa Tengah"
+  },
+  {
+    "code": "33.13",
+    "name": "Kabupaten Karanganyar",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Karanganyar · Jawa Tengah"
+  },
+  {
+    "code": "33.14",
+    "name": "Kabupaten Sragen",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Sragen · Jawa Tengah"
+  },
+  {
+    "code": "33.15",
+    "name": "Kabupaten Grobogan",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Grobogan · Jawa Tengah"
+  },
+  {
+    "code": "33.16",
+    "name": "Kabupaten Blora",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Blora · Jawa Tengah"
+  },
+  {
+    "code": "33.17",
+    "name": "Kabupaten Rembang",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Rembang · Jawa Tengah"
+  },
+  {
+    "code": "33.18",
+    "name": "Kabupaten Pati",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Pati · Jawa Tengah"
+  },
+  {
+    "code": "33.19",
+    "name": "Kabupaten Kudus",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Kudus · Jawa Tengah"
+  },
+  {
+    "code": "33.20",
+    "name": "Kabupaten Jepara",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Jepara · Jawa Tengah"
+  },
+  {
+    "code": "33.21",
+    "name": "Kabupaten Demak",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Demak · Jawa Tengah"
+  },
+  {
+    "code": "33.22",
+    "name": "Kabupaten Semarang",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Semarang · Jawa Tengah"
+  },
+  {
+    "code": "33.23",
+    "name": "Kabupaten Temanggung",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Temanggung · Jawa Tengah"
+  },
+  {
+    "code": "33.24",
+    "name": "Kabupaten Kendal",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Kendal · Jawa Tengah"
+  },
+  {
+    "code": "33.25",
+    "name": "Kabupaten Batang",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Batang · Jawa Tengah"
+  },
+  {
+    "code": "33.26",
+    "name": "Kabupaten Pekalongan",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Pekalongan · Jawa Tengah"
+  },
+  {
+    "code": "33.27",
+    "name": "Kabupaten Pemalang",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Pemalang · Jawa Tengah"
+  },
+  {
+    "code": "33.28",
+    "name": "Kabupaten Tegal",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Tegal · Jawa Tengah"
+  },
+  {
+    "code": "33.29",
+    "name": "Kabupaten Brebes",
+    "province": "Jawa Tengah",
+    "label": "Kabupaten Brebes · Jawa Tengah"
+  },
+  {
+    "code": "33.71",
+    "name": "Kota Magelang",
+    "province": "Jawa Tengah",
+    "label": "Kota Magelang · Jawa Tengah"
+  },
+  {
+    "code": "33.72",
+    "name": "Kota Surakarta",
+    "province": "Jawa Tengah",
+    "label": "Kota Surakarta · Jawa Tengah"
+  },
+  {
+    "code": "33.73",
+    "name": "Kota Salatiga",
+    "province": "Jawa Tengah",
+    "label": "Kota Salatiga · Jawa Tengah"
+  },
+  {
+    "code": "33.74",
+    "name": "Kota Semarang",
+    "province": "Jawa Tengah",
+    "label": "Kota Semarang · Jawa Tengah"
+  },
+  {
+    "code": "33.75",
+    "name": "Kota Pekalongan",
+    "province": "Jawa Tengah",
+    "label": "Kota Pekalongan · Jawa Tengah"
+  },
+  {
+    "code": "33.76",
+    "name": "Kota Tegal",
+    "province": "Jawa Tengah",
+    "label": "Kota Tegal · Jawa Tengah"
+  },
+  {
+    "code": "34",
+    "name": "Daerah Istimewa Yogyakarta",
+    "province": "Daerah Istimewa Yogyakarta",
+    "label": "Daerah Istimewa Yogyakarta"
+  },
+  {
+    "code": "34.01",
+    "name": "Kabupaten Kulon Progo",
+    "province": "Daerah Istimewa Yogyakarta",
+    "label": "Kabupaten Kulon Progo · Daerah Istimewa Yogyakarta"
+  },
+  {
+    "code": "34.02",
+    "name": "Kabupaten Bantul",
+    "province": "Daerah Istimewa Yogyakarta",
+    "label": "Kabupaten Bantul · Daerah Istimewa Yogyakarta"
+  },
+  {
+    "code": "34.03",
+    "name": "Kabupaten Gunungkidul",
+    "province": "Daerah Istimewa Yogyakarta",
+    "label": "Kabupaten Gunungkidul · Daerah Istimewa Yogyakarta"
+  },
+  {
+    "code": "34.04",
+    "name": "Kabupaten Sleman",
+    "province": "Daerah Istimewa Yogyakarta",
+    "label": "Kabupaten Sleman · Daerah Istimewa Yogyakarta"
+  },
+  {
+    "code": "34.71",
+    "name": "Kota Yogyakarta",
+    "province": "Daerah Istimewa Yogyakarta",
+    "label": "Kota Yogyakarta · Daerah Istimewa Yogyakarta"
+  },
+  {
+    "code": "35",
+    "name": "Jawa Timur",
+    "province": "Jawa Timur",
+    "label": "Jawa Timur"
+  },
+  {
+    "code": "35.01",
+    "name": "Kabupaten Pacitan",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Pacitan · Jawa Timur"
+  },
+  {
+    "code": "35.02",
+    "name": "Kabupaten Ponorogo",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Ponorogo · Jawa Timur"
+  },
+  {
+    "code": "35.03",
+    "name": "Kabupaten Trenggalek",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Trenggalek · Jawa Timur"
+  },
+  {
+    "code": "35.04",
+    "name": "Kabupaten Tulungagung",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Tulungagung · Jawa Timur"
+  },
+  {
+    "code": "35.05",
+    "name": "Kabupaten Blitar",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Blitar · Jawa Timur"
+  },
+  {
+    "code": "35.06",
+    "name": "Kabupaten Kediri",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Kediri · Jawa Timur"
+  },
+  {
+    "code": "35.07",
+    "name": "Kabupaten Malang",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Malang · Jawa Timur"
+  },
+  {
+    "code": "35.08",
+    "name": "Kabupaten Lumajang",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Lumajang · Jawa Timur"
+  },
+  {
+    "code": "35.09",
+    "name": "Kabupaten Jember",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Jember · Jawa Timur"
+  },
+  {
+    "code": "35.10",
+    "name": "Kabupaten Banyuwangi",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Banyuwangi · Jawa Timur"
+  },
+  {
+    "code": "35.11",
+    "name": "Kabupaten Bondowoso",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Bondowoso · Jawa Timur"
+  },
+  {
+    "code": "35.12",
+    "name": "Kabupaten Situbondo",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Situbondo · Jawa Timur"
+  },
+  {
+    "code": "35.13",
+    "name": "Kabupaten Probolinggo",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Probolinggo · Jawa Timur"
+  },
+  {
+    "code": "35.14",
+    "name": "Kabupaten Pasuruan",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Pasuruan · Jawa Timur"
+  },
+  {
+    "code": "35.15",
+    "name": "Kabupaten Sidoarjo",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Sidoarjo · Jawa Timur"
+  },
+  {
+    "code": "35.16",
+    "name": "Kabupaten Mojokerto",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Mojokerto · Jawa Timur"
+  },
+  {
+    "code": "35.17",
+    "name": "Kabupaten Jombang",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Jombang · Jawa Timur"
+  },
+  {
+    "code": "35.18",
+    "name": "Kabupaten Nganjuk",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Nganjuk · Jawa Timur"
+  },
+  {
+    "code": "35.19",
+    "name": "Kabupaten Madiun",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Madiun · Jawa Timur"
+  },
+  {
+    "code": "35.20",
+    "name": "Kabupaten Magetan",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Magetan · Jawa Timur"
+  },
+  {
+    "code": "35.21",
+    "name": "Kabupaten Ngawi",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Ngawi · Jawa Timur"
+  },
+  {
+    "code": "35.22",
+    "name": "Kabupaten Bojonegoro",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Bojonegoro · Jawa Timur"
+  },
+  {
+    "code": "35.23",
+    "name": "Kabupaten Tuban",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Tuban · Jawa Timur"
+  },
+  {
+    "code": "35.24",
+    "name": "Kabupaten Lamongan",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Lamongan · Jawa Timur"
+  },
+  {
+    "code": "35.25",
+    "name": "Kabupaten Gresik",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Gresik · Jawa Timur"
+  },
+  {
+    "code": "35.26",
+    "name": "Kabupaten Bangkalan",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Bangkalan · Jawa Timur"
+  },
+  {
+    "code": "35.27",
+    "name": "Kabupaten Sampang",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Sampang · Jawa Timur"
+  },
+  {
+    "code": "35.28",
+    "name": "Kabupaten Pamekasan",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Pamekasan · Jawa Timur"
+  },
+  {
+    "code": "35.29",
+    "name": "Kabupaten Sumenep",
+    "province": "Jawa Timur",
+    "label": "Kabupaten Sumenep · Jawa Timur"
+  },
+  {
+    "code": "35.71",
+    "name": "Kota Kediri",
+    "province": "Jawa Timur",
+    "label": "Kota Kediri · Jawa Timur"
+  },
+  {
+    "code": "35.72",
+    "name": "Kota Blitar",
+    "province": "Jawa Timur",
+    "label": "Kota Blitar · Jawa Timur"
+  },
+  {
+    "code": "35.73",
+    "name": "Kota Malang",
+    "province": "Jawa Timur",
+    "label": "Kota Malang · Jawa Timur"
+  },
+  {
+    "code": "35.74",
+    "name": "Kota Probolinggo",
+    "province": "Jawa Timur",
+    "label": "Kota Probolinggo · Jawa Timur"
+  },
+  {
+    "code": "35.75",
+    "name": "Kota Pasuruan",
+    "province": "Jawa Timur",
+    "label": "Kota Pasuruan · Jawa Timur"
+  },
+  {
+    "code": "35.76",
+    "name": "Kota Mojokerto",
+    "province": "Jawa Timur",
+    "label": "Kota Mojokerto · Jawa Timur"
+  },
+  {
+    "code": "35.77",
+    "name": "Kota Madiun",
+    "province": "Jawa Timur",
+    "label": "Kota Madiun · Jawa Timur"
+  },
+  {
+    "code": "35.78",
+    "name": "Kota Surabaya",
+    "province": "Jawa Timur",
+    "label": "Kota Surabaya · Jawa Timur"
+  },
+  {
+    "code": "35.79",
+    "name": "Kota Batu",
+    "province": "Jawa Timur",
+    "label": "Kota Batu · Jawa Timur"
+  },
+  {
+    "code": "36",
+    "name": "Banten",
+    "province": "Banten",
+    "label": "Banten"
+  },
+  {
+    "code": "36.01",
+    "name": "Kabupaten Pandeglang",
+    "province": "Banten",
+    "label": "Kabupaten Pandeglang · Banten"
+  },
+  {
+    "code": "36.02",
+    "name": "Kabupaten Lebak",
+    "province": "Banten",
+    "label": "Kabupaten Lebak · Banten"
+  },
+  {
+    "code": "36.03",
+    "name": "Kabupaten Tangerang",
+    "province": "Banten",
+    "label": "Kabupaten Tangerang · Banten"
+  },
+  {
+    "code": "36.04",
+    "name": "Kabupaten Serang",
+    "province": "Banten",
+    "label": "Kabupaten Serang · Banten"
+  },
+  {
+    "code": "36.71",
+    "name": "Kota Tangerang",
+    "province": "Banten",
+    "label": "Kota Tangerang · Banten"
+  },
+  {
+    "code": "36.72",
+    "name": "Kota Cilegon",
+    "province": "Banten",
+    "label": "Kota Cilegon · Banten"
+  },
+  {
+    "code": "36.73",
+    "name": "Kota Serang",
+    "province": "Banten",
+    "label": "Kota Serang · Banten"
+  },
+  {
+    "code": "36.74",
+    "name": "Kota Tangerang Selatan",
+    "province": "Banten",
+    "label": "Kota Tangerang Selatan · Banten"
+  },
+  {
+    "code": "51",
+    "name": "Bali",
+    "province": "Bali",
+    "label": "Bali"
+  },
+  {
+    "code": "51.01",
+    "name": "Kabupaten Jembrana",
+    "province": "Bali",
+    "label": "Kabupaten Jembrana · Bali"
+  },
+  {
+    "code": "51.02",
+    "name": "Kabupaten Tabanan",
+    "province": "Bali",
+    "label": "Kabupaten Tabanan · Bali"
+  },
+  {
+    "code": "51.03",
+    "name": "Kabupaten Badung",
+    "province": "Bali",
+    "label": "Kabupaten Badung · Bali"
+  },
+  {
+    "code": "51.04",
+    "name": "Kabupaten Gianyar",
+    "province": "Bali",
+    "label": "Kabupaten Gianyar · Bali"
+  },
+  {
+    "code": "51.05",
+    "name": "Kabupaten Klungkung",
+    "province": "Bali",
+    "label": "Kabupaten Klungkung · Bali"
+  },
+  {
+    "code": "51.06",
+    "name": "Kabupaten Bangli",
+    "province": "Bali",
+    "label": "Kabupaten Bangli · Bali"
+  },
+  {
+    "code": "51.07",
+    "name": "Kabupaten Karangasem",
+    "province": "Bali",
+    "label": "Kabupaten Karangasem · Bali"
+  },
+  {
+    "code": "51.08",
+    "name": "Kabupaten Buleleng",
+    "province": "Bali",
+    "label": "Kabupaten Buleleng · Bali"
+  },
+  {
+    "code": "51.71",
+    "name": "Kota Denpasar",
+    "province": "Bali",
+    "label": "Kota Denpasar · Bali"
+  },
+  {
+    "code": "52",
+    "name": "Nusa Tenggara Barat",
+    "province": "Nusa Tenggara Barat",
+    "label": "Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.01",
+    "name": "Kabupaten Lombok Barat",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Lombok Barat · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.02",
+    "name": "Kabupaten Lombok Tengah",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Lombok Tengah · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.03",
+    "name": "Kabupaten Lombok Timur",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Lombok Timur · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.04",
+    "name": "Kabupaten Sumbawa",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Sumbawa · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.05",
+    "name": "Kabupaten Dompu",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Dompu · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.06",
+    "name": "Kabupaten Bima",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Bima · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.07",
+    "name": "Kabupaten Sumbawa Barat",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Sumbawa Barat · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.08",
+    "name": "Kabupaten Lombok Utara",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kabupaten Lombok Utara · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.71",
+    "name": "Kota Mataram",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kota Mataram · Nusa Tenggara Barat"
+  },
+  {
+    "code": "52.72",
+    "name": "Kota Bima",
+    "province": "Nusa Tenggara Barat",
+    "label": "Kota Bima · Nusa Tenggara Barat"
+  },
+  {
+    "code": "53",
+    "name": "Nusa Tenggara Timur",
+    "province": "Nusa Tenggara Timur",
+    "label": "Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.01",
+    "name": "Kabupaten Kupang",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Kupang · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.02",
+    "name": "Kabupaten Timor Tengah Selatan",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Timor Tengah Selatan · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.03",
+    "name": "Kabupaten Timor Tengah Utara",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Timor Tengah Utara · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.04",
+    "name": "Kabupaten Belu",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Belu · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.05",
+    "name": "Kabupaten Alor",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Alor · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.06",
+    "name": "Kabupaten Flores Timur",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Flores Timur · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.07",
+    "name": "Kabupaten Sikka",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Sikka · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.08",
+    "name": "Kabupaten Ende",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Ende · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.09",
+    "name": "Kabupaten Ngada",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Ngada · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.10",
+    "name": "Kabupaten Manggarai",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Manggarai · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.11",
+    "name": "Kabupaten Sumba Timur",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Sumba Timur · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.12",
+    "name": "Kabupaten Sumba Barat",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Sumba Barat · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.13",
+    "name": "Kabupaten Lembata",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Lembata · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.14",
+    "name": "Kabupaten Rote Ndao",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Rote Ndao · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.15",
+    "name": "Kabupaten Manggarai Barat",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Manggarai Barat · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.16",
+    "name": "Kabupaten Nagekeo",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Nagekeo · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.17",
+    "name": "Kabupaten Sumba Tengah",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Sumba Tengah · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.18",
+    "name": "Kabupaten Sumba Barat Daya",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Sumba Barat Daya · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.19",
+    "name": "Kabupaten Manggarai Timur",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Manggarai Timur · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.20",
+    "name": "Kabupaten Sabu Raijua",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Sabu Raijua · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.21",
+    "name": "Kabupaten Malaka",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kabupaten Malaka · Nusa Tenggara Timur"
+  },
+  {
+    "code": "53.71",
+    "name": "Kota Kupang",
+    "province": "Nusa Tenggara Timur",
+    "label": "Kota Kupang · Nusa Tenggara Timur"
+  },
+  {
+    "code": "61",
+    "name": "Kalimantan Barat",
+    "province": "Kalimantan Barat",
+    "label": "Kalimantan Barat"
+  },
+  {
+    "code": "61.01",
+    "name": "Kabupaten Sambas",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Sambas · Kalimantan Barat"
+  },
+  {
+    "code": "61.02",
+    "name": "Kabupaten Mempawah",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Mempawah · Kalimantan Barat"
+  },
+  {
+    "code": "61.03",
+    "name": "Kabupaten Sanggau",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Sanggau · Kalimantan Barat"
+  },
+  {
+    "code": "61.04",
+    "name": "Kabupaten Ketapang",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Ketapang · Kalimantan Barat"
+  },
+  {
+    "code": "61.05",
+    "name": "Kabupaten Sintang",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Sintang · Kalimantan Barat"
+  },
+  {
+    "code": "61.06",
+    "name": "Kabupaten Kapuas Hulu",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Kapuas Hulu · Kalimantan Barat"
+  },
+  {
+    "code": "61.07",
+    "name": "Kabupaten Bengkayang",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Bengkayang · Kalimantan Barat"
+  },
+  {
+    "code": "61.08",
+    "name": "Kabupaten Landak",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Landak · Kalimantan Barat"
+  },
+  {
+    "code": "61.09",
+    "name": "Kabupaten Sekadau",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Sekadau · Kalimantan Barat"
+  },
+  {
+    "code": "61.10",
+    "name": "Kabupaten Melawi",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Melawi · Kalimantan Barat"
+  },
+  {
+    "code": "61.11",
+    "name": "Kabupaten Kayong Utara",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Kayong Utara · Kalimantan Barat"
+  },
+  {
+    "code": "61.12",
+    "name": "Kabupaten Kubu Raya",
+    "province": "Kalimantan Barat",
+    "label": "Kabupaten Kubu Raya · Kalimantan Barat"
+  },
+  {
+    "code": "61.71",
+    "name": "Kota Pontianak",
+    "province": "Kalimantan Barat",
+    "label": "Kota Pontianak · Kalimantan Barat"
+  },
+  {
+    "code": "61.72",
+    "name": "Kota Singkawang",
+    "province": "Kalimantan Barat",
+    "label": "Kota Singkawang · Kalimantan Barat"
+  },
+  {
+    "code": "62",
+    "name": "Kalimantan Tengah",
+    "province": "Kalimantan Tengah",
+    "label": "Kalimantan Tengah"
+  },
+  {
+    "code": "62.01",
+    "name": "Kabupaten Kotawaringin Barat",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Kotawaringin Barat · Kalimantan Tengah"
+  },
+  {
+    "code": "62.02",
+    "name": "Kabupaten Kotawaringin Timur",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Kotawaringin Timur · Kalimantan Tengah"
+  },
+  {
+    "code": "62.03",
+    "name": "Kabupaten Kapuas",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Kapuas · Kalimantan Tengah"
+  },
+  {
+    "code": "62.04",
+    "name": "Kabupaten Barito Selatan",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Barito Selatan · Kalimantan Tengah"
+  },
+  {
+    "code": "62.05",
+    "name": "Kabupaten Barito Utara",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Barito Utara · Kalimantan Tengah"
+  },
+  {
+    "code": "62.06",
+    "name": "Kabupaten Katingan",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Katingan · Kalimantan Tengah"
+  },
+  {
+    "code": "62.07",
+    "name": "Kabupaten Seruyan",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Seruyan · Kalimantan Tengah"
+  },
+  {
+    "code": "62.08",
+    "name": "Kabupaten Sukamara",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Sukamara · Kalimantan Tengah"
+  },
+  {
+    "code": "62.09",
+    "name": "Kabupaten Lamandau",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Lamandau · Kalimantan Tengah"
+  },
+  {
+    "code": "62.10",
+    "name": "Kabupaten Gunung Mas",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Gunung Mas · Kalimantan Tengah"
+  },
+  {
+    "code": "62.11",
+    "name": "Kabupaten Pulang Pisau",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Pulang Pisau · Kalimantan Tengah"
+  },
+  {
+    "code": "62.12",
+    "name": "Kabupaten Murung Raya",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Murung Raya · Kalimantan Tengah"
+  },
+  {
+    "code": "62.13",
+    "name": "Kabupaten Barito Timur",
+    "province": "Kalimantan Tengah",
+    "label": "Kabupaten Barito Timur · Kalimantan Tengah"
+  },
+  {
+    "code": "62.71",
+    "name": "Kota Palangkaraya",
+    "province": "Kalimantan Tengah",
+    "label": "Kota Palangkaraya · Kalimantan Tengah"
+  },
+  {
+    "code": "63",
+    "name": "Kalimantan Selatan",
+    "province": "Kalimantan Selatan",
+    "label": "Kalimantan Selatan"
+  },
+  {
+    "code": "63.01",
+    "name": "Kabupaten Tanah Laut",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Tanah Laut · Kalimantan Selatan"
+  },
+  {
+    "code": "63.02",
+    "name": "Kabupaten Kotabaru",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Kotabaru · Kalimantan Selatan"
+  },
+  {
+    "code": "63.03",
+    "name": "Kabupaten Banjar",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Banjar · Kalimantan Selatan"
+  },
+  {
+    "code": "63.04",
+    "name": "Kabupaten Barito Kuala",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Barito Kuala · Kalimantan Selatan"
+  },
+  {
+    "code": "63.05",
+    "name": "Kabupaten Tapin",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Tapin · Kalimantan Selatan"
+  },
+  {
+    "code": "63.06",
+    "name": "Kabupaten Hulu Sungai Selatan",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Hulu Sungai Selatan · Kalimantan Selatan"
+  },
+  {
+    "code": "63.07",
+    "name": "Kabupaten Hulu Sungai Tengah",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Hulu Sungai Tengah · Kalimantan Selatan"
+  },
+  {
+    "code": "63.08",
+    "name": "Kabupaten Hulu Sungai Utara",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Hulu Sungai Utara · Kalimantan Selatan"
+  },
+  {
+    "code": "63.09",
+    "name": "Kabupaten Tabalong",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Tabalong · Kalimantan Selatan"
+  },
+  {
+    "code": "63.10",
+    "name": "Kabupaten Tanah Bumbu",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Tanah Bumbu · Kalimantan Selatan"
+  },
+  {
+    "code": "63.11",
+    "name": "Kabupaten Balangan",
+    "province": "Kalimantan Selatan",
+    "label": "Kabupaten Balangan · Kalimantan Selatan"
+  },
+  {
+    "code": "63.71",
+    "name": "Kota Banjarmasin",
+    "province": "Kalimantan Selatan",
+    "label": "Kota Banjarmasin · Kalimantan Selatan"
+  },
+  {
+    "code": "63.72",
+    "name": "Kota Banjarbaru",
+    "province": "Kalimantan Selatan",
+    "label": "Kota Banjarbaru · Kalimantan Selatan"
+  },
+  {
+    "code": "64",
+    "name": "Kalimantan Timur",
+    "province": "Kalimantan Timur",
+    "label": "Kalimantan Timur"
+  },
+  {
+    "code": "64.01",
+    "name": "Kabupaten Paser",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Paser · Kalimantan Timur"
+  },
+  {
+    "code": "64.02",
+    "name": "Kabupaten Kutai Kartanegara",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Kutai Kartanegara · Kalimantan Timur"
+  },
+  {
+    "code": "64.03",
+    "name": "Kabupaten Berau",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Berau · Kalimantan Timur"
+  },
+  {
+    "code": "64.07",
+    "name": "Kabupaten Kutai Barat",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Kutai Barat · Kalimantan Timur"
+  },
+  {
+    "code": "64.08",
+    "name": "Kabupaten Kutai Timur",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Kutai Timur · Kalimantan Timur"
+  },
+  {
+    "code": "64.09",
+    "name": "Kabupaten Penajam Paser Utara",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Penajam Paser Utara · Kalimantan Timur"
+  },
+  {
+    "code": "64.11",
+    "name": "Kabupaten Mahakam Ulu",
+    "province": "Kalimantan Timur",
+    "label": "Kabupaten Mahakam Ulu · Kalimantan Timur"
+  },
+  {
+    "code": "64.71",
+    "name": "Kota Balikpapan",
+    "province": "Kalimantan Timur",
+    "label": "Kota Balikpapan · Kalimantan Timur"
+  },
+  {
+    "code": "64.72",
+    "name": "Kota Samarinda",
+    "province": "Kalimantan Timur",
+    "label": "Kota Samarinda · Kalimantan Timur"
+  },
+  {
+    "code": "64.74",
+    "name": "Kota Bontang",
+    "province": "Kalimantan Timur",
+    "label": "Kota Bontang · Kalimantan Timur"
+  },
+  {
+    "code": "65",
+    "name": "Kalimantan Utara",
+    "province": "Kalimantan Utara",
+    "label": "Kalimantan Utara"
+  },
+  {
+    "code": "65.01",
+    "name": "Kabupaten Bulungan",
+    "province": "Kalimantan Utara",
+    "label": "Kabupaten Bulungan · Kalimantan Utara"
+  },
+  {
+    "code": "65.02",
+    "name": "Kabupaten Malinau",
+    "province": "Kalimantan Utara",
+    "label": "Kabupaten Malinau · Kalimantan Utara"
+  },
+  {
+    "code": "65.03",
+    "name": "Kabupaten Nunukan",
+    "province": "Kalimantan Utara",
+    "label": "Kabupaten Nunukan · Kalimantan Utara"
+  },
+  {
+    "code": "65.04",
+    "name": "Kabupaten Tana Tidung",
+    "province": "Kalimantan Utara",
+    "label": "Kabupaten Tana Tidung · Kalimantan Utara"
+  },
+  {
+    "code": "65.71",
+    "name": "Kota Tarakan",
+    "province": "Kalimantan Utara",
+    "label": "Kota Tarakan · Kalimantan Utara"
+  },
+  {
+    "code": "71",
+    "name": "Sulawesi Utara",
+    "province": "Sulawesi Utara",
+    "label": "Sulawesi Utara"
+  },
+  {
+    "code": "71.01",
+    "name": "Kabupaten Bolaang Mongondow",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Bolaang Mongondow · Sulawesi Utara"
+  },
+  {
+    "code": "71.02",
+    "name": "Kabupaten Minahasa",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Minahasa · Sulawesi Utara"
+  },
+  {
+    "code": "71.03",
+    "name": "Kabupaten Kepulauan Sangihe",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Kepulauan Sangihe · Sulawesi Utara"
+  },
+  {
+    "code": "71.04",
+    "name": "Kabupaten Kepulauan Talaud",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Kepulauan Talaud · Sulawesi Utara"
+  },
+  {
+    "code": "71.05",
+    "name": "Kabupaten Minahasa Selatan",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Minahasa Selatan · Sulawesi Utara"
+  },
+  {
+    "code": "71.06",
+    "name": "Kabupaten Minahasa Utara",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Minahasa Utara · Sulawesi Utara"
+  },
+  {
+    "code": "71.07",
+    "name": "Kabupaten Minahasa Tenggara",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Minahasa Tenggara · Sulawesi Utara"
+  },
+  {
+    "code": "71.08",
+    "name": "Kabupaten Bolaang Mongondow Utara",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Bolaang Mongondow Utara · Sulawesi Utara"
+  },
+  {
+    "code": "71.09",
+    "name": "Kabupaten Kep. Siau Tagulandang Biaro",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Kep. Siau Tagulandang Biaro · Sulawesi Utara"
+  },
+  {
+    "code": "71.10",
+    "name": "Kabupaten Bolaang Mongondow Timur",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Bolaang Mongondow Timur · Sulawesi Utara"
+  },
+  {
+    "code": "71.11",
+    "name": "Kabupaten Bolaang Mongondow Selatan",
+    "province": "Sulawesi Utara",
+    "label": "Kabupaten Bolaang Mongondow Selatan · Sulawesi Utara"
+  },
+  {
+    "code": "71.71",
+    "name": "Kota Manado",
+    "province": "Sulawesi Utara",
+    "label": "Kota Manado · Sulawesi Utara"
+  },
+  {
+    "code": "71.72",
+    "name": "Kota Bitung",
+    "province": "Sulawesi Utara",
+    "label": "Kota Bitung · Sulawesi Utara"
+  },
+  {
+    "code": "71.73",
+    "name": "Kota Tomohon",
+    "province": "Sulawesi Utara",
+    "label": "Kota Tomohon · Sulawesi Utara"
+  },
+  {
+    "code": "71.74",
+    "name": "Kota Kotamobagu",
+    "province": "Sulawesi Utara",
+    "label": "Kota Kotamobagu · Sulawesi Utara"
+  },
+  {
+    "code": "72",
+    "name": "Sulawesi Tengah",
+    "province": "Sulawesi Tengah",
+    "label": "Sulawesi Tengah"
+  },
+  {
+    "code": "72.01",
+    "name": "Kabupaten Banggai",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Banggai · Sulawesi Tengah"
+  },
+  {
+    "code": "72.02",
+    "name": "Kabupaten Poso",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Poso · Sulawesi Tengah"
+  },
+  {
+    "code": "72.03",
+    "name": "Kabupaten Donggala",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Donggala · Sulawesi Tengah"
+  },
+  {
+    "code": "72.04",
+    "name": "Kabupaten Toli-Toli",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Toli-Toli · Sulawesi Tengah"
+  },
+  {
+    "code": "72.05",
+    "name": "Kabupaten Buol",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Buol · Sulawesi Tengah"
+  },
+  {
+    "code": "72.06",
+    "name": "Kabupaten Morowali",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Morowali · Sulawesi Tengah"
+  },
+  {
+    "code": "72.07",
+    "name": "Kabupaten Banggai Kepulauan",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Banggai Kepulauan · Sulawesi Tengah"
+  },
+  {
+    "code": "72.08",
+    "name": "Kabupaten Parigi Moutong",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Parigi Moutong · Sulawesi Tengah"
+  },
+  {
+    "code": "72.09",
+    "name": "Kabupaten Tojo Una Una",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Tojo Una Una · Sulawesi Tengah"
+  },
+  {
+    "code": "72.10",
+    "name": "Kabupaten Sigi",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Sigi · Sulawesi Tengah"
+  },
+  {
+    "code": "72.11",
+    "name": "Kabupaten Banggai Laut",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Banggai Laut · Sulawesi Tengah"
+  },
+  {
+    "code": "72.12",
+    "name": "Kabupaten Morowali Utara",
+    "province": "Sulawesi Tengah",
+    "label": "Kabupaten Morowali Utara · Sulawesi Tengah"
+  },
+  {
+    "code": "72.71",
+    "name": "Kota Palu",
+    "province": "Sulawesi Tengah",
+    "label": "Kota Palu · Sulawesi Tengah"
+  },
+  {
+    "code": "73",
+    "name": "Sulawesi Selatan",
+    "province": "Sulawesi Selatan",
+    "label": "Sulawesi Selatan"
+  },
+  {
+    "code": "73.01",
+    "name": "Kabupaten Kepulauan Selayar",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Kepulauan Selayar · Sulawesi Selatan"
+  },
+  {
+    "code": "73.02",
+    "name": "Kabupaten Bulukumba",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Bulukumba · Sulawesi Selatan"
+  },
+  {
+    "code": "73.03",
+    "name": "Kabupaten Bantaeng",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Bantaeng · Sulawesi Selatan"
+  },
+  {
+    "code": "73.04",
+    "name": "Kabupaten Jeneponto",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Jeneponto · Sulawesi Selatan"
+  },
+  {
+    "code": "73.05",
+    "name": "Kabupaten Takalar",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Takalar · Sulawesi Selatan"
+  },
+  {
+    "code": "73.06",
+    "name": "Kabupaten Gowa",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Gowa · Sulawesi Selatan"
+  },
+  {
+    "code": "73.07",
+    "name": "Kabupaten Sinjai",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Sinjai · Sulawesi Selatan"
+  },
+  {
+    "code": "73.08",
+    "name": "Kabupaten Bone",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Bone · Sulawesi Selatan"
+  },
+  {
+    "code": "73.09",
+    "name": "Kabupaten Maros",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Maros · Sulawesi Selatan"
+  },
+  {
+    "code": "73.10",
+    "name": "Kabupaten Pangkajene dan Kepulauan",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Pangkajene dan Kepulauan · Sulawesi Selatan"
+  },
+  {
+    "code": "73.11",
+    "name": "Kabupaten Barru",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Barru · Sulawesi Selatan"
+  },
+  {
+    "code": "73.12",
+    "name": "Kabupaten Soppeng",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Soppeng · Sulawesi Selatan"
+  },
+  {
+    "code": "73.13",
+    "name": "Kabupaten Wajo",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Wajo · Sulawesi Selatan"
+  },
+  {
+    "code": "73.14",
+    "name": "Kabupaten Sidenreng Rappang",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Sidenreng Rappang · Sulawesi Selatan"
+  },
+  {
+    "code": "73.15",
+    "name": "Kabupaten Pinrang",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Pinrang · Sulawesi Selatan"
+  },
+  {
+    "code": "73.16",
+    "name": "Kabupaten Enrekang",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Enrekang · Sulawesi Selatan"
+  },
+  {
+    "code": "73.17",
+    "name": "Kabupaten Luwu",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Luwu · Sulawesi Selatan"
+  },
+  {
+    "code": "73.18",
+    "name": "Kabupaten Tana Toraja",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Tana Toraja · Sulawesi Selatan"
+  },
+  {
+    "code": "73.22",
+    "name": "Kabupaten Luwu Utara",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Luwu Utara · Sulawesi Selatan"
+  },
+  {
+    "code": "73.24",
+    "name": "Kabupaten Luwu Timur",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Luwu Timur · Sulawesi Selatan"
+  },
+  {
+    "code": "73.26",
+    "name": "Kabupaten Toraja Utara",
+    "province": "Sulawesi Selatan",
+    "label": "Kabupaten Toraja Utara · Sulawesi Selatan"
+  },
+  {
+    "code": "73.71",
+    "name": "Kota Makassar",
+    "province": "Sulawesi Selatan",
+    "label": "Kota Makassar · Sulawesi Selatan"
+  },
+  {
+    "code": "73.72",
+    "name": "Kota Parepare",
+    "province": "Sulawesi Selatan",
+    "label": "Kota Parepare · Sulawesi Selatan"
+  },
+  {
+    "code": "73.73",
+    "name": "Kota Palopo",
+    "province": "Sulawesi Selatan",
+    "label": "Kota Palopo · Sulawesi Selatan"
+  },
+  {
+    "code": "74",
+    "name": "Sulawesi Tenggara",
+    "province": "Sulawesi Tenggara",
+    "label": "Sulawesi Tenggara"
+  },
+  {
+    "code": "74.01",
+    "name": "Kabupaten Kolaka",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Kolaka · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.02",
+    "name": "Kabupaten Konawe",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Konawe · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.03",
+    "name": "Kabupaten Muna",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Muna · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.04",
+    "name": "Kabupaten Buton",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Buton · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.05",
+    "name": "Kabupaten Konawe Selatan",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Konawe Selatan · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.06",
+    "name": "Kabupaten Bombana",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Bombana · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.07",
+    "name": "Kabupaten Wakatobi",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Wakatobi · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.08",
+    "name": "Kabupaten Kolaka Utara",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Kolaka Utara · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.09",
+    "name": "Kabupaten Konawe Utara",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Konawe Utara · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.10",
+    "name": "Kabupaten Buton Utara",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Buton Utara · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.11",
+    "name": "Kabupaten Kolaka Timur",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Kolaka Timur · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.12",
+    "name": "Kabupaten Konawe Kepulauan",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Konawe Kepulauan · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.13",
+    "name": "Kabupaten Muna Barat",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Muna Barat · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.14",
+    "name": "Kabupaten Buton Tengah",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Buton Tengah · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.15",
+    "name": "Kabupaten Buton Selatan",
+    "province": "Sulawesi Tenggara",
+    "label": "Kabupaten Buton Selatan · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.71",
+    "name": "Kota Kendari",
+    "province": "Sulawesi Tenggara",
+    "label": "Kota Kendari · Sulawesi Tenggara"
+  },
+  {
+    "code": "74.72",
+    "name": "Kota Bau Bau",
+    "province": "Sulawesi Tenggara",
+    "label": "Kota Bau Bau · Sulawesi Tenggara"
+  },
+  {
+    "code": "75",
+    "name": "Gorontalo",
+    "province": "Gorontalo",
+    "label": "Gorontalo"
+  },
+  {
+    "code": "75.01",
+    "name": "Kabupaten Gorontalo",
+    "province": "Gorontalo",
+    "label": "Kabupaten Gorontalo · Gorontalo"
+  },
+  {
+    "code": "75.02",
+    "name": "Kabupaten Boalemo",
+    "province": "Gorontalo",
+    "label": "Kabupaten Boalemo · Gorontalo"
+  },
+  {
+    "code": "75.03",
+    "name": "Kabupaten Bone Bolango",
+    "province": "Gorontalo",
+    "label": "Kabupaten Bone Bolango · Gorontalo"
+  },
+  {
+    "code": "75.04",
+    "name": "Kabupaten Pohuwato",
+    "province": "Gorontalo",
+    "label": "Kabupaten Pohuwato · Gorontalo"
+  },
+  {
+    "code": "75.05",
+    "name": "Kabupaten Gorontalo Utara",
+    "province": "Gorontalo",
+    "label": "Kabupaten Gorontalo Utara · Gorontalo"
+  },
+  {
+    "code": "75.71",
+    "name": "Kota Gorontalo",
+    "province": "Gorontalo",
+    "label": "Kota Gorontalo · Gorontalo"
+  },
+  {
+    "code": "76",
+    "name": "Sulawesi Barat",
+    "province": "Sulawesi Barat",
+    "label": "Sulawesi Barat"
+  },
+  {
+    "code": "76.01",
+    "name": "Kabupaten Pasangkayu",
+    "province": "Sulawesi Barat",
+    "label": "Kabupaten Pasangkayu · Sulawesi Barat"
+  },
+  {
+    "code": "76.02",
+    "name": "Kabupaten Mamuju",
+    "province": "Sulawesi Barat",
+    "label": "Kabupaten Mamuju · Sulawesi Barat"
+  },
+  {
+    "code": "76.03",
+    "name": "Kabupaten Mamasa",
+    "province": "Sulawesi Barat",
+    "label": "Kabupaten Mamasa · Sulawesi Barat"
+  },
+  {
+    "code": "76.04",
+    "name": "Kabupaten Polewali Mandar",
+    "province": "Sulawesi Barat",
+    "label": "Kabupaten Polewali Mandar · Sulawesi Barat"
+  },
+  {
+    "code": "76.05",
+    "name": "Kabupaten Majene",
+    "province": "Sulawesi Barat",
+    "label": "Kabupaten Majene · Sulawesi Barat"
+  },
+  {
+    "code": "76.06",
+    "name": "Kabupaten Mamuju Tengah",
+    "province": "Sulawesi Barat",
+    "label": "Kabupaten Mamuju Tengah · Sulawesi Barat"
+  },
+  {
+    "code": "81",
+    "name": "Maluku",
+    "province": "Maluku",
+    "label": "Maluku"
+  },
+  {
+    "code": "81.01",
+    "name": "Kabupaten Maluku Tengah",
+    "province": "Maluku",
+    "label": "Kabupaten Maluku Tengah · Maluku"
+  },
+  {
+    "code": "81.02",
+    "name": "Kabupaten Maluku Tenggara",
+    "province": "Maluku",
+    "label": "Kabupaten Maluku Tenggara · Maluku"
+  },
+  {
+    "code": "81.03",
+    "name": "Kabupaten Kepulauan Tanimbar",
+    "province": "Maluku",
+    "label": "Kabupaten Kepulauan Tanimbar · Maluku"
+  },
+  {
+    "code": "81.04",
+    "name": "Kabupaten Buru",
+    "province": "Maluku",
+    "label": "Kabupaten Buru · Maluku"
+  },
+  {
+    "code": "81.05",
+    "name": "Kabupaten Seram Bagian Timur",
+    "province": "Maluku",
+    "label": "Kabupaten Seram Bagian Timur · Maluku"
+  },
+  {
+    "code": "81.06",
+    "name": "Kabupaten Seram Bagian Barat",
+    "province": "Maluku",
+    "label": "Kabupaten Seram Bagian Barat · Maluku"
+  },
+  {
+    "code": "81.07",
+    "name": "Kabupaten Kepulauan Aru",
+    "province": "Maluku",
+    "label": "Kabupaten Kepulauan Aru · Maluku"
+  },
+  {
+    "code": "81.08",
+    "name": "Kabupaten Maluku Barat Daya",
+    "province": "Maluku",
+    "label": "Kabupaten Maluku Barat Daya · Maluku"
+  },
+  {
+    "code": "81.09",
+    "name": "Kabupaten Buru Selatan",
+    "province": "Maluku",
+    "label": "Kabupaten Buru Selatan · Maluku"
+  },
+  {
+    "code": "81.71",
+    "name": "Kota Ambon",
+    "province": "Maluku",
+    "label": "Kota Ambon · Maluku"
+  },
+  {
+    "code": "81.72",
+    "name": "Kota Tual",
+    "province": "Maluku",
+    "label": "Kota Tual · Maluku"
+  },
+  {
+    "code": "82",
+    "name": "Maluku Utara",
+    "province": "Maluku Utara",
+    "label": "Maluku Utara"
+  },
+  {
+    "code": "82.01",
+    "name": "Kabupaten Halmahera Barat",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Halmahera Barat · Maluku Utara"
+  },
+  {
+    "code": "82.02",
+    "name": "Kabupaten Halmahera Tengah",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Halmahera Tengah · Maluku Utara"
+  },
+  {
+    "code": "82.03",
+    "name": "Kabupaten Halmahera Utara",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Halmahera Utara · Maluku Utara"
+  },
+  {
+    "code": "82.04",
+    "name": "Kabupaten Halmahera Selatan",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Halmahera Selatan · Maluku Utara"
+  },
+  {
+    "code": "82.05",
+    "name": "Kabupaten Kepulauan Sula",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Kepulauan Sula · Maluku Utara"
+  },
+  {
+    "code": "82.06",
+    "name": "Kabupaten Halmahera Timur",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Halmahera Timur · Maluku Utara"
+  },
+  {
+    "code": "82.07",
+    "name": "Kabupaten Pulau Morotai",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Pulau Morotai · Maluku Utara"
+  },
+  {
+    "code": "82.08",
+    "name": "Kabupaten Pulau Taliabu",
+    "province": "Maluku Utara",
+    "label": "Kabupaten Pulau Taliabu · Maluku Utara"
+  },
+  {
+    "code": "82.71",
+    "name": "Kota Ternate",
+    "province": "Maluku Utara",
+    "label": "Kota Ternate · Maluku Utara"
+  },
+  {
+    "code": "82.72",
+    "name": "Kota Tidore Kepulauan",
+    "province": "Maluku Utara",
+    "label": "Kota Tidore Kepulauan · Maluku Utara"
+  },
+  {
+    "code": "91",
+    "name": "Papua",
+    "province": "Papua",
+    "label": "Papua"
+  },
+  {
+    "code": "91.03",
+    "name": "Kabupaten Jayapura",
+    "province": "Papua",
+    "label": "Kabupaten Jayapura · Papua"
+  },
+  {
+    "code": "91.05",
+    "name": "Kabupaten Kepulauan Yapen",
+    "province": "Papua",
+    "label": "Kabupaten Kepulauan Yapen · Papua"
+  },
+  {
+    "code": "91.06",
+    "name": "Kabupaten Biak Numfor",
+    "province": "Papua",
+    "label": "Kabupaten Biak Numfor · Papua"
+  },
+  {
+    "code": "91.10",
+    "name": "Kabupaten Sarmi",
+    "province": "Papua",
+    "label": "Kabupaten Sarmi · Papua"
+  },
+  {
+    "code": "91.11",
+    "name": "Kabupaten Keerom",
+    "province": "Papua",
+    "label": "Kabupaten Keerom · Papua"
+  },
+  {
+    "code": "91.15",
+    "name": "Kabupaten Waropen",
+    "province": "Papua",
+    "label": "Kabupaten Waropen · Papua"
+  },
+  {
+    "code": "91.19",
+    "name": "Kabupaten Supiori",
+    "province": "Papua",
+    "label": "Kabupaten Supiori · Papua"
+  },
+  {
+    "code": "91.20",
+    "name": "Kabupaten Mamberamo Raya",
+    "province": "Papua",
+    "label": "Kabupaten Mamberamo Raya · Papua"
+  },
+  {
+    "code": "91.71",
+    "name": "Kota Jayapura",
+    "province": "Papua",
+    "label": "Kota Jayapura · Papua"
+  },
+  {
+    "code": "92",
+    "name": "Papua Barat",
+    "province": "Papua Barat",
+    "label": "Papua Barat"
+  },
+  {
+    "code": "92.02",
+    "name": "Kabupaten Manokwari",
+    "province": "Papua Barat",
+    "label": "Kabupaten Manokwari · Papua Barat"
+  },
+  {
+    "code": "92.03",
+    "name": "Kabupaten Fak Fak",
+    "province": "Papua Barat",
+    "label": "Kabupaten Fak Fak · Papua Barat"
+  },
+  {
+    "code": "92.06",
+    "name": "Kabupaten Teluk Bintuni",
+    "province": "Papua Barat",
+    "label": "Kabupaten Teluk Bintuni · Papua Barat"
+  },
+  {
+    "code": "92.07",
+    "name": "Kabupaten Teluk Wondama",
+    "province": "Papua Barat",
+    "label": "Kabupaten Teluk Wondama · Papua Barat"
+  },
+  {
+    "code": "92.08",
+    "name": "Kabupaten Kaimana",
+    "province": "Papua Barat",
+    "label": "Kabupaten Kaimana · Papua Barat"
+  },
+  {
+    "code": "92.11",
+    "name": "Kabupaten Manokwari Selatan",
+    "province": "Papua Barat",
+    "label": "Kabupaten Manokwari Selatan · Papua Barat"
+  },
+  {
+    "code": "92.12",
+    "name": "Kabupaten Pegunungan Arfak",
+    "province": "Papua Barat",
+    "label": "Kabupaten Pegunungan Arfak · Papua Barat"
+  },
+  {
+    "code": "93",
+    "name": "Papua Selatan",
+    "province": "Papua Selatan",
+    "label": "Papua Selatan"
+  },
+  {
+    "code": "93.01",
+    "name": "Kabupaten Merauke",
+    "province": "Papua Selatan",
+    "label": "Kabupaten Merauke · Papua Selatan"
+  },
+  {
+    "code": "93.02",
+    "name": "Kabupaten Boven Digoel",
+    "province": "Papua Selatan",
+    "label": "Kabupaten Boven Digoel · Papua Selatan"
+  },
+  {
+    "code": "93.03",
+    "name": "Kabupaten Mappi",
+    "province": "Papua Selatan",
+    "label": "Kabupaten Mappi · Papua Selatan"
+  },
+  {
+    "code": "93.04",
+    "name": "Kabupaten Asmat",
+    "province": "Papua Selatan",
+    "label": "Kabupaten Asmat · Papua Selatan"
+  },
+  {
+    "code": "94",
+    "name": "Papua Tengah",
+    "province": "Papua Tengah",
+    "label": "Papua Tengah"
+  },
+  {
+    "code": "94.01",
+    "name": "Kabupaten Nabire",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Nabire · Papua Tengah"
+  },
+  {
+    "code": "94.02",
+    "name": "Kabupaten Puncak Jaya",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Puncak Jaya · Papua Tengah"
+  },
+  {
+    "code": "94.03",
+    "name": "Kabupaten Paniai",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Paniai · Papua Tengah"
+  },
+  {
+    "code": "94.04",
+    "name": "Kabupaten Mimika",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Mimika · Papua Tengah"
+  },
+  {
+    "code": "94.05",
+    "name": "Kabupaten Puncak",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Puncak · Papua Tengah"
+  },
+  {
+    "code": "94.06",
+    "name": "Kabupaten Dogiyai",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Dogiyai · Papua Tengah"
+  },
+  {
+    "code": "94.07",
+    "name": "Kabupaten Intan Jaya",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Intan Jaya · Papua Tengah"
+  },
+  {
+    "code": "94.08",
+    "name": "Kabupaten Deiyai",
+    "province": "Papua Tengah",
+    "label": "Kabupaten Deiyai · Papua Tengah"
+  },
+  {
+    "code": "95",
+    "name": "Papua Pegunungan",
+    "province": "Papua Pegunungan",
+    "label": "Papua Pegunungan"
+  },
+  {
+    "code": "95.01",
+    "name": "Kabupaten Jayawijaya",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Jayawijaya · Papua Pegunungan"
+  },
+  {
+    "code": "95.02",
+    "name": "Kabupaten Pegunungan Bintang",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Pegunungan Bintang · Papua Pegunungan"
+  },
+  {
+    "code": "95.03",
+    "name": "Kabupaten Yahukimo",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Yahukimo · Papua Pegunungan"
+  },
+  {
+    "code": "95.04",
+    "name": "Kabupaten Tolikara",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Tolikara · Papua Pegunungan"
+  },
+  {
+    "code": "95.05",
+    "name": "Kabupaten Mamberamo Tengah",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Mamberamo Tengah · Papua Pegunungan"
+  },
+  {
+    "code": "95.06",
+    "name": "Kabupaten Yalimo",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Yalimo · Papua Pegunungan"
+  },
+  {
+    "code": "95.07",
+    "name": "Kabupaten Lanny Jaya",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Lanny Jaya · Papua Pegunungan"
+  },
+  {
+    "code": "95.08",
+    "name": "Kabupaten Nduga",
+    "province": "Papua Pegunungan",
+    "label": "Kabupaten Nduga · Papua Pegunungan"
+  },
+  {
+    "code": "96",
+    "name": "Papua Barat Daya",
+    "province": "Papua Barat Daya",
+    "label": "Papua Barat Daya"
+  },
+  {
+    "code": "96.01",
+    "name": "Kabupaten Sorong",
+    "province": "Papua Barat Daya",
+    "label": "Kabupaten Sorong · Papua Barat Daya"
+  },
+  {
+    "code": "96.02",
+    "name": "Kabupaten Sorong Selatan",
+    "province": "Papua Barat Daya",
+    "label": "Kabupaten Sorong Selatan · Papua Barat Daya"
+  },
+  {
+    "code": "96.03",
+    "name": "Kabupaten Raja Ampat",
+    "province": "Papua Barat Daya",
+    "label": "Kabupaten Raja Ampat · Papua Barat Daya"
+  },
+  {
+    "code": "96.04",
+    "name": "Kabupaten Tambrauw",
+    "province": "Papua Barat Daya",
+    "label": "Kabupaten Tambrauw · Papua Barat Daya"
+  },
+  {
+    "code": "96.05",
+    "name": "Kabupaten Maybrat",
+    "province": "Papua Barat Daya",
+    "label": "Kabupaten Maybrat · Papua Barat Daya"
+  },
+  {
+    "code": "96.71",
+    "name": "Kota Sorong",
+    "province": "Papua Barat Daya",
+    "label": "Kota Sorong · Papua Barat Daya"
+  }
+]

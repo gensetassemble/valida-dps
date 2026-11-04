@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.04-client-certificate-workbook.1";
+export const APPLICATION_RELEASE = "2026.11.04-client-commercial-workspace.1";

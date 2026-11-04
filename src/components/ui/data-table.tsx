@@ -124,7 +124,7 @@ export function DataTable({
   function writable(row: DataRow) {
     return (
       canWrite &&
-      (!["pelanggan", "sertifikat-klien"].includes(entity.key) ||
+      (entity.key !== "pelanggan" ||
         isAdmin ||
         row.account_manager_id === userId)
     );
@@ -342,7 +342,7 @@ export function DataTable({
           )}
         </div>
         {!hideFilters &&
-          !["kompetensi-personil", "kalibrasi-alat"].includes(entity.key) && (
+          !["kompetensi-personil", "kalibrasi-alat", "sertifikat-klien"].includes(entity.key) && (
             <FilterBar entity={entity} />
           )}
         {selected.length > 0 && mayBulk && (

@@ -144,7 +144,7 @@ do $$ begin
  begin perform pg_temp.followup('60000000-0000-4000-8000-000000000001','deferred','[CONTOH] Head writes',null);raise exception 'FAIL: head kanban mutation';exception when insufficient_privilege then null;end;
 end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
-select pg_temp.assert_true((select count(*)=1 from public.client_certificate_records),'read models preserve AM isolation');
+select pg_temp.assert_true((select count(*)=1 from public.client_certificate_records),'read models preserve AM branch scope');
 select pg_temp.assert_true((select count(*)=0 from public.import_rows),'AM cannot read staging');
 select pg_temp.assert_true(not has_table_privilege(current_user,'public.operational_documents','DELETE'),'document metadata cannot be deleted by app');
 
@@ -180,9 +180,9 @@ select pg_temp.assert_true((select count(*)=1 from public.renewal_communications
 select pg_temp.assert_true(not has_table_privilege(current_user,'public.renewal_communications','UPDATE') and not has_table_privilege(current_user,'public.renewal_communications','DELETE'),'logs are immutable for callers');
 
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000003',true);
-select pg_temp.assert_true((select count(*)=0 from public.renewal_communications where certificate_id='60000000-0000-4000-8000-000000000001'),'other AM cannot read contact logs');
-select pg_temp.assert_true((select count(*)=0 from public.operational_documents where record_id='60000000-0000-4000-8000-000000000001'),'other AM cannot read private document metadata');
-select pg_temp.assert_true((select count(*)=0 from storage.objects where name like 'DPS/client/60000000-0000-4000-8000-000000000001/%'),'other AM cannot download certificate objects');
+select pg_temp.assert_true((select count(*)=4 from public.renewal_communications where certificate_id='60000000-0000-4000-8000-000000000001'),'other DPS AM can read shared follow-up logs');
+select pg_temp.assert_true((select count(*)=2 from public.operational_documents where record_id='60000000-0000-4000-8000-000000000001'),'other DPS AM can read certificate evidence metadata');
+select pg_temp.assert_true((select count(*)=2 from storage.objects where name like 'DPS/client/60000000-0000-4000-8000-000000000001/%'),'other DPS AM can access shared certificate evidence');
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000008',true);
 insert into public.personnel_correction_requests(certificate_id,branch_code,message)
  select id,'DPS','[CONTOH] Inspector may propose own correction.' from public.personnel_certificates where employee_id='30000000-0000-4000-8000-000000000008' limit 1;

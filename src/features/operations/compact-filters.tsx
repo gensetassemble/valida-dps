@@ -125,7 +125,7 @@ export function CompactOperationalFilters({
               "Tanggal Belum Diisi",
             ].map((value) => ({ value, label: value })),
           },
-          {
+          ...(entity === "kalibrasi-alat" ? [{
             key: "eligibility",
             label: "Kelayakan",
             options: [
@@ -135,7 +135,7 @@ export function CompactOperationalFilters({
               "Tanggal Belum Diisi",
               "Belum Ada Kalibrasi",
             ].map((value) => ({ value, label: value })),
-          },
+          }] : []),
           {
             key: "active",
             label: "Rekaman",

@@ -98,6 +98,8 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       active,
     ],
     columns: [
+      "validity_status",
+      "expiry_date",
       "client_name",
       "portfolio_code",
       "certificate_type_name",
@@ -108,14 +110,12 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       "work_area_name",
       "issue_date",
       "interval_label",
-      "expiry_date",
       "previous_order_value",
       "account_manager_name",
       "order_reference",
       "pic_name",
       "pic_email",
       "branch_code",
-      "validity_status",
       "is_active",
     ],
     search: [

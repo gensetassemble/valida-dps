@@ -9,6 +9,7 @@ import { formatTimestamp } from "@/lib/format";
 import { recordRenewalFollowup, getRenewalHistory } from "./actions";
 import { renewalNext as next, outlookCompose } from "@/lib/domain/renewal";
 import { usePipelineDrag } from "./pipeline-drag";
+import { renewalEmail, type RenewalEmailDetails } from "./renewal-email";
 const labels: Record<string, string> = {
   uncontacted: "Belum Dihubungi",
   contacted: "Dihubungi",
@@ -54,6 +55,7 @@ export function PipelineAction({
   branch,
   stage,
   documents,
+  emailDetails,
 }: {
   certificate: string;
   customer: string;
@@ -63,6 +65,7 @@ export function PipelineAction({
   stage: string;
   contacts: { id: string; name: string; email: string }[];
   documents: { id: string; kind: string; original_name: string }[];
+  emailDetails: RenewalEmailDetails;
 }) {
   const [mode, setMode] = useState<"log" | "status" | "gate" | null>(null),
     [target, setTarget] = useState(next[stage] || "contacted"),
@@ -193,6 +196,7 @@ export function PipelineAction({
     );
   }
   const fieldClass = "h-10 w-full rounded-lg border border-input px-3";
+  const emailDraft = renewalEmail(customer, number, contact?.name || "", emailDetails);
   return (
     <div className="mt-3 space-y-2">
       <div className="flex gap-1.5">
@@ -415,7 +419,7 @@ export function PipelineAction({
                     name="subject"
                     defaultValue={
                       isContact
-                        ? `${contact?.name.startsWith("[UJI]") ? "[UJI] " : ""}[PT SUCOFINDO] Penawaran Perpanjangan - ${customer} - ${number}`
+                        ? emailDraft.subject
                         : ""
                     }
                     required={isContact}
@@ -484,14 +488,14 @@ export function PipelineAction({
                 name="note"
                 defaultValue={
                   isContact
-                    ? `Yth. ${contact?.name || "PIC"},\n\nKami bermaksud menindaklanjuti perpanjangan sertifikat ${number} untuk ${customer}. Mohon konfirmasi kebutuhan dan jadwal inspeksi ulang.\n\nRuang lingkup: [lengkapi]\nPenawaran: [lengkapi nilai dan lampirkan PDF penawaran resmi]\n\nTerima kasih,\nPT SUCOFINDO Cabang Denpasar`
+                      ? emailDraft.body
                     : ""
                 }
                 key={isContact ? contactId : "note"}
                 required
                 minLength={8}
-                maxLength={2000}
-                className="min-h-24 w-full rounded-lg border border-input p-3"
+                  maxLength={2000}
+                  className="min-h-64 w-full rounded-lg border border-input p-3 leading-6"
               />
             </Field>
             {isContact && channel === "email" && (

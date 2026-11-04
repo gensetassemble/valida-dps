@@ -48,7 +48,7 @@ insert into storage.objects(bucket_id,name) values('certificate-documents','phas
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
-select pg_temp.assert_true((select count(*)=1 from public.clients),'AM A sees only its client');
+select pg_temp.assert_true((select count(*)=2 from public.clients),'AM A reads all DPS clients for shared certificate management');
 select pg_temp.assert_true((select count(*)=1 from public.client_contacts),'AM A sees its contact');
 select pg_temp.assert_true((select count(*)=1 from public.client_certificates),'AM A sees its certificate');
 select pg_temp.assert_true(exists(select 1 from public.employee_directory where branch_code='DPS') and not exists(select 1 from public.employee_directory where branch_code<>'DPS'),'AM reads branch directory per approved module matrix');
@@ -82,8 +82,8 @@ do $$ begin
  begin insert into public.clients(name,branch_code) values('[CONTOH] Cross branch write','TEST'); raise exception 'FAIL: cross branch insert'; exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
-select pg_temp.assert_true((select count(*)=0 from public.clients),'old AM loses client immediately');
-select pg_temp.assert_true((select count(*)=0 from public.client_certificates),'old AM loses certificate immediately');
+select pg_temp.assert_true(not private.client_scope('DPS','50000000-0000-4000-8000-000000000001',true),'old AM loses customer ownership write immediately');
+select pg_temp.assert_true((select count(*)=1 from public.client_certificates),'old AM retains shared DPS certificate management');
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000003',true);
 select pg_temp.assert_true((select count(*)=2 from public.clients),'new AM gains both clients');
 select pg_temp.assert_true((select count(*)=1 from public.client_certificates),'new AM gains existing certificate without copying it');
