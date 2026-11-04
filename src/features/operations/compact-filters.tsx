@@ -148,6 +148,7 @@ export function CompactOperationalFilters({
   function change(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
     next.delete("page");
+    if (key === "sort") next.delete("dir");
     if (value) next.set(key, value);
     else next.delete(key);
     if (key === "kind") {
@@ -185,6 +186,19 @@ export function CompactOperationalFilters({
           disabled={pending}
         />
       ))}
+      {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
+        <FilterChoices
+          group={{ key: "sort", label: "Urutkan", options: [
+            {value: "", label: "Masa berlaku · prioritas"},
+            {value: "alphabet", label: entity === "kalibrasi-alat" ? "Nama alat A–Z" : "Judul kompetensi A–Z"},
+            ...(entity === "kompetensi-personil" ? [{value: "employee", label: "Nama pegawai A–Z"}] : []),
+            {value: "portfolio", label: "Portofolio A–Z"},
+          ]}}
+          value={params.get("sort") || ""}
+          onChange={(v) => change("sort", v)}
+          disabled={pending}
+        />
+      )}
       <Popover.Root>
         <Popover.Trigger className="h-9 rounded-lg border border-input px-3 text-xs">
           Rentang tanggal{params.get("from") || params.get("until") ? " •" : ""}

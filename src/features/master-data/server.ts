@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEntity, type EntityConfig } from "./registry";
 import { safeSearch } from "./validation";
 import { personnelRenewalDisplay } from "@/features/workflows/model";
+import { operationalOrder } from "@/features/operations/list-order";
 export type DataRow = Record<string, unknown>;
 export type QueryParams = {
   q?: string;
@@ -170,11 +171,15 @@ export async function listRecords(
     Math.min(100000, Math.floor(Number(params.page) || 1)),
   );
   const size = Math.max(1, Math.min(1000, pageSize));
-  const sort = [...entity.columns, entity.idKey].includes(params.sort || "")
+  const ordering = operationalOrder(entity.key, params.sort, params.dir)
+    ?? operationalOrder(entity.key,
+      [...entity.columns, entity.idKey].includes(params.sort || "") ? params.sort : undefined,
+      params.dir);
+  const sort = ordering?.[0].column ?? ([...entity.columns, entity.idKey].includes(params.sort || "")
     ? params.sort!
     : entity.key === "kalibrasi-alat"
       ? "portfolio_code"
-      : entity.key === "sertifikat-klien" ? "expiry_date" : entity.columns[0];
+      : entity.key === "sertifikat-klien" ? "expiry_date" : entity.columns[0]);
   const archives = entity.key === "pegawai" && params.archived === "true";
   if (archives) {
     const context = await requireActiveUser();
@@ -238,11 +243,9 @@ export async function listRecords(
     /^\d{4}-\d{2}-\d{2}$/.test(params.until)
   )
     query = query.lte(dateColumn, params.until);
-  query = query.order(sort, {
-    ascending: params.dir !== "desc",
-    nullsFirst: false,
-  });
-  if (entity.key === "kalibrasi-alat" && sort !== "name")
+  for (const order of ordering ?? [{column: sort, ascending: params.dir !== "desc"}])
+    query = query.order(order.column, { ascending: order.ascending, nullsFirst: false });
+  if (!ordering && entity.key === "kalibrasi-alat" && sort !== "name")
     query = query.order("name");
   if (sort !== entity.idKey)
     query = query.order(entity.idKey, { ascending: true });
