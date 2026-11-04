@@ -49,6 +49,12 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
     notes: "Catatan",
   },
   clients: {
+    client_name: "Nama pelanggan sumber",
+    certificate_type_name: "Jenis sertifikat sumber",
+    portfolio_code: "Portofolio sumber",
+    work_area_name: "Wilayah sumber",
+    pic_name: "PIC sumber",
+    pic_email: "Email PIC sumber",
     client_id: "Pelanggan terpetakan",
     certificate_type_id: "Jenis sertifikat klien terpetakan",
     certificate_number: "Nomor sertifikat",
@@ -60,6 +66,9 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
     issue_date: "Tanggal terbit ISO",
     expiry_date: "Tanggal akhir ISO",
     interval_months: "Interval bulan",
+    interval_days: "Interval hari",
+    portfolio_id: "Portofolio terpetakan",
+    certificate_work_area_id: "Wilayah terpetakan",
     previous_order_value: "Nilai kontrak IDR",
   },
 };
@@ -67,6 +76,14 @@ export const clean = (v: unknown) =>
   String(v ?? "")
     .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, "")
     .trim();
+export function clientSourceDate(value: string) {
+  if (!value || validDate(value)) return value;
+  const parts = value.trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  const names = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+  if (!parts) return value;
+  const month = names.indexOf(parts[2].toLowerCase().slice(0,3));
+  return month < 0 ? value : `${parts[3]}-${String(month+1).padStart(2,"0")}-${parts[1].padStart(2,"0")}`;
+}
 export function normalize(
   domain: ImportDomain,
   raw: Record<string, string>,
@@ -146,6 +163,12 @@ export function normalize(
           (
             {
               certificate_number: "Nomor Sertifikat",
+              client_name: "Nama Pelanggan",
+              certificate_type_name: "Jenis Sertifikat",
+              portfolio_code: "Portfolio",
+              work_area_name: "Wilayah",
+              pic_name: "PIC Perusahaan",
+              pic_email: "Email PIC",
               object_type: "Objek Inspeksi",
               object_serial: "Nomor Seri (opsional)",
               installation_location: "Lokasi",
@@ -159,6 +182,15 @@ export function normalize(
         ),
       ]),
     );
+  if (domain === "clients") {
+    const days = n.interval_months.match(/^(\d+)\s*(hari|days?)$/i);
+    if (days) { n.interval_days = days[1]; n.interval_months = ""; }
+    n.issue_date = clientSourceDate(n.issue_date);
+    n.expiry_date = clientSourceDate(n.expiry_date);
+    if (/^\d{1,18}\.\d{3,}$/.test(n.previous_order_value))
+      n.previous_order_value = Number(n.previous_order_value).toFixed(2);
+    if (n.object_serial === "-") n.object_serial = "";
+  }
   const issues = validateNormalized(domain, n);
   if (
     get("BranchCode", "Cabang Operasional") &&
@@ -229,6 +261,9 @@ export function validateNormalized(
     req("due_date");
   }
   if (domain === "clients") {
+    if (n.interval_days && (!/^[1-9]\d{0,4}$/.test(n.interval_days) || Number(n.interval_days)>36500))
+      errors.push("interval_days: gunakan 1–36500.");
+    if (n.interval_days && n.interval_months) errors.push("Pilih interval hari atau bulan.");
     uuid("client_id");
     uuid("certificate_type_id");
     req("certificate_number");

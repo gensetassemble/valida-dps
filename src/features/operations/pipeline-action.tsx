@@ -237,6 +237,9 @@ export function PipelineAction({
         }
         description={customer + " · " + number}
       >
+        {contact?.name.startsWith("[UJI]") && <p role="status" className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-5">
+          Mode pengujian: draft email ditujukan ke {contact.email}. Kontak ini bukan PIC resmi perusahaan.
+        </p>}
         {mode !== "gate" && (
           <div
             className="my-3 max-h-48 space-y-2 overflow-y-auto rounded-lg bg-surface-muted p-3 text-xs"
@@ -412,7 +415,7 @@ export function PipelineAction({
                     name="subject"
                     defaultValue={
                       isContact
-                        ? `[PT SUCOFINDO] Penawaran Perpanjangan - ${customer} - ${number}`
+                        ? `${contact?.name.startsWith("[UJI]") ? "[UJI] " : ""}[PT SUCOFINDO] Penawaran Perpanjangan - ${customer} - ${number}`
                         : ""
                     }
                     required={isContact}

@@ -88,7 +88,14 @@ export async function OperationList({
           </Button>
         )}
       </div>
+      {entity === "sertifikat-klien" && <nav aria-label="Versi sertifikat klien" className="mb-3 flex gap-2 text-xs">
+        <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}`}>Sertifikat terkini</Link>
+        <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>
+      </nav>}
       <OperationalFilters entity={entity} branch={c.branch} params={params} />
+      {entity === "sertifikat-klien" && <p className="mb-4 rounded-lg border border-border bg-white px-4 py-3 text-xs leading-5 text-muted-foreground">
+        Arsip diisi bertahap dan belum mencakup seluruh sertifikat cabang. PIC berlabel [UJI] adalah penerima pengujian internal, bukan PIC resmi perusahaan.
+      </p>}
       {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
         <WorkflowOverview
           kind={entity === "kalibrasi-alat" ? "calibration" : "personnel"}
@@ -388,6 +395,8 @@ export async function OperationDetail({
             ],
             ["Wilayah", row.work_area_name || "Belum dipetakan"],
             ["Cabang operasional", row.branch_code],
+            ["PIC perusahaan", row.pic_name || "Belum diisi"],
+            ["Email PIC", row.pic_email || "Belum diisi"],
           ].map(([label, value]) => (
             <div key={String(label)}>
               <p className="text-[11px] text-muted-foreground">
@@ -403,13 +412,16 @@ export async function OperationDetail({
           .filter(
             (f) =>
               !["is_active", "verification_status"].includes(f.key) &&
+              !(entity === "sertifikat-klien" && f.key === "interval_days") &&
               (f.key !== "notes" || !!businessNotes(row.notes)),
           )
           .map((f) => (
             <div key={f.key}>
               <p className="text-[11px] text-muted-foreground">{f.label}</p>
               <p className="mt-1 break-words text-sm">
-                {f.key === "notes" ? (
+                {entity === "sertifikat-klien" && f.key === "interval_months" ? (
+                  String(row.interval_label || "—")
+                ) : f.key === "notes" ? (
                   businessNotes(row.notes)
                 ) : f.kind === "lookup" ? (
                   labels[f.key] || "—"

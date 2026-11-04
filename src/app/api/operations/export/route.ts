@@ -8,6 +8,7 @@ import { addPersonnelSheet } from "@/features/operations/personnel-export";
 import { personnelExportData } from "@/features/operations/personnel-export-data";
 import { monitoringExportData } from "@/features/operations/monitoring-export-data";
 import { personnelFilename } from "@/features/operations/export-context";
+import { addClientSheet } from "@/features/operations/client-export";
 import { readableXlsx } from "@/lib/xlsx-readability";
 import { exportContinuationRows } from "@/lib/export-continuation";
 import {
@@ -116,6 +117,8 @@ export async function GET(request: NextRequest) {
         { status: 503 },
       );
     }
+  } else if (c.entity.key === "sertifikat-klien") {
+    filename=addClientSheet(book,rows);
   } else {
     const sheet = book.addWorksheet("Data sesuai akses");
     sheet.columns = c.entity.columns.map((key) => ({

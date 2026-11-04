@@ -540,6 +540,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
       { key: "phone", label: "Telepon", kind: "tel" },
       { key: "whatsapp", label: "WhatsApp", kind: "tel" },
       { key: "is_primary", label: "Kontak utama", kind: "boolean" },
+      { key: "is_test", label: "Kontak uji internal", kind: "boolean", hint: "Untuk pengujian email. Bukan identitas PIC resmi perusahaan." },
       verification,
       text("verification_note", "Catatan verifikasi"),
       active,

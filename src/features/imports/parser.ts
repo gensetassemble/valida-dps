@@ -101,15 +101,23 @@ export async function parseSource(
       throw Error(
         "Pilih nama sheet secara eksplisit untuk workbook multi-sheet.",
       );
+    let headerRow = 1;
+    if (domain === "clients") {
+      for (let i=1;i<=Math.min(10,selected.rowCount);i++) {
+        const labels: string[]=[];
+        selected.getRow(i).eachCell(c=>labels.push(clean(c.text)));
+        if (labels.includes("Nomor Sertifikat") && labels.includes("Nama Pelanggan")) { headerRow=i;break; }
+      }
+    }
     const headers: string[] = [];
     selected
-      .getRow(1)
+      .getRow(headerRow)
       .eachCell(
         { includeEmpty: true },
         (c, i) => (headers[i - 1] = clean(c.text)),
       );
     selected.eachRow((row, index) => {
-      if (index === 1) return;
+      if (index <= headerRow) return;
       const vals: unknown[] = [];
       row.eachCell(
         { includeEmpty: true },

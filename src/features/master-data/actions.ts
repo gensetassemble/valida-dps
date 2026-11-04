@@ -6,6 +6,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { entityContext, masterClient, publicDatabaseError } from "./server";
 import { recordSchema, requestScopeSchema } from "./validation";
 import { addMonths } from "@/lib/domain/validity";
+import { clientExpiry } from "@/features/operations/client-certificate";
 import { measurementKeys } from "@/features/operations/monitoring";
 import {
   mergeMeasurementGroups,
@@ -99,8 +100,10 @@ export async function saveRecord(
     payload.source_provider = payload.source_folder_url
       ? "google_drive_folder"
       : null;
+  if (entity.key === "sertifikat-klien" && !payload.expiry_date && typeof payload.issue_date === "string")
+    payload.expiry_date = clientExpiry(payload.issue_date, payload.interval_months, payload.interval_days);
   if (
-    ["sertifikat-klien", "kompetensi-personil"].includes(entity.key) &&
+    entity.key === "kompetensi-personil" &&
     payload.validity_kind !== "lifetime" &&
     !payload.expiry_date &&
     typeof payload.issue_date === "string" &&

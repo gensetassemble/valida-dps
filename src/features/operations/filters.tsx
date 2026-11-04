@@ -82,6 +82,10 @@ export async function OperationalFilters({
         .eq("branch_code", branch)
         .order(label)
         .limit(500);
+      if(entity==="sertifikat-klien") {
+        q=q.eq("is_active",true);
+        if(table==="clients")q=q.eq("is_example",false);
+      }
       if (table === "certificate_types")
         q = q.eq(
           "category",

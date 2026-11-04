@@ -51,7 +51,7 @@ export default async function Page({
   const p = await searchParams,
     c = await pageEntityContext("sertifikat-klien", p.branch),
     db = await masterClient(),
-    include = p.examples !== "false";
+    include = false;
   if (!c) return <AccessDenied />;
   const search = safeSearch(p.q || "")
     .split(/\s+/)
@@ -115,23 +115,7 @@ export default async function Page({
   const summary = result.summary;
   return (
     <>
-      <PageHeader
-        title="Pipeline Perpanjangan"
-        actions={
-          <Link
-            className="text-xs underline"
-            href={
-              "?branch=" +
-              c.branch +
-              "&examples=" +
-              (include ? "false" : "true") +
-              (search ? "&q=" + encodeURIComponent(search) : "")
-            }
-          >
-            {include ? "Sembunyikan contoh" : "Tampilkan contoh"}
-          </Link>
-        }
-      />
+      <PageHeader title="Pipeline Perpanjangan" />
       <AutoFilterForm
         searchLabel="Pencarian pipeline"
         className="mb-4 flex flex-wrap items-center gap-2"

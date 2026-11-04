@@ -36,6 +36,10 @@ export async function GET(request: NextRequest) {
   if (target.key === "pegawai" && !params.get("id") && ["penugasan", "kalibrasi-alat", "kompetensi-personil"].includes(context.entity.key))
     query = query.neq("employment_status", "inactive");
   if (target.key === "roles") query = query.eq("is_active", true);
+  if (context.entity.key === "sertifikat-klien" && !params.get("id")) {
+    if (["pelanggan", "jenis-sertifikat", "portofolio", "wilayah"].includes(target.key)) query = query.eq("is_active",true);
+    if (target.key === "pelanggan") query=query.eq("is_example",false);
+  }
   if (
     ["kalibrasi-alat", "kompetensi-personil", "riwayat-kalibrasi"].includes(
       context.entity.key,

@@ -191,6 +191,8 @@ export async function listRecords(
       .is("merged_into_employee_id", null);
   if (entity.key !== "roles")
     query = query.eq(entity.key === "cabang" ? "code" : "branch_code", branch);
+  if (["sertifikat-klien", "pelanggan"].includes(entity.key))
+    query = query.eq("is_example", false);
   const search = safeSearch(params.q || "");
   for (const term of search.split(/\s+/).filter(Boolean).slice(0, 8))
     query = query.or(
@@ -204,7 +206,7 @@ export async function listRecords(
   if (field && field.options?.some((option) => option.value === params.value))
     query = query.eq(field.key, params.value!);
   if (parent) query = query.eq(parent.field, parent.id);
-  if (entity.key === "kompetensi-personil") {
+  if (["kompetensi-personil", "sertifikat-klien"].includes(entity.key)) {
     if (params.generation === "history")
       query = query.not("superseded_by_certificate_id", "is", null);
     else if (params.generation !== "all")

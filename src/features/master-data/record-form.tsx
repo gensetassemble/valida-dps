@@ -21,6 +21,8 @@ import {
 import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
+import { clientExpiry } from "@/features/operations/client-certificate";
+import { ClientIntervalInput } from "@/features/operations/client-interval-input";
 import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
@@ -226,6 +228,7 @@ function initialValue(
   entity: string,
 ) {
   if (field.kind === "password") return "";
+  if (field.key === "is_test") return row?.is_test === true;
   const value = row?.[field.key];
   if (
     field.key === "notes" &&
@@ -397,6 +400,7 @@ export function RecordForm({
     control,
     name: initialEquipment ? "initial_interval_months" : "interval_months",
   });
+  const intervalDays = useWatch({ control, name: "interval_days" });
   const calculationBase = useWatch({ control, name: "calculation_base" });
   const validityKind = useWatch({ control, name: "validity_kind" });
   const baseDate =
@@ -414,7 +418,9 @@ export function RecordForm({
   const lifetime =
     entity.key === "kompetensi-personil" && validityKind === "lifetime";
   const calculated =
-    typeof baseDate === "string" &&
+    entity.key === "sertifikat-klien"
+      ? clientExpiry(String(baseDate || ""), months, intervalDays)
+      : typeof baseDate === "string" &&
     validDate(baseDate) &&
     Number.isInteger(Number(months)) &&
     Number(months) > 0 &&
@@ -431,6 +437,8 @@ export function RecordForm({
           : "calibration_date"
       ] || "",
     );
+    if (entity.key === "sertifikat-klien")
+      return clientExpiry(base, row.interval_months, row.interval_days) === row[endField];
     return (
       validDate(base) &&
       Number(row.interval_months) > 0 &&
@@ -562,6 +570,7 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
+            if (entity.key === "sertifikat-klien" && field.key === "interval_days") return null;
             if (
               (entity.key === "riwayat-kalibrasi" &&
                 field.key === "correction_factor") ||
@@ -725,6 +734,9 @@ export function RecordForm({
                         />
                       )}
                     />
+                  ) : entity.key === "sertifikat-klien" && field.key === "interval_months" ? (
+                    <ClientIntervalInput months={months} days={intervalDays}
+                      onChange={(m,d) => { setValue("interval_months",m,{shouldDirty:true,shouldValidate:true}); setValue("interval_days",d,{shouldDirty:true,shouldValidate:true}); }} />
                   ) : field.kind === "integer" &&
                     /interval|validity_months/.test(field.key) ? (
                     <Controller

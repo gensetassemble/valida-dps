@@ -78,6 +78,10 @@ const extraLabels: Record<string, string> = {
   npp: "NPP",
   work_area_name: "Wilayah",
   account_manager_name: "Account Manager (AM)",
+  portfolio_code: "Portofolio",
+  interval_label: "Interval",
+  pic_name: "PIC perusahaan",
+  pic_email: "Email PIC",
   branch_code: "Cabang Operasional",
 };
 export function DataTable({

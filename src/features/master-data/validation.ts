@@ -46,7 +46,7 @@ function fieldSchema(field: Field) {
       emptyToNull,
       z
         .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
-        .pipe(z.number().int().min(1).max(600))
+        .pipe(z.number().int().min(1).max(field.max ?? 600))
         .nullable(),
     );
   if (field.kind === "days")
@@ -148,6 +148,8 @@ export function recordSchema(entity: EntityConfig, editing = false) {
           : null;
       const fail = (path: string, message: string) =>
         context.addIssue({ code: "custom", path: [path], message });
+      if (entity.key === "sertifikat-klien" && values.interval_months && values.interval_days)
+        fail("interval_months", "Pilih satu satuan interval: hari atau bulan.");
       const markPrefix =
         entity.key === "riwayat-kalibrasi"
           ? ""
