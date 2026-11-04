@@ -4,11 +4,12 @@ import "@fontsource/public-sans/600.css";
 import "@fontsource/space-grotesk/600.css";
 import Link from "next/link";
 import {useState} from "react";
-import {Mail,Copy} from "lucide-react";
+import {Mail,Copy,ExternalLink} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Modal} from "@/components/ui/modal";
 import {getRenewalEmailPreview,type EmailPreviewData} from "./email-actions";
 import {renderRenewalEmail,emailHtml} from "./renewal-email";
+import {outlookCompose} from "@/lib/domain/renewal";
 export function RenewalEmailPreview({certificate,branch,compact=false}:{certificate:string;branch:string;compact?:boolean}) {
   const [open,setOpen]=useState(false),[data,setData]=useState<EmailPreviewData>(),[error,setError]=useState("");
   const [loading,setLoading]=useState(false),[contactId,setContact]=useState("");
@@ -75,12 +76,15 @@ export function RenewalEmailPreview({certificate,branch,compact=false}:{certific
           <p role="status" className="rounded-lg border border-border bg-slate-50 p-3 text-xs leading-5">{data.provider.reason}</p>
           {!data.demoMode && <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} disabled={!recipientVerified || email.missing.length>0}/><span>Saya telah memeriksa pelanggan, PIC, alamat penerima, dan isi email. Persetujuan ini belum mengirim email.</span></label>}
           <div className="flex flex-wrap gap-2">
+            {email.missing.length === 0 && recipientVerified && (data.demoMode || confirmed) ? (
+              <Button asChild><a href={outlookCompose(recipient,email.subject,email.body)} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ExternalLink size={14}/>Buka Draf di Outlook</a></Button>
+            ) : <Button type="button" disabled title="Periksa penerima, isi email, dan konfirmasi terlebih dahulu."><ExternalLink size={14}/>Buka Draf di Outlook</Button>}
             <Button type="button" variant="outline" onClick={()=>void copy()} disabled={email.missing.length>0 || !recipientVerified}><Copy size={14}/>{copied ? "Email disalin" : "Salin Email"}</Button>
             {data.isAdmin && <Button type="button" variant="outline" disabled title={data.provider.reason}>Kirim Uji Email</Button>}
             {!data.demoMode && <Button type="button" disabled title={data.provider.reason}>Kirim ke Pelanggan</Button>}
             <Button type="button" variant="outline" onClick={()=>setOpen(false)}>Batal</Button>
           </div>
-          <p className="text-[11px] text-muted-foreground">Pratinjau dan salin tidak mencatat kontak, mengirim email, atau memindahkan kartu pipeline.</p>
+          <p className="text-[11px] text-muted-foreground">Outlook dibuka di tab baru dengan penerima, subjek, dan isi email terisi. Periksa kembali lalu kirim secara manual di Outlook. Membuka draf, pratinjau, atau menyalin email tidak mencatat kontak maupun memindahkan kartu pipeline.</p>
         </div>
       </div>}
       {error && <p role="alert" className="mt-3 text-sm text-red-800">{error}</p>}

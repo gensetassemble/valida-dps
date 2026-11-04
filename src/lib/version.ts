@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.04-client-demo-export.1";
+export const APPLICATION_RELEASE = "2026.11.05-outlook-draft.1";

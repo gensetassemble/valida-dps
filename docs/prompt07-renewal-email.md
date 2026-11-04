@@ -9,6 +9,7 @@
 - Tanda tangan selalu **Bidang Penjualan dan Dukungan Operasi / PT SUCOFINDO Cabang Denpasar**. Nama AM hanya merupakan konteks internal.
 - Mode uji berlabel `[UJI INTERNAL]`, memiliki pemberitahuan awal dan disclaimer akhir. Tujuan uji berasal dari allowlist server, bukan email pelanggan.
 - **Salin Email** menyalin HTML yang telah di-escape dan teks biasa. Selama demo, semua akun yang berwenang menyiapkan pratinjau menggunakan **[UJI] Adli Alfian — adli.alfian@sucofindo.co.id**, tanpa memerlukan PIC pelanggan resmi. Label UJI INTERNAL selalu menyertai hasil salin; tidak ada pengiriman atau pencatatan kontak.
+- **Buka Draf di Outlook** membuka Outlook Microsoft 365 di tab baru dengan penerima, subjek dan teks email yang sama seperti pratinjau. Demo tetap hanya menuju Adli dengan label UJI INTERNAL. Tombol ini tidak memerlukan sender Graph aktif, tidak mengirim otomatis dan tidak mengubah pipeline. Pengiriman dilakukan manual oleh pengguna di Outlook. Mode resmi tetap memerlukan penerima terverifikasi dan konfirmasi pada pratinjau sebelum membuka draf.
 - Admin mengelola subjek/isi di **Pengaturan → Template Email**. Perubahan menambah versi baru; token divalidasi dan pembaruan dari versi lama ditolak untuk mencegah penimpaan bersamaan.
 
 ## Pemetaan dan ambiguitas
