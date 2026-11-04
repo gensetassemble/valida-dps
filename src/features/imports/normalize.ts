@@ -281,6 +281,6 @@ export function validateNormalized(
   if (n.calibration_date && n.due_date && n.due_date < n.calibration_date)
     errors.push("due_date: mendahului kalibrasi.");
   for (const [k, v] of Object.entries(n))
-    if (v.length > 4000) errors.push(k + ": nilai terlalu panjang.");
+    if (clean(v).length > 4000) errors.push(k + ": nilai terlalu panjang.");
   return errors;
 }

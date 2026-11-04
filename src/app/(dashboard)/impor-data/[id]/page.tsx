@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { importPageContext } from "@/features/imports/server";
 import { ReviewForm, ImportReference } from "@/features/imports/forms";
-import { reviewRow, commitBatch } from "@/features/imports/actions";
+import { reviewRow, commitBatch, importAuthorizedClientWorkbook } from "@/features/imports/actions";
+import { approvedClientWorkbook } from "@/features/imports/client-workbook-batch";
 import {
   DOMAIN_LABELS,
   FIELDS,
@@ -159,7 +160,18 @@ export default async function Page({
         </a>
       </Card>
       <Card className="mb-5 p-5">
-        <h2 className="mb-3 text-sm font-bold">Impor Baris yang Disetujui</h2>
+        {approvedClientWorkbook(batch) && <div className="mb-5 rounded-lg border border-border p-4">
+          <h2 className="text-sm font-bold">Impor workbook sertifikat klien DPS</h2>
+          <p className="my-3 text-xs leading-6">19 sertifikat untuk 11 perusahaan, portofolio IND, PIK, dan KSP. Periksa seluruh pemetaan di bawah. PIC [UJI] Adli Alfian adalah penerima internal pengujian. Persetujuan dan impor dicatat atas akun Admin yang sedang login; MFA tetap diperlukan.</p>
+          <ReviewForm action={importAuthorizedClientWorkbook}>
+            <input type="hidden" name="batch" value={id} />
+            <input type="hidden" name="branch" value={c.branch} />
+            <label className="block text-xs"><input type="checkbox" name="confirmed" required /> Saya telah memeriksa 19 baris dan menyetujui pemetaan sumber.</label>
+            <label className="block text-xs">Ketik IMPOR 19 SERTIFIKAT KLIEN DPS<Input name="confirmation" required className="mt-1 max-w-md" /></label>
+            <Button disabled={stat.committed === 19}>Setujui dan impor 19 sertifikat</Button>
+          </ReviewForm>
+        </div>}
+        {!approvedClientWorkbook(batch) && <><h2 className="mb-3 text-sm font-bold">Impor Baris yang Disetujui</h2>
         <p className="mb-3 text-xs leading-6">
           Target: development · {c.branch}. Hanya {stat.approved} baris yang
           telah disetujui. Transaksi batal seluruhnya bila ada konflik;
@@ -175,6 +187,7 @@ export default async function Page({
           </label>
           <Button disabled={!stat.approved}>Impor Baris yang Disetujui</Button>
         </ReviewForm>
+        </>}
       </Card>
       <AutoFilterForm className="mb-5 flex flex-wrap gap-3">
         <input type="hidden" name="branch" value={c.branch} />
