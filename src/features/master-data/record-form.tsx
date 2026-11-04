@@ -12,6 +12,9 @@ import { useToast } from "@/components/ui/toast";
 import { recordSchema } from "./validation";
 import { saveRecord } from "./actions";
 import { createCompetencyType } from "./competency-type-actions";
+import { createClientReference } from "./client-reference-actions";
+import { SearchableLookup } from "./searchable-lookup";
+import { ContractMoneyInput } from "./contract-money-input";
 import { DirectoryActionsDialog } from "./directory-actions-dialog";
 import { MeasurementGroupsInput } from "@/features/operations/measurement-groups-input";
 import {
@@ -52,10 +55,12 @@ function Lookup({
   const [q, setQuery] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
   const [status, setStatus] = useState("Memuat pilihan…");
-  const canCreateType =
-    entity === "kompetensi-personil" &&
-    field.key === "certificate_type_id" &&
-    !disabled;
+  const canCreateType = !disabled && (
+    (entity === "kompetensi-personil" && field.key === "certificate_type_id") ||
+    (entity === "sertifikat-klien" && ["client_id", "certificate_type_id"].includes(field.key))
+  );
+  const createLabel = entity === "kompetensi-personil" ? "jenis kompetensi" : field.key === "client_id" ? "pelanggan" : "jenis sertifikat";
+  const searchable = entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [savingType, setSavingType] = useState(false);
@@ -108,6 +113,8 @@ function Lookup({
   }, [entity, field.key, field.lookup, branch, q, value]);
   return (
     <div className="space-y-2">
+      {searchable ? <SearchableLookup id={field.key} label={field.label} value={value}
+        options={options} query={q} onQuery={setQuery} onChange={onChange} disabled={disabled} status={status} /> : <>
       {!disabled && (
         <Input
           value={q}
@@ -136,6 +143,7 @@ function Lookup({
         ))}
       </select>
       <p className="text-[10px] text-muted-foreground">{status}</p>
+      </>}
       {canCreateType && !creating && (
         <Button
           type="button"
@@ -147,13 +155,13 @@ function Lookup({
             setCreating(true);
           }}
         >
-          + Tambah jenis kompetensi baru
+          + Tambah {createLabel} baru
         </Button>
       )}
       {canCreateType && creating && (
         <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
           <label className="grid gap-1 text-xs font-medium">
-            Nama jenis kompetensi baru
+            Nama {createLabel} baru
             <Input
               value={newName}
               onChange={(event) => setNewName(event.target.value)}
@@ -162,7 +170,7 @@ function Lookup({
             />
           </label>
           <p className="text-xs text-muted-foreground">
-            Disimpan ke katalog kompetensi dan langsung dipilih pada formulir
+            Disimpan ke direktori dan langsung dipilih pada formulir
             ini.
           </p>
           {createError && (
@@ -179,7 +187,7 @@ function Lookup({
                 setSavingType(true);
                 setCreateError("");
                 try {
-                  const result = await createCompetencyType({
+                  const result = entity === "sertifikat-klien" ? await createClientReference({branch, field:field.key, name:newName}) : await createCompetencyType({
                     branch,
                     name: newName,
                   });
@@ -197,7 +205,7 @@ function Lookup({
                   }
                 } catch {
                   setCreateError(
-                    "Jenis kompetensi belum tersimpan. Silakan coba kembali.",
+                    "Pilihan baru belum tersimpan. Silakan coba kembali.",
                   );
                 } finally {
                   setSavingType(false);
@@ -570,7 +578,7 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
-            if (entity.key === "sertifikat-klien" && field.key === "interval_days") return null;
+            if (entity.key === "sertifikat-klien" && ["interval_days", "previous_certificate_id"].includes(field.key)) return null;
             if (
               (entity.key === "riwayat-kalibrasi" &&
                 field.key === "correction_factor") ||
@@ -737,6 +745,10 @@ export function RecordForm({
                   ) : entity.key === "sertifikat-klien" && field.key === "interval_months" ? (
                     <ClientIntervalInput months={months} days={intervalDays}
                       onChange={(m,d) => { setValue("interval_months",m,{shouldDirty:true,shouldValidate:true}); setValue("interval_days",d,{shouldDirty:true,shouldValidate:true}); }} />
+                  ) : field.kind === "money" ? (
+                    <Controller control={control} name={field.key} render={({field:input}) => (
+                      <ContractMoneyInput id={field.key} value={input.value} onChange={input.onChange} invalid={!!message}/>
+                    )}/>
                   ) : field.kind === "integer" &&
                     /interval|validity_months/.test(field.key) ? (
                     <Controller

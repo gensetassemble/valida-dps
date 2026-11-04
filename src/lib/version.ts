@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.04-validity-list-order.1";
+export const APPLICATION_RELEASE = "2026.11.04-client-entry-form.1";

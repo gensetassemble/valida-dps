@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
     if (["pelanggan", "jenis-sertifikat", "portofolio", "wilayah"].includes(target.key)) query = query.eq("is_active",true);
     if (target.key === "pelanggan") query=query.eq("is_example",false);
   }
+  if (context.entity.key === "sertifikat-klien" && target.key === "sertifikat-klien")
+    query=query.eq("is_example",false);
   if (
     ["kalibrasi-alat", "kompetensi-personil", "riwayat-kalibrasi"].includes(
       context.entity.key,
