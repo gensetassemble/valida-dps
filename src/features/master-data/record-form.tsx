@@ -727,6 +727,8 @@ export function RecordForm({
                         </select>
                       )}
                     />
+                  ) : entity.key === "pelanggan" && field.key === "account_manager_id" && locked && row?.account_manager_label ? (
+                    <Input id={field.key} value={String(row.account_manager_label)} readOnly className="bg-muted"/>
                   ) : field.kind === "lookup" ? (
                     <Controller
                       control={control}

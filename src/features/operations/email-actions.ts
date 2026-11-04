@@ -6,6 +6,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { loadEmailTemplate } from "./email-server";
 import { renewalEmailProviderStatus } from "./email-provider-status";
 import { validateEmailTemplate } from "./renewal-email";
+import { RENEWAL_EMAIL_DEMO_CONTACT } from "./email-demo";
 const scope = z.object({certificate:z.uuid(),branch:z.string().regex(/^[A-Z0-9]{2,8}$/)}).strict();
 export async function getRenewalEmailPreview(input:unknown) {
   const p=scope.safeParse(input);
@@ -22,12 +23,14 @@ export async function getRenewalEmailPreview(input:unknown) {
     loadEmailTemplate(c.branch),
   ]);
   if(contactError) return {error:"Kontak pelanggan belum dapat dimuat."};
+  const provider=renewalEmailProviderStatus();
+  const demoMode=!provider.enabled;
   return {data:{
     context:{customer:cert.client_name || "",number:cert.certificate_number || "",certificateType:cert.certificate_type_name || "",
-      object:cert.object_type || "",serial:cert.object_serial || "",location:cert.installation_location || "",expiryDate:cert.expiry_date || "",pic:"",serviceName:""},
+      object:cert.object_type || "",serial:cert.object_serial || "",location:cert.installation_location || "",expiryDate:cert.expiry_date || "",pic:"",serviceName:cert.certificate_type_name || ""},
     contacts:contacts || [],clientId:cert.client_id,accountManager:cert.account_manager_name || "Belum ditugaskan",template,
-    isAdmin:hasPermission(c.scopes,c.branch,["admin"]),provider:renewalEmailProviderStatus(),
-    testRecipients:hasPermission(c.scopes,c.branch,["admin"]) ? (process.env.VALIDA_EMAIL_TEST_RECIPIENTS || "").split(",").map(v=>v.trim().toLowerCase()).filter(v=>z.email().safeParse(v).success && v.endsWith("@sucofindo.co.id")) : [],
+    isAdmin:hasPermission(c.scopes,c.branch,["admin"]),provider,demoMode,demoContact:RENEWAL_EMAIL_DEMO_CONTACT,
+    testRecipients:demoMode ? [RENEWAL_EMAIL_DEMO_CONTACT.email] : hasPermission(c.scopes,c.branch,["admin"]) ? (process.env.VALIDA_EMAIL_TEST_RECIPIENTS || "").split(",").map(v=>v.trim().toLowerCase()).filter(v=>z.email().safeParse(v).success && v.endsWith("@sucofindo.co.id")) : [],
   }};
 }
 export async function saveRenewalEmailTemplate(input:unknown) {

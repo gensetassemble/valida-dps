@@ -471,6 +471,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     ...base,
     key: "pelanggan",
     table: "clients",
+    readTable: "client_directory_records",
     title: "Pelanggan",
     singular: "Pelanggan",
     path: "/pelanggan",

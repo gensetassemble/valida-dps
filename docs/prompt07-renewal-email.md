@@ -8,7 +8,7 @@
 - Tanggal memakai format lengkap Indonesia, dan selisih hari memakai Asia/Makassar. Kalimat berbeda untuk hari ini dan expired; tidak ada hitungan negatif. Data opsional kosong dihilangkan.
 - Tanda tangan selalu **Bidang Penjualan dan Dukungan Operasi / PT SUCOFINDO Cabang Denpasar**. Nama AM hanya merupakan konteks internal.
 - Mode uji berlabel `[UJI INTERNAL]`, memiliki pemberitahuan awal dan disclaimer akhir. Tujuan uji berasal dari allowlist server, bukan email pelanggan.
-- **Salin Email** menyalin HTML yang telah di-escape dan teks biasa. Tombol salin membutuhkan layanan yang dikonfirmasi dan penerima terverifikasi; data uji tidak disalin sebagai email resmi.
+- **Salin Email** menyalin HTML yang telah di-escape dan teks biasa. Selama demo, semua akun yang berwenang menyiapkan pratinjau menggunakan **[UJI] Adli Alfian — adli.alfian@sucofindo.co.id**, tanpa memerlukan PIC pelanggan resmi. Label UJI INTERNAL selalu menyertai hasil salin; tidak ada pengiriman atau pencatatan kontak.
 - Admin mengelola subjek/isi di **Pengaturan → Template Email**. Perubahan menambah versi baru; token divalidasi dan pembaruan dari versi lama ditolak untuk mencegah penimpaan bersamaan.
 
 ## Pemetaan dan ambiguitas
@@ -26,9 +26,9 @@
 | lokasi_pekerjaan | installation_location |
 | tanggal_berakhir | expiry_date |
 | sisa_hari / kalimat_masa_berlaku | kalkulasi tanggal WITA saat pratinjau |
-| nama_layanan | konfirmasi AM pada pratinjau, bukan perubahan record |
+| nama_layanan | label jenis sertifikat yang tersedia sebagai label layanan email, bukan perubahan record |
 
-Tidak ada relasi service_type khusus pada sertifikat klien saat ini. **Jenis sertifikat, nama layanan, nama pekerjaan, dan objek tidak disamakan.** Nama layanan harus dikonfirmasi pada pratinjau, dan tidak ditulis kembali ke data sumber. Contoh Transnusa/PK-TLO/tanggal 30 November 2026 hanya merupakan fixture pratinjau template; tidak diimpor, tidak dianggap sebagai koreksi data produksi, dan tidak pernah dikirim.
+Tidak ada relasi service_type khusus pada sertifikat klien saat ini. Sesuai koreksi demo dari pengguna, label layanan email diisi otomatis dari jenis sertifikat; tidak ada lagi kolom konfirmasi nama layanan. Ini hanya label presentasi email, tidak menulis nama pekerjaan, jenis layanan atau objek baru ke database. Contoh Transnusa/PK-TLO/tanggal 30 November 2026 pada editor template hanya merupakan fixture; tidak diimpor dan tidak pernah dikirim.
 
 ## Status provider dan batas pengiriman
 
@@ -44,7 +44,7 @@ Karena belum ada provider aktif, implementasi mengikuti fallback bagian 11 Promp
 
 Sebelum mengaktifkan pengiriman diperlukan pekerjaan lanjutan terpisah: persetujuan Entra `Mail.Send`, OAuth state/PKCE dan binding pengguna, mailbox resmi, penyimpanan token terenkripsi, allowlist tujuan uji, serta ledger outbox/idempotency yang menyimpan aktor, snapshot template, penerima dari database, respons provider dan status. Tidak boleh menyalakan tombol hanya berdasarkan flag lingkungan. Respons Graph 202 hanya **Accepted**, bukan **Delivered**; timeout harus ditandai **Unknown** dan tidak dikirim ulang secara buta. Aktivitas resmi baru mengarah ke **Dihubungi** setelah hasil penyedia ditangani sesuai gate, dan tidak boleh menuju **Penawaran Terkirim** tanpa penawaran resmi.
 
-`VALIDA_EMAIL_TEST_RECIPIENTS` adalah konfigurasi server berupa daftar email internal terpisah koma; hanya alamat `@sucofindo.co.id` diterima. Nilai tidak otomatis diambil dari email pelanggan. Konfigurasi ini tidak mengirim atau mengaktifkan email.
+Saat sender masih nonaktif, mode demo diputuskan server dan menggunakan tujuan Adli yang secara eksplisit disetujui pengguna. Alamat ini bukan PIC resmi dan tidak disimpan/menimpa kontak pelanggan. `VALIDA_EMAIL_TEST_RECIPIENTS` tetap merupakan konfigurasi allowlist untuk tahap integrasi mendatang, bukan syarat untuk membuka/menyalin demo. Pengiriman resmi nantinya tetap memerlukan PIC dan email terverifikasi; demo tidak pernah menjadi bypass untuk mengirim email.
 
 ## Database dan akses
 

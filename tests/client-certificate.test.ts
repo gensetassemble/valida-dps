@@ -26,8 +26,8 @@ describe("client source workbook",()=>{
   });
   it("exports source column labels, typed dates, text references and test-contact label",()=>{
     const book=new ExcelJS.Workbook();addClientSheet(book,[{client_name:"Perusahaan uji",issue_date:"2026-10-21",interval_label:"56 hari",previous_order_value:"2250000.00",order_reference:"000019",pic_name:"[UJI] Adli",pic_is_test:true}]);
-    const s=book.worksheets[0];expect(s.getCell("I2").value).toBeInstanceOf(Date);
-    expect(s.getCell("M2").value).toBe("000019");expect(s.getCell("S2").value).toMatch(/penerima internal/);
-    expect(s.getCell("L2").value).toBe(2250000);
+    const s=book.worksheets[0];expect(s.getRow(2).getCell("issue_date").value).toBeInstanceOf(Date);
+    expect(s.getRow(2).getCell("order_reference").value).toBe("000019");expect(s.getRow(2).getCell("pic_is_test").value).toMatch(/penerima internal/);
+    expect(s.getRow(2).getCell("previous_order_value").value).toBe(2250000);
   });
 });

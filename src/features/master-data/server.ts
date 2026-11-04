@@ -303,6 +303,10 @@ export async function listRecords(
         );
       }),
   );
+  if (entity.key === "pelanggan")
+    labels.account_manager_id = Object.fromEntries(rows.filter(row=>row.account_manager_id).map(row=>[
+      String(row.account_manager_id),String(row.account_manager_label || "Nama akun belum tersedia"),
+    ]));
   return {
     rows,
     labels,
@@ -353,6 +357,7 @@ export async function referenceLabels(
     client_id: row.client_name,
     certificate_type_id: row.certificate_type_name,
     equipment_id: row.equipment_name,
+    account_manager_id: entity.key === "pelanggan" ? row.account_manager_label : undefined,
     work_area_id: row.work_area_name,
   };
   return Object.fromEntries(

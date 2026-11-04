@@ -11,7 +11,7 @@ const certificate="bc900000-0000-4000-8000-000000000001",branch="DPS";
 beforeEach(()=>{
  vi.clearAllMocks();mocks.context.mockResolvedValue({branch,scopes:[{role_code:"account_manager",branch_code:branch}]});mocks.template.mockResolvedValue(DEFAULT_EMAIL_TEMPLATE);
  mocks.from.mockImplementation((table:string)=>{
-  const result=()=>({data:table === "client_contacts" ? [{id:"contact",email:"qa@sucofindo.co.id",name:"PIC",is_test:false,verification_status:"verified"}] : {id:certificate,client_id:"client",client_name:"Client",is_active:true,is_example:false},error:null});
+  const result=()=>({data:table === "client_contacts" ? [{id:"contact",email:"qa@sucofindo.co.id",name:"PIC",is_test:false,verification_status:"verified"}] : {id:certificate,client_id:"client",client_name:"Client",certificate_type_name:"Residual Disinsection",is_active:true,is_example:false},error:null});
   const chain={select:()=>chain,eq:()=>chain,order:()=>chain,limit:()=>chain,maybeSingle:async()=>result(),then:(resolve:(r:unknown)=>unknown)=>Promise.resolve(result()).then(resolve)};return chain;
  });
 });
@@ -22,6 +22,13 @@ describe("server-enforced email fallback",()=>{
  it("does not fabricate success or add follow-ups on repeated official requests",async()=>{
   for(let i=0;i<2;i++)expect((await requestRenewalEmailSend({certificate,branch,mode:"official"})).error).toContain("Pengiriman belum tersedia");
   expect(mocks.rpc).not.toHaveBeenCalled();
+ });
+ it("provides the approved Adli demo for AM without an official PIC or a manual service field",async()=>{
+  const {data}=await getRenewalEmailPreview({certificate,branch});
+  expect(data?.isAdmin).toBe(false);expect(data?.demoMode).toBe(true);
+  expect(data?.demoContact).toEqual({name:"[UJI] Adli Alfian",email:"adli.alfian@sucofindo.co.id"});
+  expect(data?.testRecipients).toEqual(["adli.alfian@sucofindo.co.id"]);
+  expect(data?.context.serviceName).toBe("Residual Disinsection");expect(mocks.rpc).not.toHaveBeenCalled();
  });
  it("rejects recipient/token injection and refuses test sends for non-admins",async()=>{
   expect((await requestRenewalEmailSend({certificate,branch,mode:"test"})).error).toContain("hanya untuk Admin");
