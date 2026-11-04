@@ -612,6 +612,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     ...base,
     key: "penugasan-peran",
     table: "user_role_assignments",
+    readTable: "role_assignment_records",
     title: "Penugasan Peran",
     singular: "Penugasan peran",
     path: "/pengaturan/roles",
@@ -643,7 +644,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
       "granted_at",
       "revoked_at",
     ],
-    search: ["role_code", "grant_reason"],
+    search: ["profile_name", "role_name", "role_code"],
   },
   audit: {
     ...base,

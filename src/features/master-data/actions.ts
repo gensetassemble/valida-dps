@@ -280,7 +280,12 @@ export async function saveRecord(
   )
     query = query.eq("updated_at", measurementRevision);
   const { data, error } = await query.select(entity.idKey).maybeSingle();
-  if (error) return { ok: false, error: publicDatabaseError(error.code) };
+  if (error) return {
+    ok: false,
+    error: entity.key === "penugasan-peran" && error.code === "23505"
+      ? "Peran ini sudah tercatat untuk pengguna tersebut. Cari nama pengguna di Penugasan Peran untuk melihat statusnya; ubah atau aktifkan penugasan yang sudah ada."
+      : publicDatabaseError(error.code),
+  };
   if (!data)
     return {
       ok: false,

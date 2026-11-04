@@ -23,10 +23,14 @@ update public.profiles set full_name='[CONTOH] Forbidden profile edit' where id=
 select pg_temp.security_assert(not exists(select 1 from public.profiles where full_name='[CONTOH] Forbidden profile edit'),'Admin cannot bypass account administration');
 select set_config('request.jwt.claim.sub','d3030000-0000-4000-8000-000000000002',true);
 select set_config('request.jwt.claims','{"aal":"aal1"}',true);
+select pg_temp.security_assert((select count(*)=1 from public.user_role_assignments a join public.roles r on r.code=a.role_code and r.is_active join public.branches b on b.code=a.branch_code and b.is_active where a.profile_id=auth.uid() and a.is_active and a.revoked_at is null),'AAL1 own active grant remains visible to login before MFA');
+select pg_temp.security_assert(not exists(select 1 from public.branches where code='SECQA'),'Pre-MFA branch metadata does not expose another branch');
 select pg_temp.security_assert(not private.has_role('DPS',array['admin']),'AAL1 cannot use privileged capability');
 select pg_temp.security_denied($q$insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000003','DPS','admin','[CONTOH] Forbidden AAL1 promotion')$q$);
 select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000003','DPS','admin','[CONTOH] Authorized AAL2 administration');
+select pg_temp.security_assert((select count(*)=3 from public.role_assignment_records where branch_code='DPS' and profile_name ilike '%fixture 3%'),'Role search matches the displayed user name, including existing grants');
+select pg_temp.security_assert(not exists(select 1 from public.role_assignment_records where branch_code='SECQA'),'Role search preserves branch RLS');
 select pg_temp.security_assert(private.has_role('DPS',array['super_admin']),'AAL2 Super Admin retains access');
 select pg_temp.security_denied($q$insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) values('d3030000-0000-4000-8000-000000000002','DPS','admin','[CONTOH] Forbidden self grant')$q$);
 select set_config('request.jwt.claim.sub','d3030000-0000-4000-8000-000000000004',true);

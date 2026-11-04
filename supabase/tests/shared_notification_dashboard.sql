@@ -79,6 +79,24 @@ select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000007'
 select pg_temp.assert_workflow(not exists(select 1 from public.notification_inbox_records where branch_code='DPS'),'other branch has no access to status projection');
 reset role;
 select pg_temp.assert_workflow((select count(*)=2 from public.calibration_request_events where request_id='af800000-0000-4000-8000-000000000001'),'events unchanged by live status projection');
+select set_config('request.jwt.claim.sub','',true);
+insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason)
+ values('af100000-0000-4000-8000-000000000006','DPS','super_admin','[CONTOH] Newly assigned administrator');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000006',true);
+set local role authenticated;
+select pg_temp.assert_workflow((select count(*)=1 from public.notification_inbox_records where current_status='cancelled' and read_at is null and activity_group_id='calibrations:af800000-0000-4000-8000-000000000001'),'new Super Admin receives latest retained cancellation');
+update public.user_notifications set read_at=now() where profile_id=auth.uid();
+reset role;
+select set_config('request.jwt.claim.sub','',true);
+update public.user_role_assignments set grant_reason='[CONTOH] Idempotent role update' where profile_id='af100000-0000-4000-8000-000000000006' and role_code='super_admin';
+select pg_temp.assert_workflow((select count(*)=1 and bool_and(read_at is not null) from public.user_notifications where profile_id='af100000-0000-4000-8000-000000000006'),'backfill preserves read state and creates no duplicates');
+select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+select public.manage_equipment_request('af800000-0000-4000-8000-000000000001',2,'delete_history');
+reset role;
+select set_config('request.jwt.claim.sub','',true);
+update public.user_role_assignments set grant_reason='[CONTOH] No archived history resurrection' where profile_id='af100000-0000-4000-8000-000000000006' and role_code='super_admin';
+select pg_temp.assert_workflow(not exists(select 1 from public.user_notifications where profile_id='af100000-0000-4000-8000-000000000006' and archived_at is null),'deleted history stays archived after another role update');
 select pass('Shared cancellation delivery, original event history, unread PTK notice, expired/upcoming priorities and role isolation');
 select * from finish();
 rollback;
