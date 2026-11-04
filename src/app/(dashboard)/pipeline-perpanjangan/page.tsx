@@ -253,14 +253,6 @@ export default async function Page({
                             certificate={String(row.id)}
                             customer={String(row.client_name)}
                             number={String(row.certificate_number || "")}
-                            emailDetails={{
-                              certificateType: String(row.certificate_type_name || ""),
-                              object: String(row.object_type || ""),
-                              serial: String(row.object_serial || ""),
-                              location: String(row.installation_location || ""),
-                              expiryDate: String(row.expiry_date || ""),
-                              orderReference: String(row.order_reference || ""),
-                            }}
                             canWrite={c.canWrite}
                             contacts={(contacts || [])
                               .filter((v) => v.client_id === row.client_id)

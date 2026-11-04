@@ -16,6 +16,7 @@ const names: Record<string, string> = {
   layanan: "Jenis Layanan",
   pelanggan: "Pelanggan",
   pengaturan: "Pengaturan",
+  "template-email": "Template Email",
   pengguna: "Pengguna",
   roles: "Peran",
   profil: "Profil Saya",

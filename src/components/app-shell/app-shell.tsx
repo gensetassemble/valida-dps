@@ -18,6 +18,7 @@ import {
   ChartNoAxesCombined,
   History,
   Settings,
+  Mail,
   PanelLeftClose,
   PanelLeftOpen,
   Menu,
@@ -148,6 +149,7 @@ const groups: { label: string; items: Item[] }[] = [
   {
     label: "Sistem",
     items: [
+      { label:"Template Email",href:"/pengaturan/template-email",icon:Mail,roles:["admin"] },
       {
         label: "Pengaturan",
         href: "/pengaturan",

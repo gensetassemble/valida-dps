@@ -63,6 +63,14 @@ export async function recordRenewalFollowup(input: unknown) {
     };
   await entityContext("sertifikat-klien", p.data.branch, true);
   const db = await masterClient();
+  if (p.data.details.channel === "email") {
+    const {data:cert}=await db.from("client_certificates").select("client_id").eq("id",p.data.certificate).eq("branch_code",p.data.branch).maybeSingle();
+    if (!cert) return {error:"Sertifikat tidak dapat diakses."};
+    const {data:testContacts,error:testError}=await db.from("client_contacts").select("id,email").eq("client_id",cert.client_id).eq("branch_code",p.data.branch).eq("is_test",true);
+    if(testError) return {error:"Kontak uji belum dapat diperiksa."};
+    if(testContacts?.some(c=>c.id === p.data.details.contact_id || c.email?.toLowerCase() === p.data.details.recipient_email?.toLowerCase()))
+      return {error:"Email kepada kontak uji internal tidak dicatat sebagai komunikasi pelanggan dan tidak memindahkan pipeline."};
+  }
   const { error } = await db.rpc("record_renewal_followup", {
     cert: p.data.certificate,
     target: p.data.target,

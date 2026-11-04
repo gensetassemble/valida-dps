@@ -1,0 +1,32 @@
+begin;
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+insert into auth.users(id,email) select ('be110000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'email-template-qa-'||i||'@example.invalid' from generate_series(1,3)i;
+insert into public.profiles(id,branch_code,full_name,is_active) select ('be110000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'DPS','[CONTOH] Email Template QA '||i,true from generate_series(1,3)i;
+insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_reason) select ('be110000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'DPS',(array['super_admin','account_manager','branch_head'])[i],'[CONTOH] rollback authorization test' from generate_series(1,3)i;
+select set_config('request.jwt.claim.sub','be110000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+do $$declare original integer; v integer; denied boolean:=false; communications bigint; sample text:='Yth. {sapaan_pic}, pelanggan {nama_pelanggan}, layanan {nama_layanan}, sertifikat {nomor_sertifikat}, tanggal {tanggal_berakhir}. {kalimat_masa_berlaku}';begin
+ select count(*) into communications from public.renewal_communications;
+ select coalesce(max(version),0) into original from public.client_renewal_email_templates where branch_code='DPS';
+ v:=public.save_client_renewal_email_template('DPS','Konfirmasi {nama_layanan}',sample,original);
+ if v<>original+1 then raise exception 'FAIL version';end if;
+ if not exists(select 1 from public.audit_logs where table_name='client_renewal_email_templates' and actor_id=auth.uid() and new_values->>'version'=v::text) then raise exception 'FAIL audit';end if;
+ begin perform public.save_client_renewal_email_template('DPS','Konfirmasi {nama_layanan}',sample,original);raise exception 'FAIL stale write accepted';exception when serialization_failure then null;end;
+ begin perform public.save_client_renewal_email_template('OTHER','Konfirmasi {nama_layanan}',sample,0);raise exception 'FAIL cross branch';exception when insufficient_privilege then null;end;
+ begin perform public.save_client_renewal_email_template('DPS','Konfirmasi {nama_layanan}',sample||' {unknown_token}',v);exception when raise_exception then denied:=true;end;
+ if not denied then raise exception 'FAIL unknown token accepted';end if;denied:=false;
+ begin perform public.save_client_renewal_email_template('DPS','Konfirmasi {nama_layanan}',sample||' Tim Account Manager',v);exception when raise_exception then denied:=true;end;
+ if not denied then raise exception 'FAIL nonstandard signature accepted';end if;
+ if has_table_privilege('authenticated','public.client_renewal_email_templates','UPDATE') or has_table_privilege('authenticated','public.client_renewal_email_templates','DELETE') then raise exception 'FAIL immutable versions';end if;
+ if (select count(*) from public.renewal_communications)<>communications then raise exception 'FAIL template generated communication';end if;
+end $$;
+select set_config('request.jwt.claim.sub','be110000-0000-4000-8000-000000000002',true);
+do $$begin
+ if not exists(select 1 from public.client_renewal_email_templates where branch_code='DPS') then raise exception 'FAIL AM template read';end if;
+ begin perform public.save_client_renewal_email_template('DPS','Konfirmasi {nama_layanan}',repeat('x',100),0);raise exception 'FAIL AM write';exception when insufficient_privilege then null;end;
+end $$;
+select set_config('request.jwt.claim.sub','be110000-0000-4000-8000-000000000003',true);
+do $$begin if exists(select 1 from public.client_renewal_email_templates) then raise exception 'FAIL read-only role sees email template';end if;end $$;
+reset role;
+select 'PASS: admin-only versioning, audit, conflict protection, token/signature validation, role/branch isolation and no commercial activity' as result;
+rollback;

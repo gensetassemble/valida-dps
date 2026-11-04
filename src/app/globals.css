@@ -47,6 +47,8 @@ input {
 ::selection {
   background: #c5e7d6;
 }
+.renewal-email-preview { font-family: "Public Sans", Arial, sans-serif; }
+.renewal-email-preview h2 { font-family: "Space Grotesk", Arial, sans-serif; }
 .tnum {
   font-variant-numeric: tabular-nums;
 }

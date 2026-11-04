@@ -35,6 +35,7 @@ export default async function UsersPage({
         <Link href={`/pengaturan/roles?branch=${params.branch || "DPS"}`}>
           Peran &amp; penugasan
         </Link>
+        <Link href={`/pengaturan/template-email?branch=${params.branch || "DPS"}`}>Template Email</Link>
       </div>
       <MasterPage entity="pengguna" params={params} />
     </>

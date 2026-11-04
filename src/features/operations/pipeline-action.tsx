@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { formatTimestamp } from "@/lib/format";
 import { recordRenewalFollowup, getRenewalHistory } from "./actions";
-import { renewalNext as next, outlookCompose } from "@/lib/domain/renewal";
+import { renewalNext as next } from "@/lib/domain/renewal";
 import { usePipelineDrag } from "./pipeline-drag";
-import { renewalEmail, type RenewalEmailDetails } from "./renewal-email";
+import { RenewalEmailPreview } from "./renewal-email-preview";
 const labels: Record<string, string> = {
   uncontacted: "Belum Dihubungi",
   contacted: "Dihubungi",
@@ -55,7 +55,6 @@ export function PipelineAction({
   branch,
   stage,
   documents,
-  emailDetails,
 }: {
   certificate: string;
   customer: string;
@@ -65,7 +64,6 @@ export function PipelineAction({
   stage: string;
   contacts: { id: string; name: string; email: string }[];
   documents: { id: string; kind: string; original_name: string }[];
-  emailDetails: RenewalEmailDetails;
 }) {
   const [mode, setMode] = useState<"log" | "status" | "gate" | null>(null),
     [target, setTarget] = useState(next[stage] || "contacted"),
@@ -179,26 +177,10 @@ export function PipelineAction({
       setBusy(false);
     }
   }
-  function compose(form: HTMLFormElement) {
-    const values = new FormData(form);
-    if (!contact?.email) {
-      setMessage("Lengkapi email PIC utama terlebih dahulu.");
-      return;
-    }
-    window.open(
-      outlookCompose(
-        contact.email,
-        String(values.get("subject") || ""),
-        String(values.get("note") || ""),
-      ),
-      "_blank",
-      "noopener,noreferrer",
-    );
-  }
   const fieldClass = "h-10 w-full rounded-lg border border-input px-3";
-  const emailDraft = renewalEmail(customer, number, contact?.name || "", emailDetails);
   return (
     <div className="mt-3 space-y-2">
+      {canWrite && <RenewalEmailPreview certificate={certificate} branch={branch} compact/>}
       <div className="flex gap-1.5">
         <Button
           size="sm"
@@ -417,11 +399,7 @@ export function PipelineAction({
                 <Field label="Subjek pesan">
                   <Input
                     name="subject"
-                    defaultValue={
-                      isContact
-                        ? emailDraft.subject
-                        : ""
-                    }
+                    defaultValue=""
                     required={isContact}
                     minLength={isContact ? 3 : undefined}
                     maxLength={200}
@@ -486,11 +464,7 @@ export function PipelineAction({
             >
               <textarea
                 name="note"
-                defaultValue={
-                  isContact
-                      ? emailDraft.body
-                    : ""
-                }
+                defaultValue=""
                 key={isContact ? contactId : "note"}
                 required
                 minLength={8}
@@ -500,19 +474,10 @@ export function PipelineAction({
             </Field>
             {isContact && channel === "email" && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!contact?.email}
-                  onClick={(e) => compose(e.currentTarget.form!)}
-                >
-                  Buka draft di Outlook
-                </Button>
                 <p>
-                  Draft terbuka di Microsoft 365. Periksa isi, lampirkan
-                  penawaran resmi bila ada, lalu kirim melalui Outlook. Setelah
-                  terkirim, konfirmasikan komunikasi di bawah. Membuka draft
-                  belum memindahkan kartu.
+                  Form ini mencatat komunikasi yang sudah dilakukan di luar VALIDA.
+                  Gunakan tombol Email perpanjangan pada kartu untuk menyiapkan email koordinasi awal.
+                  Pratinjau atau salin email tidak memindahkan kartu dan bukan penawaran resmi.
                 </p>
               </div>
             )}

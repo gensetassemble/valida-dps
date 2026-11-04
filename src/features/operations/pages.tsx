@@ -25,6 +25,7 @@ import { monitoringColumns } from "./monitoring";
 import { businessNotes } from "./notes";
 import { WorkflowPanel, WorkflowOverview } from "@/features/workflows/panels";
 import { EquipmentRequestForm } from "@/features/workflows/calibration-controls";
+import { RenewalEmailPreview } from "./renewal-email-preview";
 export async function OperationList({
   entity,
   params,
@@ -275,6 +276,7 @@ export async function OperationDetail({
         </p>
       )}
       <div className="mb-4 flex flex-wrap gap-2">
+        {entity === "sertifikat-klien" && canEditRow && row.is_active === true && row.is_example !== true && <RenewalEmailPreview certificate={id} branch={c.branch}/>}
         {row.validity_status ? (
           <StatusBadge
             value={
