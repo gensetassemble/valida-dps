@@ -10,13 +10,15 @@ import {Modal} from "@/components/ui/modal";
 import {getRenewalEmailPreview,type EmailPreviewData} from "./email-actions";
 import {renderRenewalEmail,emailHtml} from "./renewal-email";
 import {outlookCompose} from "@/lib/domain/renewal";
+import {ContactOutcomeDialog} from "./contact-outcome-dialog";
 export function RenewalEmailPreview({certificate,branch,compact=false}:{certificate:string;branch:string;compact?:boolean}) {
   const [open,setOpen]=useState(false),[data,setData]=useState<EmailPreviewData>(),[error,setError]=useState("");
   const [loading,setLoading]=useState(false),[contactId,setContact]=useState("");
   const [mode,setMode]=useState<"official"|"test">("official"),[testTo,setTestTo]=useState("");
   const [copied,setCopied]=useState(false),[confirmed,setConfirmed]=useState(false);
+  const [contactOpen,setContactOpen]=useState(false),[draftOpened,setDraftOpened]=useState(false);
   async function show() {
-    setOpen(true);setLoading(true);setError("");setData(undefined);setCopied(false);setConfirmed(false);
+    setOpen(true);setLoading(true);setError("");setData(undefined);setCopied(false);setConfirmed(false);setDraftOpened(false);
     try {
       const result=await getRenewalEmailPreview({certificate,branch});
       if(!result.data) {setError(result.error || "Pratinjau belum tersedia.");return;}
@@ -77,17 +79,20 @@ export function RenewalEmailPreview({certificate,branch,compact=false}:{certific
           {!data.demoMode && <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} disabled={!recipientVerified || email.missing.length>0}/><span>Saya telah memeriksa pelanggan, PIC, alamat penerima, dan isi email. Persetujuan ini belum mengirim email.</span></label>}
           <div className="flex flex-wrap gap-2">
             {email.missing.length === 0 && recipientVerified && (data.demoMode || confirmed) ? (
-              <Button asChild><a href={outlookCompose(recipient,email.subject,email.body)} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ExternalLink size={14}/>Buka Draf di Outlook</a></Button>
+              <Button asChild><a href={outlookCompose(recipient,email.subject,email.body)} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" onClick={()=>setDraftOpened(true)}><ExternalLink size={14}/>Buka Draf di Outlook</a></Button>
             ) : <Button type="button" disabled title="Periksa penerima, isi email, dan konfirmasi terlebih dahulu."><ExternalLink size={14}/>Buka Draf di Outlook</Button>}
             <Button type="button" variant="outline" onClick={()=>void copy()} disabled={email.missing.length>0 || !recipientVerified}><Copy size={14}/>{copied ? "Email disalin" : "Salin Email"}</Button>
+            <Button type="button" variant="outline" onClick={()=>{setOpen(false);setContactOpen(true);}}>Catat Hasil Kontak</Button>
             {data.isAdmin && <Button type="button" variant="outline" disabled title={data.provider.reason}>Kirim Uji Email</Button>}
             {!data.demoMode && <Button type="button" disabled title={data.provider.reason}>Kirim ke Pelanggan</Button>}
             <Button type="button" variant="outline" onClick={()=>setOpen(false)}>Batal</Button>
           </div>
+          {draftOpened && <p role="status" className="rounded-lg bg-blue-50 p-3 text-xs text-blue-900">{data.demoMode ? "Setelah mencoba draf uji, pilih Catat Hasil Kontak untuk melihat simulasi langkah berikutnya." : "Setelah email benar-benar dikirim melalui Outlook, pilih Catat Hasil Kontak dan tulis hasil komunikasinya."}</p>}
           <p className="text-[11px] text-muted-foreground">Outlook dibuka di tab baru dengan penerima, subjek, dan isi email terisi. Periksa kembali lalu kirim secara manual di Outlook. Membuka draf, pratinjau, atau menyalin email tidak mencatat kontak maupun memindahkan kartu pipeline.</p>
         </div>
       </div>}
       {error && <p role="alert" className="mt-3 text-sm text-red-800">{error}</p>}
     </Modal>
+    <ContactOutcomeDialog open={contactOpen} onOpenChange={setContactOpen} certificate={certificate} branch={branch} onPrepareEmail={()=>void show()}/>
   </>;
 }

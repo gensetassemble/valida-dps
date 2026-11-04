@@ -10,6 +10,7 @@ import { recordRenewalFollowup, getRenewalHistory } from "./actions";
 import { renewalNext as next } from "@/lib/domain/renewal";
 import { usePipelineDrag } from "./pipeline-drag";
 import { RenewalEmailPreview } from "./renewal-email-preview";
+import { ContactOutcomeDialog } from "./contact-outcome-dialog";
 const labels: Record<string, string> = {
   uncontacted: "Belum Dihubungi",
   contacted: "Dihubungi",
@@ -20,10 +21,10 @@ const labels: Record<string, string> = {
 };
 
 const actions: Record<string, string> = {
-  uncontacted: "Hubungi PIC",
+  uncontacted: "Catat Hasil Kontak",
   contacted: "Catat Penawaran",
   offered: "Konfirmasi PO",
-  deferred: "Lanjutkan",
+  deferred: "Catat Hasil Kontak",
 };
 type History = {
   id: string;
@@ -73,6 +74,7 @@ export function PipelineAction({
     [busy, setBusy] = useState(false),
     [history, setHistory] = useState<History[]>([]),
     [ready, setReady] = useState(false);
+  const [contactOpen,setContactOpen]=useState(false);
   const drag = usePipelineDrag();
   useEffect(
     () =>
@@ -188,7 +190,7 @@ export function PipelineAction({
           className="min-w-0 flex-1 px-1 text-[10px]"
           onClick={() => void open("log")}
         >
-          Log
+          Riwayat Kontak
         </Button>
         {canWrite && next[stage] && (
           <Button
@@ -210,13 +212,13 @@ export function PipelineAction({
         Status · {labels[stage]}
       </button>
       <Modal
-        open={!!mode}
+        open={!!mode && !isContact}
         onOpenChange={(v) => {
           if (!v && !busy) setMode(null);
         }}
         title={
           mode === "gate"
-            ? "Gerbang Bisnis: Transisi ke " + labels[target]
+            ? ({offered:"Catat Penawaran Resmi",po_received:"Konfirmasi PO Diterima",deferred:"Tunda Tindak Lanjut",not_renewed:"Catat Keputusan Tidak Diperpanjang"}[target] || "Catat Hasil Kontak")
             : mode === "log"
               ? "Log Komunikasi Klien"
               : "Riwayat Status"
@@ -233,9 +235,9 @@ export function PipelineAction({
           >
             {!ready ? (
               <p>Memuat riwayat…</p>
-            ) : history.filter((r) => r.kind === mode).length ? (
+            ) : history.filter((r) => mode === "log" ? !!r.channel : r.kind === mode).length ? (
               history
-                .filter((r) => r.kind === mode)
+                .filter((r) => mode === "log" ? !!r.channel : r.kind === mode)
                 .map((r) => (
                   <article key={r.id} className="border-b border-border pb-2">
                     <p className="font-semibold">
@@ -320,7 +322,8 @@ export function PipelineAction({
             </Button>
           </div>
         )}
-        {mode !== "status" && canWrite && (
+        {mode === "log" && canWrite && <Button size="sm" onClick={()=>{setMode(null);setContactOpen(true);}}>Catat Hasil Kontak</Button>}
+        {mode === "gate" && !isContact && canWrite && (
           <form className="mt-4 space-y-3" onSubmit={save} key={mode + target}>
             {mode === "gate" && (
               <p className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs">
@@ -456,11 +459,7 @@ export function PipelineAction({
               </Field>
             )}
             <Field
-              label={
-                mode === "log"
-                  ? "Hasil komunikasi"
-                  : "Ringkasan tindak lanjut / alasan"
-              }
+              label="Ringkasan tindak lanjut / alasan"
             >
               <textarea
                 name="note"
@@ -469,7 +468,7 @@ export function PipelineAction({
                 required
                 minLength={8}
                   maxLength={2000}
-                  className="min-h-64 w-full rounded-lg border border-input p-3 leading-6"
+                  className="min-h-24 w-full rounded-lg border border-input p-3 leading-6"
               />
             </Field>
             {isContact && channel === "email" && (
@@ -505,9 +504,7 @@ export function PipelineAction({
               <Button disabled={busy}>
                 {busy
                   ? "Menyimpan…"
-                  : mode === "log"
-                    ? "Simpan Log"
-                    : "Validasi & Pindahkan Kartu"}
+                  : "Simpan & Perbarui Tahap"}
               </Button>
             </div>
           </form>
@@ -518,6 +515,7 @@ export function PipelineAction({
           </p>
         )}
       </Modal>
+      <ContactOutcomeDialog open={contactOpen || isContact} onOpenChange={v=>{setContactOpen(v);if(!v)setMode(null);}} certificate={certificate} branch={branch}/>
     </div>
   );
 }

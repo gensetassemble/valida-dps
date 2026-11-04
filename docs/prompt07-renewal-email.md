@@ -49,6 +49,15 @@ Saat sender masih nonaktif, mode demo diputuskan server dan menggunakan tujuan A
 
 ## Database dan akses
 
+### Penyederhanaan hasil kontak — 5 November 2026
+
+- Label **Gerbang Bisnis: Transisi ke Dihubungi / Hubungi PIC** diganti **Catat Hasil Kontak**, baik dari kartu, riwayat, maupun saat menyeret kartu ke Dihubungi.
+- Pada pratinjau email, tombol **Catat Hasil Kontak** melanjutkan alur yang sama. Membuka Outlook hanya memberi petunjuk langkah berikutnya, tanpa menganggap email telah terkirim.
+- Form resmi hanya meminta PIC utama terverifikasi, saluran, dan hasil komunikasi. Nama/email diambil ulang dari database oleh server; subjek terisi otomatis pada rincian opsional, dan bisa disesuaikan jika subjek email aktual berbeda. Tidak ada pengisian ulang isi email.
+- AM mengonfirmasi komunikasi benar-benar dilakukan. Kartu Belum Dihubungi/Ditunda masuk Dihubungi melalui gate/RPC lama. Tahap lain hanya mendapat log tambahan. Status yang berubah sejak dialog dibuka ditolak untuk mencegah pencatatan ulang transisi.
+- Bila hanya ada kontak uji, dialog menyediakan **Simulasikan hasil kontak**. Hasil simulasi hanya ada di dialog dan hilang saat ditutup: tidak ada server mutation, perubahan kartu, log kontak resmi, atau notifikasi bisnis.
+- Riwayat Kontak menampilkan aktivitas komunikasi, termasuk komunikasi yang sekaligus mengubah tahap. Penawaran/PO tetap memiliki validasi dokumen yang sama, dengan judul sesuai kegiatannya.
+
 Migrasi `20261104131200_client_renewal_email_templates.sql` menambah tabel append-only `client_renewal_email_templates`, guard validasi dan RPC penyimpanan dengan optimistic version. Admin cabang dapat menyimpan; Admin/AM cabang dapat membaca. Akun baca saja tidak dapat mengelola template. Audit memakai ledger yang sudah ada. Kebijakan RLS sertifikat, kontak, riwayat dan pipeline tidak diubah.
 
 Tidak ada record pelanggan/sertifikat, history, notifikasi atau audit lama yang dihapus/reset. Pengujian SQL dilakukan pada development dalam transaksi rollback.
