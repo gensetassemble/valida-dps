@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { DeadlineDate } from "./deadline-date";
+import { CalibrationMeasurementDetails } from "./calibration-measurement-details";
 import { operationalValidity, remainingDays } from "@/lib/domain/validity";
 import { ScrollLoader } from "./scroll-loader";
 import { useScrollRecords } from "@/features/master-data/use-scroll-records";
@@ -231,6 +232,8 @@ export function DataTable({
       );
     if (column === "npp" && !row.npp) return "Non-NPP";
     if (entity.key === "kalibrasi-alat") {
+      if (column === "measurement_range" || column === "correction_factor")
+        return <CalibrationMeasurementDetails row={row} field={column} />;
       const raw = monitoringValue(row, column);
       const days = remainingDays(String(row.latest_due_date || ""));
       if (column === "due_date" || column === "latest_due_date")
@@ -244,7 +247,7 @@ export function DataTable({
           className="block min-w-20 max-w-64 whitespace-pre-wrap break-words"
           title={display}
         >
-          {display || "—"}
+          <span className="line-clamp-2">{display || "—"}</span>
           {column === "name" && (
             <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">
               Portofolio: {String(row.portfolio_code || "Belum dipetakan")}
