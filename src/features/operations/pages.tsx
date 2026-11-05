@@ -41,7 +41,12 @@ export async function OperationList({
         <h1 className="text-2xl font-bold tracking-tight text-brand-navy">Sertifikat Klien</h1>
         <p className="mt-1 text-xs text-muted-foreground">Arsip bertahap · PIC [UJI] untuk pengujian internal.</p>
       </div>}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className={entity === "kalibrasi-alat" ? "mb-3 flex flex-wrap items-end justify-between gap-3" : ""}>
+        {entity === "kalibrasi-alat" && <header>
+          <h1 className="text-2xl font-bold tracking-tight text-brand-navy">Kalibrasi Alat</h1>
+          <p className="mt-1 text-xs text-muted-foreground">Monitoring alat internal per portofolio.</p>
+        </header>}
+      <div className={entity === "kalibrasi-alat" ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
         {entity === "kalibrasi-alat" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",
@@ -93,18 +98,20 @@ export async function OperationList({
           </Button>
         )}
       </div>
+      </div>
       {entity === "sertifikat-klien" && <nav aria-label="Versi sertifikat klien" className="mb-3 flex gap-2 text-xs">
         <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}`}>Sertifikat terkini</Link>
         <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>
       </nav>}
+      {entity === "kalibrasi-alat" && <WorkflowOverview kind="calibration" branch={c.branch}/>}
       <OperationalFilters entity={entity} branch={c.branch} params={params} />
-      {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
+      {entity === "kompetensi-personil" && (
         <WorkflowOverview
-          kind={entity === "kalibrasi-alat" ? "calibration" : "personnel"}
+          kind="personnel"
           branch={c.branch}
         />
       )}
-      {entity === "sertifikat-klien" ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
+      {["sertifikat-klien", "kalibrasi-alat"].includes(entity) ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
     </>
   );
 }
