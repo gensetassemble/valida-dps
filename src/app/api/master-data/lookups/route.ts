@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   let query = db
     .from(target.readTable || target.table)
     .select(
-      `${target.idKey},${target.labelKey}${target.key === "roles" ? ",code" : ""}${target.key === "pegawai" ? ",npp" : ""}${target.key === "kalibrasi-alat" ? ",eligibility_status" : ""}`,
+      `${target.idKey},${target.labelKey}${target.key === "roles" ? ",code" : ""}${target.key === "pegawai" ? ",npp" : ""}${target.key === "kalibrasi-alat" ? ",tag,eligibility_status" : ""}`,
     );
   if (target.key !== "roles")
     query = query.eq(
@@ -74,13 +74,13 @@ export async function GET(request: NextRequest) {
       options: rows.map((row) => ({
         value: String(row[target.idKey]),
         label:
-          String(row[target.labelKey] || row[target.idKey]) +
+          String(row[target.labelKey] || "Tanpa nama") +
           (target.key === "pegawai"
             ? row.npp
               ? " · NPP " + String(row.npp)
               : " · Non-NPP"
             : target.key === "kalibrasi-alat"
-              ? " · " + String(row.eligibility_status || "Belum Ada Kalibrasi")
+              ? (row.tag ? " · " + String(row.tag) : "") + " · " + String(row.eligibility_status || "Belum Ada Kalibrasi")
               : ""),
       })),
     },

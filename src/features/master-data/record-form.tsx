@@ -55,6 +55,8 @@ function Lookup({
   const [q, setQuery] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
   const [status, setStatus] = useState("Memuat pilihan…");
+  const [lookupFailed, setLookupFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
   const canCreateType = !disabled && (
     (entity === "kompetensi-personil" && field.key === "certificate_type_id") ||
     (entity === "sertifikat-klien" && ["client_id", "certificate_type_id"].includes(field.key))
@@ -68,6 +70,8 @@ function Lookup({
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
+      setLookupFailed(false);
+      setStatus("Memuat pilihan…");
       try {
         const params = new URLSearchParams({
           entity,
@@ -75,6 +79,10 @@ function Lookup({
           branch,
           q,
         });
+        if (disabled && value) {
+          params.set("id", value);
+          params.delete("q");
+        }
         const response = await fetch(`/api/master-data/lookups?${params}`, {
           signal: controller.signal,
         });
@@ -87,12 +95,13 @@ function Lookup({
           const selected = await fetch(`/api/master-data/lookups?${params}`, {
             signal: controller.signal,
           });
-          if (selected.ok) {
-            const data = await selected.json();
-            loaded = [...data.options, ...loaded];
-          }
+          if (!selected.ok) throw new Error();
+          const data = await selected.json();
+          loaded = [...data.options, ...loaded];
         }
         setOptions(loaded);
+        if (value && !loaded.some((option) => option.value === value))
+          setLookupFailed(true);
         setStatus(
           loaded.length
             ? field.lookup === "wilayah" ? "Ketik nama provinsi atau kabupaten/kota untuk mencari seluruh katalog; maksimal 20 hasil ditampilkan." : "Maksimal 20 pilihan sesuai akses."
@@ -102,6 +111,7 @@ function Lookup({
         if (!controller.signal.aborted) {
           setStatus("Pilihan belum dapat dimuat.");
           setOptions([]);
+          setLookupFailed(true);
         }
         void error;
       }
@@ -110,7 +120,15 @@ function Lookup({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [entity, field.key, field.lookup, branch, q, value]);
+  }, [entity, field.key, field.lookup, branch, q, value, disabled, retry]);
+  if (disabled)
+    return (
+      <div className="space-y-2">
+        <Input id={field.key} readOnly className="bg-muted"
+          value={options.find((option) => option.value === value)?.label || (value ? lookupFailed ? "Referensi belum dapat dimuat" : "Memuat nama…" : "—")} />
+        {lookupFailed && <Button type="button" variant="outline" onClick={() => setRetry((attempt) => attempt + 1)}>Coba muat ulang</Button>}
+      </div>
+    );
   return (
     <div className="space-y-2">
       {searchable ? <SearchableLookup id={field.key} label={field.label} value={value}
@@ -134,7 +152,7 @@ function Lookup({
       >
         <option value="">Pilih {field.label.toLowerCase()}</option>
         {value && !options.some((option) => option.value === value) && (
-          <option value={value}>{value}</option>
+          <option value={value}>{lookupFailed ? "Referensi belum dapat dimuat" : "Memuat pilihan terpilih…"}</option>
         )}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -143,6 +161,7 @@ function Lookup({
         ))}
       </select>
       <p className="text-[10px] text-muted-foreground">{status}</p>
+      {lookupFailed && <Button type="button" variant="outline" onClick={() => setRetry((attempt) => attempt + 1)}>Coba muat ulang</Button>}
       </>}
       {canCreateType && !creating && (
         <Button
@@ -623,12 +642,13 @@ export function RecordForm({
                   label={field.label}
                   hint="Identitas/relasi tetap; buat penugasan baru bila diperlukan."
                 >
-                  <Input
+                  {field.kind === "lookup" ? <Lookup entity={entity.key} field={field} branch={branch}
+                    value={String(row?.[field.key] ?? "")} onChange={() => {}} disabled /> : <Input
                     id={field.key}
                     value={String(row?.[field.key] ?? "")}
                     readOnly
                     className="bg-muted"
-                  />
+                  />}
                 </FormField>
               );
             const message =
