@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { monitoringColumns, monitoringValue } from "./monitoring";
 import { businessNotes } from "./notes";
-import { todayWita, validDate } from "@/lib/domain/validity";
+import { todayWita, validDate, remainingDays } from "@/lib/domain/validity";
 import { xmlText } from "@/features/workflows/uma-annex";
 import { longExportDate } from "./export-context";
 import { applyXlsxReadability } from "@/lib/xlsx-readability";
@@ -14,6 +14,44 @@ type ReportContext = {
   location: string;
 };
 type Row = Record<string, unknown>;
+type DeadlineHighlight = { first: number; last: number; tone: "expired" | "soon" };
+
+async function highlightDeadlines(zip: JSZip, sheets: Record<string, DeadlineHighlight[]>) {
+  if (!Object.values(sheets).some((alerts) => alerts.length)) return;
+  let styles = await zip.file("xl/styles.xml")!.async("string");
+  const fills = styles.match(/<fills\b[^>]*>([\s\S]*?)<\/fills>/)!;
+  const fillCount = [...fills[1].matchAll(/<fill\b/g)].length;
+  const colors = ["FFFEE2E2", "FFFEF3C7"];
+  styles = styles.replace(fills[0], fills[0]
+    .replace(/\bcount="\d+"/, `count="${fillCount + 2}"`)
+    .replace("</fills>", colors.map((color) => `<fill><patternFill patternType="solid"><fgColor rgb="${color}"/><bgColor indexed="64"/></patternFill></fill>`).join("") + "</fills>"));
+  const cellXfs = styles.match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/)!;
+  const originals = [...cellXfs[1].matchAll(/<xf\b[^>]*?(?:\/>|>[\s\S]*?<\/xf>)/g)].map((m) => m[0]);
+  const added: string[] = [], cache = new Map<string, number>();
+  for (const [file, alerts] of Object.entries(sheets)) {
+    const tones = new Map<number, DeadlineHighlight["tone"]>();
+    for (const alert of alerts) for (let row = alert.first; row <= alert.last; row++) tones.set(row, alert.tone);
+    const xml = (await zip.file(file)!.async("string")).replace(/<c\b[^>]*\/?>/g, (cell) => {
+      const address = cell.match(/\br="([A-Z]+)(\d+)"/);
+      const tone = address && ["B", "C", "M"].includes(address[1]) ? tones.get(Number(address[2])) : undefined;
+      if (!tone) return cell;
+      const original = Number(cell.match(/\bs="(\d+)"/)?.[1] || 0), key = `${original}:${tone}`;
+      if (!cache.has(key)) {
+        const fillId = fillCount + (tone === "expired" ? 0 : 1);
+        added.push(originals[original].replace(/^<xf\b[^>]*\/?>/, (open) => open
+          .replace(/\s+(?:fillId|applyFill)="[^"]*"/g, "")
+          .replace(/(\/?>)$/, ` fillId="${fillId}" applyFill="1"$1`)));
+        cache.set(key, originals.length + added.length - 1);
+      }
+      return cell.replace(/\s+s="[^"]*"/g, "").replace(/(\/?>)$/, ` s="${cache.get(key)}"$1`);
+    });
+    zip.file(file, xml);
+  }
+  styles = styles.replace(cellXfs[0], cellXfs[0]
+    .replace(/\bcount="\d+"/, `count="${originals.length + added.length}"`)
+    .replace("</cellXfs>", added.join("") + "</cellXfs>"));
+  zip.file("xl/styles.xml", styles);
+}
 export function monitoringFilename(rows: Row[], today = todayWita()) {
   const codes = [
     ...new Set(rows.map((r) => String(r.portfolio_code || "")).filter(Boolean)),
@@ -87,6 +125,7 @@ function worksheet(
   const factorStyle = model[0].xml.match(/<c\b[^>]*r="S9"[^>]*s="(\d+)"/)?.[1];
   const body: string[] = [],
     merges: string[] = [];
+  const highlights: DeadlineHighlight[] = [];
   let next = 9;
   (records.length ? records : [null]).forEach((record, index) => {
     const sourceGroups = Array.isArray(record?.monitoring_measurements)
@@ -104,6 +143,9 @@ function worksheet(
     });
     const corrections = groups.flatMap((group) => group.factors);
     const count = corrections.length;
+    const days = record ? remainingDays(monitoringValue(record, "latest_due_date"), today) : null;
+    if (days !== null && days <= 90)
+      highlights.push({first: next, last: next + count - 1, tone: days < 0 ? "expired" : "soon"});
     let groupStart = next;
     const ranges = new Map<number, string>();
     for (const group of groups) {
@@ -218,7 +260,7 @@ function worksheet(
       a.replace(/\s+fitToHeight="[^"]*"/g, "") +
       ' fitToHeight="0"/>',
   );
-  return { xml, last: 42 + delta, tableLast: next - 1 };
+  return { xml, last: 42 + delta, tableLast: next - 1, highlights };
 }
 /** Native FOR/SCI-UMA/198 Rev.03: preserve layout, fonts, logo, header, footer and print geometry. */
 export async function monitoringXlsx(
@@ -272,6 +314,7 @@ export async function monitoringXlsx(
     types: string[] = [];
   const used = new Set<string>();
   const tableRanges: Record<string, { first: number; last: number }> = {};
+  const deadlineHighlights: Record<string, DeadlineHighlight[]> = {};
   let index = 0;
   for (const [portfolio, records] of groups) {
     const id = ++index,
@@ -290,6 +333,7 @@ export async function monitoringXlsx(
       context,
     );
     zip.file(`xl/worksheets/sheet${id}.xml`, output.xml);
+    deadlineHighlights[`xl/worksheets/sheet${id}.xml`] = output.highlights;
     tableRanges[`xl/worksheets/sheet${id}.xml`] = {
       first: 6,
       last: output.tableLast,
@@ -343,5 +387,6 @@ export async function monitoringXlsx(
     content.replace("</Types>", types.join("") + "</Types>"),
   );
   await applyXlsxReadability(zip, tableRanges);
+  await highlightDeadlines(zip, deadlineHighlights);
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }

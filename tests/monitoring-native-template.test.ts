@@ -7,6 +7,32 @@ import {
   monitoringFilename,
 } from "@/features/operations/monitoring-xlsx";
 describe("FOR/SCI-UMA/198 native monitoring template", () => {
+  it("highlights expired and upcoming deadlines in every sheet without changing dates or the native header", async () => {
+    const bytes = await monitoringXlsx([
+      {name:"Expired",tag:"EX-1",portfolio_code:"LAB",latest_due_date:"2026-11-04",correction_factor:"0\n1"},
+      {name:"Due today",portfolio_code:"LAB",latest_due_date:"2026-11-05"},
+      {name:"90 days",portfolio_code:"LAB",latest_due_date:"2027-02-03"},
+      {name:"91 days",portfolio_code:"LAB",latest_due_date:"2027-02-04"},
+      {name:"Missing date",portfolio_code:"LAB"},
+      {name:"Other portfolio",portfolio_code:"BBR",latest_due_date:"2026-10-01"},
+    ],"DPS","2026-11-05");
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.load(Uint8Array.from(bytes).buffer);
+    const lab=book.getWorksheet("LAB")!, bbr=book.getWorksheet("BBR")!;
+    const color=(sheet: ExcelJS.Worksheet, cell: string) => (sheet.getCell(cell).fill as ExcelJS.FillPattern).fgColor?.argb;
+    for (const cell of ["B9","C9","M9","B10","C10","M10"])
+      expect(color(lab,cell)).toBe("FFFEE2E2");
+    for (const row of [11,12]) expect(color(lab,`M${row}`)).toBe("FFFEF3C7");
+    for (const row of [13,14]) expect(color(lab,`M${row}`)).not.toBe("FFFEE2E2");
+    expect(color(lab,"M13")).not.toBe("FFFEF3C7");
+    expect(color(lab,"M14")).not.toBe("FFFEF3C7");
+    expect(color(bbr,"M9")).toBe("FFFEE2E2");
+    expect(lab.getCell("M9").value).toEqual(new Date("2026-11-04T00:00:00Z"));
+    expect(lab.getCell("B9").alignment.wrapText).toBe(true);
+    expect(lab.getCell("B9").font.name).toBe("Arial");
+    expect(color(lab,"M6")).not.toBe("FFFEE2E2");
+    expect(lab.getCell("A2").value).toBe("LAPORAN MONITORING PERALATAN");
+  });
   it("allocates only populated correction rows and keeps every range paired with its factors", async () => {
     const bytes = await monitoringXlsx([
       {name:"One point", portfolio_code:"LAB", measurement_range:"0–10 mm", correction_factor:"\n0\n\n"},
