@@ -213,7 +213,11 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       active,
     ],
     columns: [...monitoringColumns.map(([key]) => key), "portfolio_code"],
-    search: ["name", "asset_id", "tag", "serial", "brand", "location"],
+    search: [
+      "name", "asset_id", "tag", "serial", "brand", "model", "location",
+      "owner_unit", "unit", "portfolio_code", "portfolio_name",
+      "monitoring_laboratory", "monitoring_certificate",
+    ],
   },
   "riwayat-kalibrasi": {
     ...common,

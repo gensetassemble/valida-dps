@@ -167,7 +167,7 @@ export function CompactOperationalFilters({
           aria-label="Cari rekaman"
           name="q"
           defaultValue={params.get("q") || ""}
-          placeholder="Cari nama, nomor sertifikat, tag…"
+          placeholder={entity === "kalibrasi-alat" ? "Cari alat, tag, lembaga, sertifikat, subunit…" : "Cari nama, nomor sertifikat, tag…"}
           maxLength={100}
           className="h-9 w-full rounded-lg border border-input px-3 text-xs"
         />
