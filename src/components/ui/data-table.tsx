@@ -49,6 +49,17 @@ import {
   formatTimestamp,
   formatRupiah,
 } from "@/lib/format";
+const centeredCalibrationColumns = new Set([
+  "item_condition",
+  "item_status",
+  "monitoring_interval",
+  "latest_calibration_date",
+  "latest_due_date",
+  "calibration_internal",
+  "calibration_external",
+  "significant_yes",
+  "significant_no",
+]);
 type TableData = {
   rows: DataRow[];
   labels: Record<string, Record<string, string>>;
@@ -244,7 +255,7 @@ export function DataTable({
           : raw;
       return (
         <span
-          className="block min-w-20 max-w-64 whitespace-pre-wrap break-words"
+          className={`block min-w-20 max-w-64 whitespace-pre-wrap break-words${centeredCalibrationColumns.has(column) ? " mx-auto text-center" : ""}`}
           title={display}
         >
           <span className="line-clamp-2">{display || "—"}</span>
@@ -536,7 +547,7 @@ export function DataTable({
                               ? column
                               : undefined
                           }
-                          className="whitespace-nowrap px-4 py-3 font-medium"
+                          className={`whitespace-nowrap px-4 py-3 align-middle font-medium${entity.key === "kalibrasi-alat" && centeredCalibrationColumns.has(column) ? " text-center" : ""}`}
                         >
                           {column ===
                             (entity.detailColumn || entity.columns[0]) &&
