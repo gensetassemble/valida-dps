@@ -3,6 +3,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { masterClient } from "@/features/master-data/server";
+import { normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 const inputSchema = z
   .object({
     equipment_id: z.uuid(),
@@ -24,7 +25,7 @@ const inputSchema = z
         })
         .strict(),
     ),
-    laboratory: z.string().trim().max(200),
+    laboratory: z.string().trim().max(200).transform(normalizeCalibrationLaboratory),
     resolution_class: z.string().trim().max(200),
     supervisor_profile_id: z.uuid(),
     notes: z.string().trim().min(8).max(4000),

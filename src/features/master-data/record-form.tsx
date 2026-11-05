@@ -31,6 +31,7 @@ import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
 import { equipmentUnits, normalizeEquipmentUnit } from "@/features/operations/equipment-units";
+import { calibrationLaboratories, normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
 import {
   calibrationMark,
@@ -276,6 +277,8 @@ function initialValue(
         : !["pegawai", "pengguna"].includes(entity);
   if (entity === "kalibrasi-alat" && field.key === "unit" && typeof value === "string")
     return normalizeEquipmentUnit(value);
+  if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity) && ["laboratory", "initial_laboratory"].includes(field.key) && typeof value === "string")
+    return normalizeCalibrationLaboratory(value);
   if (value !== null && value !== undefined)
     return Array.isArray(value) ? value.join(",") : String(value);
   if (field.key === "reminder_days") return "90,60,30,0";
@@ -757,6 +760,11 @@ export function RecordForm({
                       <Input {...common} {...register(field.key)} list="equipment-owner-units" maxLength={254} placeholder="Pilih subunit atau tulis lokasi lain" />
                       <datalist id="equipment-owner-units">{equipmentUnits.map((unit) => <option key={unit} value={unit} />)}</datalist>
                       <p className="mt-1 text-[10px] text-muted-foreground">UP Lombok dan TBBM Lombok dicatat terpisah. Detail ruangan/site dapat ditulis pada Lokasi.</p>
+                    </>
+                  ) : ["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["laboratory", "initial_laboratory"].includes(field.key) ? (
+                    <>
+                      <Input {...common} {...register(field.key)} list="calibration-laboratories" maxLength={200} placeholder="Pilih lembaga atau tulis lembaga lain" />
+                      <datalist id="calibration-laboratories">{calibrationLaboratories.map((name) => <option key={name} value={name} />)}</datalist>
                     </>
                   ) : field.kind === "lookup" ? (
                     <Controller

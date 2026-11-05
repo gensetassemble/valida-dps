@@ -6,6 +6,7 @@ import { masterClient } from "@/features/master-data/server";
 import { hasPermission } from "@/lib/auth/permissions";
 import { employeeStatusSchema } from "./employee-status-model";
 import { driveFolder, todayWita } from "@/lib/domain/validity";
+import { normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 const optionalText = (max = 200) =>
   z.string().trim().max(max).nullable().optional();
 const optionalId = z.uuid().nullable().optional();
@@ -24,7 +25,7 @@ const calibration = z
     request_number: optionalText(),
     unit_name: optionalText(),
     quantity: z.coerce.number().int().min(1).max(10000),
-    laboratory: optionalText(),
+    laboratory: optionalText().transform((value) => typeof value === "string" ? normalizeCalibrationLaboratory(value) : value),
     resolution_class: optionalText(),
     estimated_days: z.coerce
       .number()

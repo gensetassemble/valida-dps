@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { calibrationLaboratories } from "@/features/operations/calibration-laboratories";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -388,7 +389,8 @@ export function EquipmentRequestForm({
             </label>
             <label className="grid gap-1 text-xs">
               Lembaga perbaikan / kalibrasi
-              <input name="laboratory" maxLength={200} className={cls} />
+              <input name="laboratory" list="request-calibration-laboratories" maxLength={200} className={cls} placeholder="Pilih lembaga atau tulis lembaga lain" />
+              <datalist id="request-calibration-laboratories">{calibrationLaboratories.map((name) => <option key={name} value={name}/>)}</datalist>
             </label>
             <label className="grid gap-1 text-xs">
               Nama organisasi di sertifikat

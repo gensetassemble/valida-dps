@@ -6,6 +6,7 @@ import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
 import { measurementGroupsSchema } from "@/features/operations/measurement-groups";
 import { normalizeEquipmentUnit } from "@/features/operations/equipment-units";
+import { normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
 function fieldSchema(field: Field) {
@@ -122,7 +123,9 @@ export function recordSchema(entity: EntityConfig, editing = false) {
     if (editing && (field.key === entity.idKey || field.immutable)) continue;
     shape[field.key] = entity.key === "kalibrasi-alat" && field.key === "unit"
       ? fieldSchema(field).transform((value) => typeof value === "string" ? normalizeEquipmentUnit(value) : value)
-      : fieldSchema(field);
+      : ["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["laboratory", "initial_laboratory"].includes(field.key)
+        ? fieldSchema(field).transform((value) => typeof value === "string" ? normalizeCalibrationLaboratory(value) : value)
+        : fieldSchema(field);
   }
   if (entity.key === "kalibrasi-alat")
     shape.measurement_range = z.preprocess(

@@ -1,5 +1,6 @@
 import type { Field } from "@/features/master-data/registry";
 import { calibrationMark, pairedCalibrationField } from "./calibration-marks";
+import { normalizeCalibrationLaboratory } from "./calibration-laboratories";
 
 // One contract for the website table and the monitoring workbook.
 export const monitoringColumns = [
@@ -235,6 +236,7 @@ export function monitoringValue(
   key: string,
 ): string {
   if (key === "unit" && typeof row.owner_unit === "string") return row.owner_unit;
+  if (key === "monitoring_laboratory") return normalizeCalibrationLaboratory(String(row[key] ?? ""));
   const groups = Array.isArray(row.monitoring_measurements)
     ? row.monitoring_measurements.filter(
         (v): v is Record<string, unknown> =>
