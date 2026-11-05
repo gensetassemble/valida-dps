@@ -234,6 +234,7 @@ export function monitoringValue(
   row: Record<string, unknown>,
   key: string,
 ): string {
+  if (key === "unit" && typeof row.owner_unit === "string") return row.owner_unit;
   const groups = Array.isArray(row.monitoring_measurements)
     ? row.monitoring_measurements.filter(
         (v): v is Record<string, unknown> =>

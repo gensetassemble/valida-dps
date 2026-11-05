@@ -410,6 +410,7 @@ export function DataTable({
                           colSpan={colSpan}
                           rowSpan={rowSpan}
                           scope={colSpan > 1 ? "colgroup" : "col"}
+                          aria-sort={colSpan === 1 && col > 1 && data.sort === monitoringColumns[col - 2]?.[0] ? (data.dir === "asc" ? "ascending" : "descending") : undefined}
                           data-frozen={
                             col <= 3
                               ? ["number", "name", "tag"][col - 1]
@@ -417,7 +418,10 @@ export function DataTable({
                           }
                           className="min-w-16 border border-border px-2 py-2 text-center normal-case tracking-normal"
                         >
-                          {label}
+                          {colSpan === 1 && col > 1 ? <button type="button"
+                            onClick={() => navigate({sort: monitoringColumns[col - 2][0], dir: data.sort === monitoringColumns[col - 2][0] && data.dir === "asc" ? "desc" : "asc", page: "1"})}
+                            className="inline-flex items-center justify-center gap-1" title={`Urutkan ${label}`}>
+                            {label}{data.sort === monitoringColumns[col - 2][0] ? data.dir === "asc" ? <ArrowUp size={12}/> : <ArrowDown size={12}/> : <ArrowUpDown size={12}/>}</button> : label}
                         </th>
                       ))}
                       {index === 0 && (

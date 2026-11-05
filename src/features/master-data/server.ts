@@ -38,6 +38,7 @@ export type QueryParams = {
   archived?: string;
   renewal?: string;
   generation?: string;
+  unit?: string;
 };
 export async function entityContext(
   key: string,
@@ -211,6 +212,8 @@ export async function listRecords(
   if (field && field.options?.some((option) => option.value === params.value))
     query = query.eq(field.key, params.value!);
   if (parent) query = query.eq(parent.field, parent.id);
+  if (entity.key === "kalibrasi-alat" && params.unit && params.unit.length <= 254)
+    query = params.unit === "__unset__" ? query.is("owner_unit", null) : query.eq("owner_unit", params.unit);
   if (["kompetensi-personil", "sertifikat-klien"].includes(entity.key)) {
     if (params.generation === "history")
       query = query.not("superseded_by_certificate_id", "is", null);
@@ -313,7 +316,7 @@ export async function listRecords(
     total: count ?? 0,
     page,
     size,
-    sort,
+    sort: sort === "owner_unit" ? "unit" : sort,
     dir: params.dir === "desc" ? "desc" : "asc",
   };
 }

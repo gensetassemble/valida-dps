@@ -30,9 +30,16 @@ export async function OperationalFilters({
             ["portfolio", "portfolios", "code", "Portofolio"],
             ["type", "certificate_types", "name", "Jenis kompetensi"],
           ]
-        : [["portfolio", "portfolios", "code", "Portofolio"]];
+        : [["portfolio", "portfolios", "code", "Portofolio"], ["unit", "equipment_monitoring_records", "unit", "Subunit pemilik"]];
   const options = await Promise.all(
     keys.map(async ([param, table, label, title]) => {
+      if (entity === "kalibrasi-alat" && param === "unit") {
+        const { data, error } = await db.from("equipment_monitoring_records").select("owner_unit")
+          .eq("branch_code", branch).order("owner_unit").limit(10000);
+        if (error) throw Error("Subunit pemilik alat belum dapat dimuat.");
+        const values = [...new Set((data || []).map((row) => row.owner_unit || "__unset__"))];
+        return { param, title, label, rows: values.map((unit): Record<string, string> => ({id: unit, unit: unit === "__unset__" ? "Belum diisi" : unit})) };
+      }
       if (entity === "kalibrasi-alat" && param === "portfolio") {
         const { data, error } = await db
           .from("equipment_monitoring_records")

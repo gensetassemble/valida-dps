@@ -7,6 +7,7 @@ export function operationalOrder(entity: string, sort?: string, dir?: string) {
   const column = sort === "alphabet" ? name
     : sort === "portfolio" ? (equipment ? "portfolio_code" : "portfolio_sort_key")
     : sort === "employee" && !equipment ? "employee_name"
+    : (sort === "unit" || sort === "owner_unit") && equipment ? "owner_unit"
     : !sort || sort === "priority" ? "validity_priority" : null;
   if (!column) return null; // Keep existing table column sorting.
   const ascending = column === "validity_priority" || dir !== "desc";

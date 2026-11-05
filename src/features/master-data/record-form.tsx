@@ -30,6 +30,7 @@ import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
+import { equipmentUnits, normalizeEquipmentUnit } from "@/features/operations/equipment-units";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
 import {
   calibrationMark,
@@ -273,6 +274,8 @@ function initialValue(
       : field.key === "is_primary"
         ? false
         : !["pegawai", "pengguna"].includes(entity);
+  if (entity === "kalibrasi-alat" && field.key === "unit" && typeof value === "string")
+    return normalizeEquipmentUnit(value);
   if (value !== null && value !== undefined)
     return Array.isArray(value) ? value.join(",") : String(value);
   if (field.key === "reminder_days") return "90,60,30,0";
@@ -749,6 +752,12 @@ export function RecordForm({
                     />
                   ) : entity.key === "pelanggan" && field.key === "account_manager_id" && locked && row?.account_manager_label ? (
                     <Input id={field.key} value={String(row.account_manager_label)} readOnly className="bg-muted"/>
+                  ) : entity.key === "kalibrasi-alat" && field.key === "unit" ? (
+                    <>
+                      <Input {...common} {...register(field.key)} list="equipment-owner-units" maxLength={254} placeholder="Pilih subunit atau tulis lokasi lain" />
+                      <datalist id="equipment-owner-units">{equipmentUnits.map((unit) => <option key={unit} value={unit} />)}</datalist>
+                      <p className="mt-1 text-[10px] text-muted-foreground">UP Lombok dan TBBM Lombok dicatat terpisah. Detail ruangan/site dapat ditulis pada Lokasi.</p>
+                    </>
                   ) : field.kind === "lookup" ? (
                     <Controller
                       control={control}

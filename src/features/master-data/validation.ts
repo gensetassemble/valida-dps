@@ -5,6 +5,7 @@ import { ALL_ROLES } from "@/lib/auth/permissions";
 import { driveFolder, addMonths, validDate } from "@/lib/domain/validity";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
 import { measurementGroupsSchema } from "@/features/operations/measurement-groups";
+import { normalizeEquipmentUnit } from "@/features/operations/equipment-units";
 const emptyToNull = (value: unknown) =>
   typeof value === "string" && !value.trim() ? null : value;
 function fieldSchema(field: Field) {
@@ -119,7 +120,9 @@ export function recordSchema(entity: EntityConfig, editing = false) {
     )
       continue;
     if (editing && (field.key === entity.idKey || field.immutable)) continue;
-    shape[field.key] = fieldSchema(field);
+    shape[field.key] = entity.key === "kalibrasi-alat" && field.key === "unit"
+      ? fieldSchema(field).transform((value) => typeof value === "string" ? normalizeEquipmentUnit(value) : value)
+      : fieldSchema(field);
   }
   if (entity.key === "kalibrasi-alat")
     shape.measurement_range = z.preprocess(

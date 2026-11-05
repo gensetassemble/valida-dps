@@ -193,6 +193,7 @@ export function CompactOperationalFilters({
             {value: "alphabet", label: entity === "kalibrasi-alat" ? "Nama alat A–Z" : "Judul kompetensi A–Z"},
             ...(entity === "kompetensi-personil" ? [{value: "employee", label: "Nama pegawai A–Z"}] : []),
             {value: "portfolio", label: "Portofolio A–Z"},
+            ...(entity === "kalibrasi-alat" ? [{value: "unit", label: "Subunit pemilik A–Z"}] : []),
           ]}}
           value={params.get("sort") || ""}
           onChange={(v) => change("sort", v)}
