@@ -89,26 +89,35 @@ function worksheet(
     merges: string[] = [];
   let next = 9;
   (records.length ? records : [null]).forEach((record, index) => {
-    const corrections = record
-      ? monitoringValue(record, "correction_factor")
-          .split(/\r?\n/)
-          .flatMap((line) => {
-            const chars = [...line],
-              parts: string[] = [];
-            do {
-              parts.push(chars.splice(0, 240).join(""));
-            } while (chars.length);
-            return parts;
-          })
+    const sourceGroups = Array.isArray(record?.monitoring_measurements)
+      ? record.monitoring_measurements.filter(
+          (group): group is Row => !!group && typeof group === "object" && !Array.isArray(group),
+        )
       : [];
-    const count = Math.max(11, corrections.length);
+    const groups = (sourceGroups.length ? sourceGroups : [record || {}]).map((group) => {
+      const factors = String(group.correction_factor ?? record?.correction_factor ?? "")
+        .replace(/\\n/g, "\n").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+      return {
+        range: String(group.measurement_range ?? record?.measurement_range ?? "").replace(/\\n/g, "\n"),
+        factors: factors.length ? factors : [""],
+      };
+    });
+    const corrections = groups.flatMap((group) => group.factors);
+    const count = corrections.length;
+    let groupStart = next;
+    const ranges = new Map<number, string>();
+    for (const group of groups) {
+      ranges.set(groupStart, group.range);
+      if (group.factors.length > 1) merges.push(`R${groupStart}:R${groupStart + group.factors.length - 1}`);
+      groupStart += group.factors.length;
+    }
     for (let i = 0; i < count; i++) {
       const base = model[i === 0 ? 0 : i === count - 1 ? 10 : Math.min(i, 9)];
       let xml = shiftRow(base.xml, next + i - base.n);
       if (record && i === 0) {
         xml = setCell(xml, "A" + next, index + 1, true);
         monitoringColumns.forEach(([key], col) => {
-          if (key === "correction_factor") return;
+          if (key === "correction_factor" || key === "measurement_range") return;
           const ref = String.fromCharCode(66 + col) + next;
           const raw = record[key];
           if (
@@ -135,10 +144,12 @@ function worksheet(
           false,
           factorStyle,
         );
+      if (record && ranges.has(next + i))
+        xml = setCell(xml, "R" + (next + i), ranges.get(next + i));
       body.push(xml);
     }
     for (let col = 0; col < 22; col++)
-      if (col !== 18)
+      if (col !== 17 && col !== 18 && count > 1)
         merges.push(
           `${String.fromCharCode(65 + col)}${next}:${String.fromCharCode(65 + col)}${next + count - 1}`,
         );

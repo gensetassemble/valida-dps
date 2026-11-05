@@ -70,7 +70,7 @@ describe("current export officials and reporting period", () => {
     const book = new ExcelJS.Workbook();
     await book.xlsx.load(Uint8Array.from(bytes).buffer);
     for (const sheet of book.worksheets) {
-      const offset = sheet.name === "PIK" ? 11 : 0;
+      const offset = sheet.name === "PIK" ? -9 : -10;
       expect(sheet.getCell("A" + (29 + offset)).text).toBe(
         "(Pejabat Cabang Baru)",
       );

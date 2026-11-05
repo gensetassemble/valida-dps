@@ -7,6 +7,38 @@ import {
   monitoringFilename,
 } from "@/features/operations/monitoring-xlsx";
 describe("FOR/SCI-UMA/198 native monitoring template", () => {
+  it("allocates only populated correction rows and keeps every range paired with its factors", async () => {
+    const bytes = await monitoringXlsx([
+      {name:"One point", portfolio_code:"LAB", measurement_range:"0–10 mm", correction_factor:"\n0\n\n"},
+      {name:"Grouped points", portfolio_code:"LAB", monitoring_measurements:[
+        {measurement_range:"Hole", correction_factor:"0,022\n\n0,023\n"},
+        {measurement_range:"Wire", correction_factor:"-1,3"},
+        {measurement_range:"No correction yet", correction_factor:""},
+      ]},
+      {name:"No points yet", portfolio_code:"LAB", measurement_range:"0–50 °C"},
+    ],"DPS","2026-11-05");
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.load(Uint8Array.from(bytes).buffer);
+    const sheet = book.getWorksheet("LAB")!;
+    expect(sheet.getCell("B9").value).toBe("One point");
+    expect(sheet.getCell("S9").value).toBe("0");
+    expect(sheet.getCell("B10").value).toBe("Grouped points");
+    expect(sheet.getCell("R10").value).toBe("Hole");
+    expect(sheet.getCell("R11").master.address).toBe("R10");
+    expect(sheet.getCell("S10").value).toBe("0,022");
+    expect(sheet.getCell("S11").value).toBe("0,023");
+    expect(sheet.getCell("R12").value).toBe("Wire");
+    expect(sheet.getCell("S12").value).toBe("-1,3");
+    expect(sheet.getCell("R13").value).toBe("No correction yet");
+    expect(sheet.getCell("S13").text).toBe("");
+    expect(sheet.getCell("B14").value).toBe("No points yet");
+    expect(sheet.getCell("R14").value).toBe("0–50 °C");
+    const zip = await JSZip.loadAsync(bytes);
+    const xml = await zip.file("xl/worksheets/sheet1.xml")!.async("string");
+    expect(xml).toContain('ref="R10:R11"');
+    expect(xml).not.toMatch(/ref="([A-Z]+\d+):\1"/);
+    expect(xml).toContain('ref="A1:V37"');
+  });
   it("preserves title and footer row geometry and styles while wrapping only the table on every sheet", async () => {
     const source = await JSZip.loadAsync(await readFile("src/assets/forms/FOR-SCI-UMA-198-Rev-03.xlsx"));
     const original = await source.file("xl/worksheets/sheet1.xml")!.async("string");
@@ -22,7 +54,7 @@ describe("FOR/SCI-UMA/198 native monitoring template", () => {
     const sourceStyles = (await source.file("xl/styles.xml")!.async("string")).match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/)![1];
     const outputStyles = (await out.file("xl/styles.xml")!.async("string")).match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/)![1];
     expect(outputStyles.startsWith(sourceStyles)).toBe(true);
-    for (const [sheet, delta] of [[1, 11], [2, 0]]) {
+    for (const [sheet, delta] of [[1, -9], [2, -10]]) {
       const xml = await out.file(`xl/worksheets/sheet${sheet}.xml`)!.async("string");
       for (const match of original.matchAll(/<row\b[^>]*\br="(\d+)"[^>]*>[\s\S]*?<\/row>/g)) {
         const n = Number(match[1]);
@@ -71,7 +103,7 @@ describe("FOR/SCI-UMA/198 native monitoring template", () => {
     expect(s.getCell("L9").value).toEqual(new Date("2026-07-01T00:00:00Z"));
     expect(s.getCell("S9").value).toBe("0,1");
     expect(s.getCell("S12").value).toBe("0,4");
-    expect(s.getCell("S44").value).toBe("Nilai 24");
+    expect(s.getCell("S37").value).toBe("Nilai 24");
     expect(s.getCell("V6").value).toBe("Keterangan");
     expect(s.getCell("V9").value).toContain("Catatan pengguna");
     expect(s.getCell("A2").font).toMatchObject({
