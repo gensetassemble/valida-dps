@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.05-calibration-export-alerts.1";
+export const APPLICATION_RELEASE = "2026.11.09-personnel-days-remaining.1";

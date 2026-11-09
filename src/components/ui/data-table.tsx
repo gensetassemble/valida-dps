@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { DeadlineDate } from "./deadline-date";
+import { DeadlineRemaining } from "./deadline-remaining";
 import { CalibrationMeasurementDetails } from "./calibration-measurement-details";
 import { operationalValidity, remainingDays } from "@/lib/domain/validity";
 import { ScrollLoader } from "./scroll-loader";
@@ -242,6 +243,11 @@ export function DataTable({
         </span>
       );
     if (column === "npp" && !row.npp) return "Non-NPP";
+    if (entity.key === "kompetensi-personil" && column === "validity_status")
+      return <span className="flex flex-col items-start gap-1">
+        <StatusBadge value={String(row.validity_status || "Tanggal Belum Diisi")} />
+        <DeadlineRemaining value={row.expiry_date} lifetime={row.validity_kind === "lifetime"} />
+      </span>;
     if (entity.key === "kalibrasi-alat") {
       if (column === "measurement_range" || column === "correction_factor")
         return <CalibrationMeasurementDetails row={row} field={column} />;
