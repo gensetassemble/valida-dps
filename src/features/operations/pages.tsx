@@ -35,18 +35,15 @@ export async function OperationList({
 }) {
   const c = await pageEntityContext(entity, params.branch);
   if (!c) return <AccessDenied />;
+  const compact = ["sertifikat-klien", "kompetensi-personil", "kalibrasi-alat"].includes(entity);
   return (
     <>
-      {entity === "sertifikat-klien" && <div className="mb-3">
-        <h1 className="text-2xl font-bold tracking-tight text-brand-navy">Sertifikat Klien</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Arsip bertahap · PIC [UJI] untuk pengujian internal.</p>
-      </div>}
-      <div className={entity === "kalibrasi-alat" ? "mb-3 flex flex-wrap items-end justify-between gap-3" : ""}>
-        {entity === "kalibrasi-alat" && <header>
-          <h1 className="text-2xl font-bold tracking-tight text-brand-navy">Kalibrasi Alat</h1>
-          <p className="mt-1 text-xs text-muted-foreground">Monitoring alat internal per portofolio.</p>
+      <div className={compact ? "mb-3 flex flex-wrap items-end justify-between gap-3" : ""}>
+        {compact && <header>
+          <h1 className="text-2xl font-bold tracking-tight text-brand-navy">{c.entity.title}</h1>
+          <p className="mt-1 text-xs text-muted-foreground">{entity === "kalibrasi-alat" ? "Monitoring alat internal per portofolio." : entity === "sertifikat-klien" ? "Arsip bertahap · PIC [UJI] untuk pengujian internal." : "Pantau masa berlaku dan tindak lanjut sertifikat."}</p>
         </header>}
-      <div className={entity === "kalibrasi-alat" ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
+      <div className={compact ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
         {entity === "kalibrasi-alat" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",
@@ -97,21 +94,21 @@ export async function OperationList({
             </a>
           </Button>
         )}
+        {entity === "sertifikat-klien" && <nav aria-label="Versi sertifikat klien" className="flex flex-wrap gap-2 text-xs">
+          <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}`}>Sertifikat terkini</Link>
+          <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>
+        </nav>}
       </div>
       </div>
-      {entity === "sertifikat-klien" && <nav aria-label="Versi sertifikat klien" className="mb-3 flex gap-2 text-xs">
-        <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}`}>Sertifikat terkini</Link>
-        <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>
-      </nav>}
       {entity === "kalibrasi-alat" && <WorkflowOverview kind="calibration" branch={c.branch}/>}
-      <OperationalFilters entity={entity} branch={c.branch} params={params} />
       {entity === "kompetensi-personil" && (
         <WorkflowOverview
           kind="personnel"
           branch={c.branch}
         />
       )}
-      {["sertifikat-klien", "kalibrasi-alat"].includes(entity) ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
+      <OperationalFilters entity={entity} branch={c.branch} params={params} />
+      {compact ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
     </>
   );
 }

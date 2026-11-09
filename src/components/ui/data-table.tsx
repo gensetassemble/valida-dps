@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
+import { certificateFrozenColumn, certificateColumnWidth } from "./certificate-table-layout";
 import { DeadlineDate } from "./deadline-date";
 import { DeadlineRemaining } from "./deadline-remaining";
 import { CalibrationMeasurementDetails } from "./calibration-measurement-details";
@@ -188,6 +189,8 @@ export function DataTable({
       "kalibrasi-alat",
       "pegawai",
     ].includes(entity.key);
+  const frozenCertificates = ["sertifikat-klien", "kompetensi-personil"].includes(entity.key);
+  const certificateColumns = ["number", ...(mayBulk ? ["selection"] : []), ...displayColumns, "actions"];
   function navigate(values: Record<string, string>) {
     const next = new URLSearchParams(params.toString());
     next.delete("page");
@@ -382,19 +385,22 @@ export function DataTable({
             role="region"
             aria-label={`Tabel ${entity.title}`}
             tabIndex={0}
+            style={frozenCertificates ? {"--record-selection": mayBulk ? "2rem" : "0rem"} as CSSProperties : undefined}
             className={
               entity.key === "kalibrasi-alat"
                 ? "calibration-table-scroll max-w-full"
-                : "max-w-full overflow-x-auto"
+                : frozenCertificates ? "certificate-table-scroll max-w-full" : "max-w-full overflow-x-auto"
             }
           >
             <table
               className={
                 entity.key === "kalibrasi-alat"
                   ? "calibration-frozen-table text-left text-xs"
-                  : "w-full min-w-[640px] border-collapse text-left text-xs"
+                  : frozenCertificates ? "certificate-frozen-table text-left text-xs" : "w-full min-w-[640px] border-collapse text-left text-xs"
               }
+              style={frozenCertificates ? {width: `calc(${certificateColumns.map(certificateColumnWidth).join(" + ")})`} : undefined}
             >
+              {frozenCertificates && <colgroup>{certificateColumns.map((column) => <col key={column} style={{width: certificateColumnWidth(column)}} />)}</colgroup>}
               {entity.key === "kalibrasi-alat" && (
                 <colgroup>
                   {[
@@ -439,11 +445,11 @@ export function DataTable({
                   ))
                 ) : (
                   <tr>
-                    <th className="w-10 px-4 py-3" scope="col">
+                    <th className="w-10 px-4 py-3" scope="col" data-record-frozen={certificateFrozenColumn(entity.key, "number")}>
                       No.
                     </th>
                     {mayBulk && (
-                      <th className="w-8 px-2 py-3" scope="col">
+                      <th className="w-8 px-2 py-3" scope="col" data-record-frozen={certificateFrozenColumn(entity.key, "selection")}>
                         <input
                           type="checkbox"
                           aria-label="Pilih semua yang ditampilkan"
@@ -468,6 +474,7 @@ export function DataTable({
                       <th
                         key={column}
                         scope="col"
+                        data-record-frozen={certificateFrozenColumn(entity.key, column)}
                         aria-sort={
                           data.sort === column
                             ? data.dir === "asc"
@@ -523,6 +530,7 @@ export function DataTable({
                   return (
                     <tr key={id} className="hover:bg-surface-muted">
                       <td
+                        data-record-frozen={certificateFrozenColumn(entity.key, "number")}
                         data-frozen={
                           entity.key === "kalibrasi-alat" ? "number" : undefined
                         }
@@ -531,7 +539,7 @@ export function DataTable({
                         {index + 1}
                       </td>
                       {mayBulk && (
-                        <td className="px-2 py-3">
+                        <td className="px-2 py-3" data-record-frozen={certificateFrozenColumn(entity.key, "selection")}>
                           <input
                             aria-label={`Pilih ${name}`}
                             type="checkbox"
@@ -551,6 +559,7 @@ export function DataTable({
                       {displayColumns.map((column) => (
                         <td
                           key={column}
+                          data-record-frozen={certificateFrozenColumn(entity.key, column)}
                           data-frozen={
                             entity.key === "kalibrasi-alat" &&
                             ["name", "tag"].includes(column)

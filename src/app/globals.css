@@ -132,6 +132,44 @@ input {
     padding-inline: 0.5rem;
   }
 }
+.certificate-table-scroll {
+  --record-number: 3rem;
+  --record-selection: 0rem;
+  --record-title: 15rem;
+  --record-person: 12rem;
+  --record-status: 7.5rem;
+  --record-date: 9rem;
+  --record-client: 14rem;
+  max-height: min(70dvh, 48rem);
+  overflow: auto;
+  isolation: isolate;
+  scrollbar-gutter: stable;
+  contain: paint;
+}
+.certificate-frozen-table { min-width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+.certificate-frozen-table thead { position: sticky; top: 0; z-index: 30; }
+.certificate-frozen-table th { background: var(--color-surface-muted); box-shadow: inset 0 -1px var(--color-border); }
+.certificate-frozen-table td { border-bottom: 1px solid #f1f5f9; }
+.certificate-frozen-table [data-record-frozen] { position: sticky; z-index: 10; white-space: normal; overflow-wrap: anywhere; }
+.certificate-frozen-table [data-record-frozen="number"] { left: 0; padding-inline: 0.5rem; white-space: nowrap; }
+.certificate-frozen-table [data-record-frozen="selection"] { left: var(--record-number); }
+.certificate-frozen-table [data-record-frozen="original_title"],
+.certificate-frozen-table [data-record-frozen="validity_status"] { left: calc(var(--record-number) + var(--record-selection)); }
+.certificate-frozen-table [data-record-frozen="employee_name"] { left: calc(var(--record-number) + var(--record-selection) + var(--record-title)); }
+.certificate-frozen-table [data-record-frozen="expiry_date"] { left: calc(var(--record-number) + var(--record-selection) + var(--record-status)); }
+.certificate-frozen-table [data-record-frozen="client_name"] { left: calc(var(--record-number) + var(--record-selection) + var(--record-status) + var(--record-date)); }
+.certificate-frozen-table tbody [data-record-frozen] { background: var(--color-card); box-shadow: inset 0 -1px #f1f5f9; }
+.certificate-frozen-table tbody tr:hover [data-record-frozen] { background: var(--color-surface-muted); }
+.certificate-frozen-table [data-record-frozen="employee_name"],
+.certificate-frozen-table [data-record-frozen="client_name"] { box-shadow: 1px 0 var(--color-border), 5px 0 8px -6px #64748b; }
+.certificate-frozen-table td > span, .certificate-frozen-table td > a > span { min-width: 0; max-width: 100%; }
+@media (max-width: 639px) {
+  .certificate-table-scroll { --record-number: 2rem; --record-title: 9rem; --record-status: 6.5rem; }
+  .certificate-frozen-table [data-record-frozen="employee_name"],
+  .certificate-frozen-table [data-record-frozen="expiry_date"],
+  .certificate-frozen-table [data-record-frozen="client_name"] { position: static; box-shadow: none; }
+  .certificate-frozen-table [data-record-frozen] { padding-inline: 0.5rem; }
+}
 :focus-visible {
   outline: 2px solid #16845a;
   outline-offset: 3px;

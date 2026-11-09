@@ -159,7 +159,7 @@ export function CompactOperationalFilters({
   }
   return (
     <div
-      className={(entity === "kalibrasi-alat" ? "mb-2 " : "mb-4 ") + "flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-3 shadow-sm"}
+      className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-3 shadow-sm"
       aria-busy={pending}
     >
       <AutoFilterForm keys={["q"]} className="min-w-44 flex-1">
