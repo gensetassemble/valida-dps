@@ -12,3 +12,12 @@ export function contractInput(value: string) {
     return raw.replaceAll(".", "").replace(",", ".");
   return raw; // Invalid values remain visible and are rejected by the schema.
 }
+
+// Only numeric drafts reach the controlled input; formatted pasted amounts
+// are reduced to digits and a decimal comma without converting to Number.
+export function contractNumericDraft(value: string): string | null {
+  const parsed = contractInput(value);
+  return /^(?:\d{1,18}(?:[.,]\d{0,2})?|)$/.test(parsed)
+    ? parsed.replace(".", ",")
+    : null;
+}

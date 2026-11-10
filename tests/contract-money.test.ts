@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import {contractDisplay,contractInput} from "@/features/master-data/contract-money";
+import {contractDisplay,contractInput,contractNumericDraft} from "@/features/master-data/contract-money";
 describe("Contract currency editing",()=>{
   it("formats rupiah and preserves decimal cents and large exact strings",()=>{
     expect(contractDisplay("170000000.00")).toBe("IDR 170.000.000,-");
@@ -14,5 +14,16 @@ describe("Contract currency editing",()=>{
     expect(contractInput("1700000.00")).toBe("1700000.00");
     expect(contractInput("abc")).toBe("abc");
     expect(contractInput("-100")).toBe("-100");
+  });
+  it("accepts numeric editing and formatted pastes without losing precision",()=>{
+    expect(contractNumericDraft("")).toBe("");
+    expect(contractNumericDraft("170000000")).toBe("170000000");
+    expect(contractNumericDraft("12,")).toBe("12,");
+    expect(contractNumericDraft("12.50")).toBe("12,50");
+    expect(contractNumericDraft("IDR 170.000.000,-")).toBe("170000000");
+    expect(contractNumericDraft("123456789012345678,90")).toBe("123456789012345678,90");
+  });
+  it.each(["asdad", "123abc", "1e6", "-100", "12,345", "1234567890123456789", ","])("rejects nonnumeric or out-of-range draft %s",value=>{
+    expect(contractNumericDraft(value)).toBeNull();
   });
 });

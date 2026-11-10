@@ -64,7 +64,9 @@ function Lookup({
     (entity === "sertifikat-klien" && ["client_id", "certificate_type_id"].includes(field.key))
   );
   const createLabel = entity === "kompetensi-personil" ? "jenis kompetensi" : field.key === "client_id" ? "pelanggan" : "jenis sertifikat";
-  const searchable = (entity === "pengguna" && field.key === "employee_id") || entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key);
+  const searchable = (entity === "pengguna" && field.key === "employee_id") ||
+    (entity === "kompetensi-personil" && ["employee_id", "certificate_type_id"].includes(field.key)) ||
+    (entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key));
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [savingType, setSavingType] = useState(false);
