@@ -390,7 +390,7 @@ export async function OperationDetail({
           </Card>
         )}
       {entity === "sertifikat-klien" && (
-        <Card className="mb-5 grid gap-4 p-5 sm:grid-cols-3">
+        <Card className="valida-detail-grid mb-5 grid gap-4 p-5 sm:grid-cols-3">
           {[
             [
               "Account Manager (AM)",
@@ -410,7 +410,7 @@ export async function OperationDetail({
           ))}
         </Card>
       )}
-      <Card className="mb-5 grid gap-4 p-5 sm:grid-cols-2">
+      <Card className="valida-detail-grid mb-5 grid gap-4 p-5 sm:grid-cols-2">
         {c.entity.fields
           .filter(
             (f) =>

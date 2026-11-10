@@ -11,7 +11,7 @@ export function PageHeader({
   eyebrow?: string;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div data-slot="page-header" className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         {eyebrow && (
           <p className="mb-1.5 text-[11px] font-bold uppercase tracking-widest text-primary-hover">

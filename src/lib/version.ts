@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.09-compact-certificate-tables.1";
+export const APPLICATION_RELEASE = "2026.11.10-scope-visual-refresh.1";

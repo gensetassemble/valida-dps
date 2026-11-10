@@ -200,7 +200,7 @@ export async function DetailPage({
           <DirectoryActionsDialog row={record} branch={branch} />
         </div>
       )}
-      <Card className="mb-6 grid gap-4 p-5 sm:grid-cols-2">
+      <Card className="valida-detail-grid mb-6 grid gap-4 p-5 sm:grid-cols-2">
         {entity.columns.map((column) => (
           <div key={column}>
             <p className="text-[11px] text-muted-foreground">

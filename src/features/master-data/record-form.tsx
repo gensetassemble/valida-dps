@@ -925,7 +925,7 @@ export function RecordForm({
             {error}
           </p>
         )}
-        <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+        <div className="valida-modal-actions flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
           {entity.key === "pegawai" && row && canManageDirectory && (
             <DirectoryActionsDialog
               row={row}

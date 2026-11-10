@@ -11,6 +11,9 @@ export function Modal({
   children,
   size = "default",
   className = "",
+  headerActions,
+  footer,
+  bodyClassName = "",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -19,12 +22,15 @@ export function Modal({
   children: ReactNode;
   size?: "default" | "large";
   className?: string;
+  headerActions?: ReactNode;
+  footer?: ReactNode;
+  bodyClassName?: string;
 }) {
   const previousFocus = useRef<HTMLElement | null>(null);
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-brand-navy/50" />
+        <Dialog.Overlay className="valida-modal-overlay fixed inset-0 z-50" />
         <Dialog.Content
           onOpenAutoFocus={() => {
             previousFocus.current =
@@ -39,19 +45,19 @@ export function Modal({
             }
           }}
           className={
-            "fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-white p-5 shadow-xl " +
-            (size === "large" ? "max-w-[1400px] sm:w-[92vw]" : "max-w-2xl") + " " + className
+            "valida-modal fixed left-1/2 top-1/2 z-50 flex max-h-[92dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-white " +
+            (size === "large" ? "max-w-[1080px]" : "max-w-[640px]") + " " + className
           }
         >
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div>
-              <Dialog.Title className="text-base font-bold text-brand-navy">
+          <div className="valida-modal-header flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
+            <div className="min-w-0">
+              <Dialog.Title className="break-words text-lg font-bold tracking-tight text-brand-navy">
                 {title}
               </Dialog.Title>
               <Dialog.Description
                 className={
                   description
-                    ? "mt-2 text-xs leading-5 text-muted-foreground"
+                    ? "mt-1.5 max-w-3xl text-xs leading-5 text-muted-foreground"
                     : "sr-only"
                 }
               >
@@ -59,18 +65,28 @@ export function Modal({
                   "Periksa detail dan konfirmasikan pilihan Anda."}
               </Dialog.Description>
             </div>
-            <Dialog.Close asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Tutup dialog"
-              >
-                <X />
-              </Button>
-            </Dialog.Close>
+            <div className="flex shrink-0 items-center gap-3">
+              {headerActions}
+              <Dialog.Close asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Tutup dialog"
+                >
+                  <X />
+                </Button>
+              </Dialog.Close>
+            </div>
           </div>
-          {children}
+          <div className={"valida-modal-body min-h-0 overflow-y-auto overscroll-contain p-6 " + bodyClassName}>
+            {children}
+          </div>
+          {footer && (
+            <div className="valida-modal-footer flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-white px-6 py-4">
+              {footer}
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -100,6 +116,16 @@ export function ConfirmDialog({
         if (!pending) onOpenChange(value);
       }}
       title={title}
+      footer={
+        <>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
+            Batal
+          </Button>
+          <Button disabled={pending} onClick={onConfirm}>
+            {pending ? "Menyimpan…" : "Konfirmasi perubahan"}
+          </Button>
+        </>
+      }
     >
       <div className="text-sm leading-6">{children}</div>
       {error && (
@@ -107,18 +133,6 @@ export function ConfirmDialog({
           {error}
         </p>
       )}
-      <div className="mt-6 flex justify-end gap-2">
-        <Button
-          variant="outline"
-          disabled={pending}
-          onClick={() => onOpenChange(false)}
-        >
-          Batal
-        </Button>
-        <Button disabled={pending} onClick={onConfirm}>
-          {pending ? "Menyimpan…" : "Konfirmasi perubahan"}
-        </Button>
-      </div>
     </Modal>
   );
 }

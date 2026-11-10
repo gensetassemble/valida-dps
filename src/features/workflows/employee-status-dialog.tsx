@@ -25,7 +25,7 @@ export function EmployeeStatusDialog({ branch, employee, version, name, status }
         <label className="grid gap-1 text-xs">Tanggal efektif (WITA)<input required type="date" name="effective_on" max={todayWita()} defaultValue={todayWita()} className={input}/></label>
         <label className="grid gap-1 text-xs">Keterangan<textarea required name="notes" minLength={8} maxLength={2000} className="min-h-24 rounded-lg border border-input p-3 text-sm"/></label>
         {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
-        <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={() => setOpen(false)}>Batal</Button><Button disabled={busy}>{busy ? "Menyimpan…" : "Simpan status personil"}</Button></div>
+        <div className="valida-modal-actions flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={() => setOpen(false)}>Batal</Button><Button disabled={busy}>{busy ? "Menyimpan…" : "Simpan status personil"}</Button></div>
       </form>
     </Modal>
   </>;

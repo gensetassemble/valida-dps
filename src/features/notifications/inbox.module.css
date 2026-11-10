@@ -2,7 +2,7 @@
   width: 100%;
   min-width: 0;
   color: #0b2545;
-  font-family: "Public Sans", sans-serif;
+  font-family: var(--font-sans);
 }
 .header {
   display: flex;
@@ -32,11 +32,11 @@
   font-size: 10px;
   letter-spacing: 0.13em;
   font-weight: 700;
-  color: #16845a;
+  color: var(--color-primary-hover);
   margin-bottom: 5px;
 }
 .center h1 {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-heading);
   font-size: 26px;
   line-height: 1.15;
   font-weight: 700;
@@ -86,7 +86,7 @@
   cursor: pointer;
 }
 .chip:hover {
-  background: #f4f6f3;
+  background: var(--color-muted);
 }
 .chip span {
   min-width: 19px;
@@ -133,7 +133,7 @@
   padding: 5px 0;
 }
 .search:focus-within {
-  outline: 2px solid #1f9d6b;
+  outline: 2px solid var(--color-primary);
   outline-offset: 5px;
   border-radius: 4px;
 }
@@ -178,7 +178,7 @@
   margin: 0 2px 6px;
 }
 .dateHeading h2 {
-  font-family: "Public Sans", sans-serif;
+  font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 700;
   color: #42566b;
@@ -291,7 +291,7 @@
   background: var(--notice-accent);
 }
 .cardTitle {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-heading);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.45;
@@ -383,7 +383,7 @@
   min-height: 28px;
 }
 .markRead:hover {
-  color: #16845a;
+  color: var(--color-primary-hover);
 }
 .markRead:disabled,
 .inlineRead:disabled {
@@ -466,7 +466,7 @@
   align-items: center;
   margin-top: 5px;
   font-size: 10px;
-  color: #16845a;
+  color: var(--color-primary-hover);
   cursor: pointer;
 }
 .pagination {
@@ -514,7 +514,7 @@
   border-radius: 17px;
 }
 .empty h2 {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-heading);
   font-size: 17px;
   font-weight: 600;
 }

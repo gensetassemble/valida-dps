@@ -146,7 +146,7 @@ export function DirectoryActionsDialog({
               {error}
             </p>
           )}
-          <div className="flex justify-end gap-2">
+          <div className="valida-modal-actions flex flex-wrap justify-end gap-2">
             <Button
               type="button"
               variant="outline"

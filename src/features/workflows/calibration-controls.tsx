@@ -462,7 +462,7 @@ export function EquipmentRequestForm({
                 {error}
               </p>
             )}
-            <div className="flex justify-end gap-2 sm:col-span-2">
+            <div className="valida-modal-actions flex flex-wrap justify-end gap-2 sm:col-span-2">
               <Button
                 type="button"
                 variant="outline"

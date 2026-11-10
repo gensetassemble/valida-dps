@@ -86,7 +86,7 @@ export function renderRenewalEmail(context: RenewalEmailContext, template = DEFA
 }
 export function emailHtml(text: string) {
   const escape = (value:string) => value.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]!));
-  return '<div style="font-family:Public Sans,Arial,sans-serif;font-size:14px;line-height:1.65;color:#0B2545;max-width:680px">'+
+  return '<div style="font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:14px;line-height:1.65;color:#0B2545;max-width:680px">'+
     text.split(/\n\n+/).map(p=>'<p style="margin:0 0 16px">'+escape(p).replaceAll("\n","<br>")+"</p>").join("")+"</div>";
 }
 export function renewalEmail(customer:string,number:string,pic:string,details:RenewalEmailDetails,today?:string) {

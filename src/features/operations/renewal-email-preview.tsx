@@ -1,7 +1,4 @@
 "use client";
-import "@fontsource/public-sans/400.css";
-import "@fontsource/public-sans/600.css";
-import "@fontsource/space-grotesk/600.css";
 import Link from "next/link";
 import {useState} from "react";
 import {Mail,Copy,ExternalLink} from "lucide-react";

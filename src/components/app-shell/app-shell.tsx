@@ -266,11 +266,11 @@ export function AppShell({
                       (pathname === item.href ||
                         pathname.startsWith(item.href + "/"));
                     const cls = cn(
-                      "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-xs font-semibold transition-colors",
+                      "valida-nav-item flex min-h-10 w-full items-center gap-3 rounded-lg px-3 text-xs font-semibold",
                       compact && "justify-center px-0",
                       active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-slate-600 hover:bg-slate-100",
+                        ? "bg-primary/10 text-primary-hover"
+                        : "text-slate-600 hover:bg-primary/5 hover:text-primary-hover",
                       item.future && "hover:bg-transparent",
                     );
                     return item.future ? (
