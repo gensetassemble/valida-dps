@@ -189,6 +189,7 @@ export function DataTable({
       "penugasan",
       "cabang",
       "kalibrasi-alat",
+      "kompetensi-personil",
       "pegawai",
     ].includes(entity.key);
   const frozenCertificates = ["sertifikat-klien", "kompetensi-personil"].includes(entity.key);

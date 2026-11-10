@@ -107,7 +107,7 @@ export default async function CompetencyMatrix({
         href={"/kompetensi-personil/" + r.id + "?branch=" + branch}
         title={title + " · " + status + " · " + date}
         className={
-          "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] leading-4 hover:brightness-95 " +
+          "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] leading-4 " +
           (colors[status] || "bg-slate-50 text-slate-600 border-slate-200")
         }
       >

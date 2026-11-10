@@ -62,9 +62,9 @@ input {
 button:not([data-slot="button"]):not(:disabled):not([aria-disabled="true"]):hover,
 [role="button"]:not([data-slot="button"]):not([aria-disabled="true"]):hover,
 a[href][class~="border"][class*="rounded"]:not([data-slot="button"]):not([aria-disabled="true"]):hover {
-  background-color: #008580;
-  color: white;
-  border-color: #008580;
+  background-color: var(--action-hover-bg, #008580);
+  color: var(--action-hover-text, white);
+  border-color: var(--action-hover-bg, #008580);
   transform: translateY(-2px);
 }
 .valida-button:not(:disabled):active { transform: translateY(0) scale(0.98); box-shadow: none; }
@@ -73,6 +73,17 @@ a[href][class~="border"][class*="rounded"]:not([data-slot="button"]):not([aria-d
 [role="option"]:hover svg { color: inherit; }
 .valida-nav-item svg { transition: transform 160ms ease; }
 .valida-nav-item:hover svg { transform: translateX(2px); }
+/* Interactive status colors retain their meaning on hover. */
+[class~="bg-red-50"] { --action-hover-bg: #991b1b; }
+[class~="bg-orange-50"] { --action-hover-bg: #9a3412; }
+[class~="bg-amber-50"] { --action-hover-bg: #92400e; }
+[class~="bg-yellow-50"] { --action-hover-bg: #854d0e; }
+[class~="bg-blue-50"] { --action-hover-bg: #1e40af; }
+[class~="bg-emerald-50"] { --action-hover-bg: #065f46; }
+.valida-workflow-card { --action-hover-bg: #dbeafe; --action-hover-text: #172554; }
+.valida-workflow-card:hover strong,
+.valida-workflow-card:hover .text-muted-foreground { color: inherit; }
+.valida-workflow-card:hover .workflow-status { background: #bfdbfe; color: #172554; }
 input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }

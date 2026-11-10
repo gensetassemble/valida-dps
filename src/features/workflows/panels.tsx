@@ -408,7 +408,7 @@ export async function WorkflowOverview({
           return (
             <Link
               key={String(r.id)}
-              className="rounded-lg border border-border p-3 hover:bg-slate-50"
+              className="valida-workflow-card rounded-lg border border-blue-200 bg-blue-50 p-3"
               href={
                 (kind === "calibration"
                   ? "/kalibrasi-alat/" + r.equipment_id
@@ -436,7 +436,7 @@ export async function WorkflowOverview({
                     No. sertifikat:{" "}
                     {String(certificate?.certificate_number || "Belum diisi")}
                   </span>
-                  <span className="mt-2 inline-block rounded-md bg-slate-100 px-2 py-1 font-medium">
+                  <span className="workflow-status mt-2 inline-block rounded-md bg-blue-100 px-2 py-1 font-medium text-blue-900">
                     {labels[String(r.status)]}
                   </span>
                 </>
