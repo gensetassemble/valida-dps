@@ -19,7 +19,8 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { DeadlineDate } from "@/components/ui/deadline-date";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
 import { driveFolder, validityLabel, todayWita } from "@/lib/domain/validity";
-import { OperationalForm, CorrectionForm, EvidenceForm } from "./forms";
+import { OperationalForm, CorrectionForm } from "./forms";
+import { CertificateDocuments } from "./certificate-documents";
 import { OperationalFilters } from "./filters";
 import { monitoringColumns } from "./monitoring";
 import { businessNotes } from "./notes";
@@ -241,16 +242,18 @@ export async function OperationDetail({
       ? "client"
       : entity === "kompetensi-personil"
         ? "personnel"
-        : entity === "riwayat-kalibrasi"
+        : entity === "riwayat-kalibrasi" || (entity === "kalibrasi-alat" && row.latest_calibration_id)
           ? "calibration"
           : null;
-  const { data: documents } = domain
+  const documentRecordId = entity === "kalibrasi-alat" ? String(row.latest_calibration_id) : id;
+  const { data: documents, error: documentError } = domain
     ? await db
         .from("operational_documents")
         .select("id,kind,original_name")
         .eq("domain", domain)
-        .eq("record_id", id)
-    : { data: [] };
+        .eq("record_id", documentRecordId)
+        .order("created_at", { ascending: false })
+    : { data: [], error: null };
   const sourceFolder = driveFolder(row.source_folder_url as string | null);
   let history: DataRow[] = [];
   if (entity === "sertifikat-klien") {
@@ -603,27 +606,9 @@ export async function OperationDetail({
       )}
       {domain && (
         <Card className="mt-5 p-5">
-          <h2 className="text-sm font-bold">Dokumen privat</h2>
-          {documents?.length ? (
-            documents.map((d) => (
-              <a
-                key={String(d.id)}
-                className="mt-2 block text-xs underline"
-                target="_blank"
-                rel="noopener noreferrer"
-                href={"/api/documents?id=" + d.id}
-              >
-                {String(d.original_name)} · {String(d.kind)}
-              </a>
-            ))
-          ) : (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Belum ada dokumen PDF yang diberikan.
-            </p>
-          )}
-          {canEditRow && (
-            <EvidenceForm domain={domain} id={id} branch={c.branch} />
-          )}
+          {entity === "kalibrasi-alat" && <p className="mb-3 text-xs text-muted-foreground">Lampiran untuk hasil kalibrasi terbaru. Lampiran hasil sebelumnya tersedia di Riwayat Kalibrasi.</p>}
+          {documentError ? <p role="alert" className="text-sm text-red-800">Daftar lampiran belum dapat dimuat. Gunakan Refresh untuk mencoba kembali.</p> :
+            <CertificateDocuments documents={documents || []} domain={domain} id={documentRecordId} branch={c.branch} canWrite={canEditRow} />}
         </Card>
       )}
     </>

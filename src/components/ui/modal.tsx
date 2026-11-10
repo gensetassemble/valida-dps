@@ -100,6 +100,8 @@ export function ConfirmDialog({
   onConfirm,
   pending,
   error,
+  confirmLabel = "Konfirmasi perubahan",
+  destructive = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -108,6 +110,8 @@ export function ConfirmDialog({
   onConfirm: () => void;
   pending: boolean;
   error?: string;
+  confirmLabel?: string;
+  destructive?: boolean;
 }) {
   return (
     <Modal
@@ -121,8 +125,8 @@ export function ConfirmDialog({
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Batal
           </Button>
-          <Button disabled={pending} onClick={onConfirm}>
-            {pending ? "Menyimpan…" : "Konfirmasi perubahan"}
+          <Button variant={destructive ? "danger" : "default"} disabled={pending} onClick={onConfirm}>
+            {pending ? "Memproses…" : confirmLabel}
           </Button>
         </>
       }

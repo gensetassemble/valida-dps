@@ -308,6 +308,7 @@ export function RecordForm({
   canManageDirectory = false,
   measurementDefaults,
   onSaved,
+  onCreated,
 }: {
   entity: EntityConfig;
   branch: string;
@@ -319,6 +320,7 @@ export function RecordForm({
   canManageDirectory?: boolean;
   measurementDefaults?: DataRow;
   onSaved: () => void;
+  onCreated?: (id: string) => void;
 }) {
   const editing = !!row;
   const initialEquipment = entity.key === "kalibrasi-alat" && !editing;
@@ -520,7 +522,8 @@ export function RecordForm({
         return;
       }
       notify(result.message);
-      onSaved();
+      if (!editing && result.id && onCreated) onCreated(result.id);
+      else onSaved();
       if (entity.key === "pengguna" && !editing && result.id)
         router.push(`/pengaturan/pengguna/${result.id}?branch=${branch}`);
       router.refresh();

@@ -23,7 +23,7 @@ Radix tetap menangani fokus, Escape, dan interaksi backdrop. Fokus kembali ke pe
 
 ## Interaksi
 
-Hover tombol mengubah warna, mengangkat 1 px, dan menambahkan bayangan ringan. Menu navigasi memberi perubahan warna dan pergeseran ikon 2 px. Pop-up masuk dengan fade dan pergeseran 8 px selama 180 ms. `prefers-reduced-motion` menonaktifkan pergeseran dan memperpendek animasi.
+Hover tombol utama berubah dari teal ke navy; tombol outline/ghost berubah menjadi teal dengan teks putih. Tombol native (termasuk filter dan tindakan tabel) juga mendapat latar teal dan teks putih. Tombol naik 2 px tanpa bayangan. Menu navigasi memberi perubahan warna dan pergeseran ikon 2 px. Pop-up masuk dengan fade dan pergeseran 8 px selama 180 ms. `prefers-reduced-motion` menonaktifkan pergeseran dan memperpendek animasi. Buka halaman menggunakan navigasi penuh pada tab yang sama.
 
 ## Verifikasi lokal
 

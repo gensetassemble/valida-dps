@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.10-scope-visual-refresh.1";
+export const APPLICATION_RELEASE = "2026.11.10-document-removal-interactions.1";

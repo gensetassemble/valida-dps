@@ -22,6 +22,7 @@ export function OperationalForm(props: {
   return (
     <RecordForm
       {...props}
+      onCreated={id => router.replace(`${props.entity.detail || props.entity.path}/${id}?branch=${props.branch}`)}
       onSaved={() =>
         inModal
           ? router.back()
@@ -77,11 +78,14 @@ export function EvidenceForm({
   domain,
   id,
   branch,
+  onUploaded,
 }: {
   domain: string;
   id: string;
   branch: string;
+  onUploaded?: (document: { id: string; original_name: string; kind: string }) => void;
 }) {
+  const router = useRouter();
   const [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   async function upload(e: FormEvent<HTMLFormElement>) {
@@ -100,7 +104,11 @@ export function EvidenceForm({
           ? "Dokumen PDF tersimpan privat."
           : data.error || "Dokumen ditolak.",
       );
-      if (r.ok) window.location.reload();
+      if (r.ok) {
+        const file = f.get("file");
+        onUploaded?.({ id: data.id, original_name: file instanceof File ? file.name : "Sertifikat PDF", kind: String(f.get("kind")) });
+        router.refresh();
+      }
     } catch {
       setMessage("Dokumen belum dapat disimpan.");
     } finally {

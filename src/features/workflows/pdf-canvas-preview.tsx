@@ -23,7 +23,7 @@ function PdfPage({ document, number, width }: { document: PDFDocumentProxy; numb
     }).catch((e) => { if (!stopped && e?.name !== "RenderingCancelledException") setError(true); });
     return () => { stopped = true; render?.cancel(); };
   }, [document, number, width]);
-  return error ? <p role="alert" className="p-3 text-sm text-red-800">Halaman {number} belum dapat ditampilkan. Gunakan Unduh PDF.</p> : <canvas ref={canvas} aria-label={`Formulir terisi halaman ${number}`} className="mx-auto max-w-full bg-white shadow-sm"/>;
+  return error ? <p role="alert" className="p-3 text-sm text-red-800">Halaman {number} belum dapat ditampilkan. Gunakan Buka PDF.</p> : <canvas ref={canvas} aria-label={`Dokumen PDF halaman ${number}`} className="mx-auto max-w-full bg-white shadow-sm"/>;
 }
 
 export function PdfCanvasPreview({ source }: { source: string }) {
@@ -54,6 +54,6 @@ export function PdfCanvasPreview({ source }: { source: string }) {
     return () => { stopped = true; controller.abort(); destroy?.(); };
   }, [source]);
   return <div ref={container} className="h-[65dvh] min-h-80 space-y-3 overflow-auto rounded-lg border border-border bg-slate-200 p-3">
-    {error ? <p role="alert" className="text-sm text-red-800">Preview belum dapat dimuat. Gunakan Unduh PDF terisi.</p> : document ? Array.from({ length: document.numPages }, (_, i) => <PdfPage key={i} document={document} number={i + 1} width={width}/>) : <p role="status" className="p-3 text-sm">Memuat preview PDF…</p>}
+    {error ? <p role="alert" className="text-sm text-red-800">Pratinjau belum dapat dimuat. Gunakan tautan PDF atau coba kembali.</p> : document ? Array.from({ length: document.numPages }, (_, i) => <PdfPage key={i} document={document} number={i + 1} width={width}/>) : <p role="status" className="p-3 text-sm">Memuat pratinjau PDF…</p>}
   </div>;
 }

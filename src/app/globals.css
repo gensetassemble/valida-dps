@@ -49,16 +49,28 @@ input {
 }
 .valida-button {
   transition: background-color 160ms ease, border-color 160ms ease,
-    color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    color 160ms ease, transform 160ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .valida-button:not(:disabled):not([aria-disabled="true"]):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px -4px rgb(11 37 69 / 28%);
+    transform: translateY(-2px);
+    box-shadow: none;
+  }
+  .valida-button[data-variant="default"]:not(:disabled):hover { background: #0b2545; border-color: #0b2545; color: white; }
+  .valida-button[data-variant="outline"]:not(:disabled):hover,
+  .valida-button[data-variant="ghost"]:not(:disabled):hover { background: #008580; border-color: #008580; color: white; }
+  .valida-button[data-variant="danger"]:not(:disabled):hover { background: #7f1d1d; border-color: #7f1d1d; color: white; }
+  button:not([data-slot="button"]):not(:disabled):not([aria-disabled="true"]):hover,
+  [role="button"]:not([data-slot="button"]):not([aria-disabled="true"]):hover {
+    background-color: #008580;
+    color: white;
+    border-color: #008580;
   }
 }
 .valida-button:not(:disabled):active { transform: translateY(0); box-shadow: none; }
-.valida-nav-item { transition: background-color 160ms ease, color 160ms ease; }
+.valida-nav-item, button:not([data-slot="button"]), [role="button"] { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+.valida-nav-item:hover, .valida-direct-link:hover { background: #008580; color: white; }
+[role="option"]:hover svg { color: inherit; }
 .valida-nav-item svg { transition: transform 160ms ease; }
 @media (hover: hover) and (pointer: fine) {
   .valida-nav-item:hover svg { transform: translateX(2px); }
