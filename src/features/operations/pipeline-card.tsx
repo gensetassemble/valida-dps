@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { DataRow } from "@/features/master-data/server";
@@ -70,16 +71,24 @@ export function PipelineCard({ row, branch, accountManager, dragHandle, children
         )}
       </p>
       </div>
-      <details className="mt-2 text-[10px] text-muted-foreground">
-        <summary className="cursor-pointer rounded py-1 hover:text-primary-hover">Rincian sertifikat</summary>
-        <dl className="mt-1 space-y-1 break-words border-t border-border pt-2">
-          <div><dt className="font-semibold">Pelanggan</dt><dd>{String(row.client_name)}</dd></div>
-          <div><dt className="font-semibold">Nomor sertifikat</dt><dd>{String(row.certificate_number || "Nomor belum diisi")}</dd></div>
-          <div><dt className="font-semibold">Jenis sertifikat</dt><dd>{String(row.certificate_type_name || "Belum diisi")}</dd></div>
-          <div><dt className="font-semibold">AM / Marketing</dt><dd>{accountManager}</dd></div>
-        </dl>
-      </details>
       {children}
     </article>
+  );
+}
+
+export function PipelineColumn({label, color, count, amount, children}: {
+  label: string; color: string; count: number; amount: string; children: ReactNode;
+}) {
+  return (
+    <Card className={"min-h-48 min-w-0 flex-1 border-t-4 bg-slate-50 p-2.5 " + color}>
+      <div className="sticky top-14 z-10 -mx-2.5 -mt-2.5 mb-2 rounded-t-lg border-b border-border bg-slate-50 px-2.5 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-xs font-bold">{label}</h2>
+          <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] tabular-nums">{count}</span>
+        </div>
+        <p className="mt-2 text-[11px] tabular-nums">{formatRupiah(amount)}</p>
+      </div>
+      {children}
+    </Card>
   );
 }

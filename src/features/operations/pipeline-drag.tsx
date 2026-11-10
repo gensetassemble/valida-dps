@@ -83,7 +83,7 @@ export function PipelineDropColumn({
       }}
       onDrop={drop}
       className={
-        "min-w-0 rounded-lg " +
+        "flex min-w-0 flex-col rounded-lg " +
         (over ? "outline-2 outline-offset-2 outline-primary" : "")
       }
     >

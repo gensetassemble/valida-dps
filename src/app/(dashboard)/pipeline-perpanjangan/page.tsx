@@ -1,7 +1,6 @@
-import { PipelineCard } from "@/features/operations/pipeline-card";
+import { PipelineCard, PipelineColumn } from "@/features/operations/pipeline-card";
 import { AccessDenied } from "@/components/ui/access-denied";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import {
   pageEntityContext,
@@ -9,7 +8,6 @@ import {
   type DataRow,
 } from "@/features/master-data/server";
 import { PipelineAction } from "@/features/operations/pipeline-action";
-import { formatRupiah } from "@/lib/format";
 import { safeSearch } from "@/features/master-data/validation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -149,23 +147,7 @@ export default async function Page({
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {stages.map(([stage, label, color], index) => (
               <PipelineDropColumn key={stage} stage={stage} label={label}>
-                <Card
-                  className={
-                    "min-h-48 min-w-0 border-t-4 bg-slate-50 p-2.5 " +
-                    color
-                  }
-                >
-                  <div className="mb-2 border-b border-border pb-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <h2 className="text-xs font-bold">{label}</h2>
-                      <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] tabular-nums">
-                        {summary[stage]?.count || 0}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-[11px] tabular-nums">
-                      {formatRupiah(summary[stage]?.amount || "0")}
-                    </p>
-                  </div>
+                <PipelineColumn label={label} color={color} count={summary[stage]?.count || 0} amount={summary[stage]?.amount || "0"}>
                   <div className="space-y-2">
                     {columns[index].length ? (
                       columns[index].map((row) => (
@@ -209,7 +191,7 @@ export default async function Page({
                     shown={columns[index].length}
                     total={summary[stage]?.count || 0}
                   />
-                </Card>
+                </PipelineColumn>
               </PipelineDropColumn>
             ))}
           </div>
