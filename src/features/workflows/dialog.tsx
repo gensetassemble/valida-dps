@@ -48,8 +48,9 @@ export function WorkflowDialog({
   const [savedMessage, setSavedMessage] = useState("");
   const router = useRouter();
   const status = String(
-    current?.status || (kind === "calibration" ? "draft" : "unprocessed"),
+    current?.status || (kind === "calibration" ? "draft" : "processing"),
   );
+  const selectedStatus = kind === "personnel" && status === "unprocessed" ? "processing" : status;
   const transitions = !current
     ? []
     : kind === "calibration"
@@ -124,7 +125,7 @@ export function WorkflowDialog({
           "Draf tersimpan. Preview dan PDF sudah mengikuti isian ini.",
         );
         router.refresh();
-        if (current && kind !== "calibration") setOpen(false);
+        if (kind === "personnel") setOpen(false);
       }
     } catch {
       setError("Proses belum tersimpan. Silakan coba lagi.");
@@ -418,12 +419,12 @@ export function WorkflowDialog({
               <select
                 name="status"
                 className={inputClass}
-                defaultValue={status}
+                defaultValue={selectedStatus}
               >
-                <option value={status}>
+                {!(kind === "personnel" && status === "unprocessed") && <option value={status}>
                   {labels[status]}
                   {current ? " — simpan catatan" : ""}
-                </option>
+                </option>}
                 {transitions.map((s) => (
                   <option key={s} value={s}>
                     {labels[s]}
@@ -431,7 +432,7 @@ export function WorkflowDialog({
                 ))}
               </select>
             </label>
-            {kind === "personnel" && status === "processing" && (
+            {kind === "personnel" && !!current && status === "processing" && (
               <label className="grid gap-1 text-xs">
                 Sertifikat pengganti (wajib untuk selesai)
                 <select
@@ -494,7 +495,7 @@ export function WorkflowDialog({
               Tutup
             </Button>
             <Button disabled={busy}>
-              {busy ? "Menyimpan…" : current ? "Simpan proses" : "Simpan draf"}
+              {busy ? "Menyimpan…" : current ? "Simpan proses" : kind === "personnel" ? "Mulai proses" : "Simpan draf"}
             </Button>
           </div>
         </form>

@@ -78,6 +78,8 @@ export async function saveWorkflow(
     (id && (!z.uuid().safeParse(id).success || !Number.isInteger(version)))
   )
     return { error: "Periksa formulir dan catatan (minimal 8 karakter)." };
+  if (kind === "personnel" && !id && parsed.data.status !== "processing")
+    return { error: "Mulai perpanjangan dengan status Sedang Diproses dan isi keterangannya." };
   const db = await masterClient(),
     table =
       kind === "personnel" ? "personnel_renewal_cases" : "calibration_requests";

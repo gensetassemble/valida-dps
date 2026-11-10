@@ -64,8 +64,10 @@ insert into public.personnel_certificates(id,branch_code,employee_id,certificate
 insert into public.personnel_renewal_cases(id,branch_code,certificate_id,notes) values('af900000-0000-4000-8000-000000000002','DPS','af600000-0000-4000-8000-000000000004','[CONTOH] Owner is also coordinator');
 select pg_temp.assert_workflow((select holder_delivery_available from public.personnel_renewal_events where case_id='af900000-0000-4000-8000-000000000002'),'coordinator certificate holder delivery is recognized');
 select pg_temp.expect_workflow_failure($q$insert into public.personnel_renewal_cases(branch_code,certificate_id,notes) values('DPS','af600000-0000-4000-8000-000000000003','[CONTOH] lifetime renewal')$q$,'lifetime excluded');
+select pg_temp.expect_workflow_failure($q$insert into public.personnel_renewal_cases(branch_code,certificate_id,status,notes) values('DPS','af600000-0000-4000-8000-000000000001','renewed','[CONTOH] Invalid direct completion')$q$,'cannot start already renewed');
 insert into public.personnel_renewal_cases(id,branch_code,certificate_id,notes) values('af900000-0000-4000-8000-000000000001','DPS','af600000-0000-4000-8000-000000000001','[CONTOH] HRGA starts renewal');
-select pg_temp.expect_workflow_failure($q$update public.personnel_renewal_cases set status='renewed',replacement_certificate_id='af600000-0000-4000-8000-000000000002' where id='af900000-0000-4000-8000-000000000001'$q$,'no skipping HRGA gate');
+select pg_temp.assert_workflow((select status='processing' from public.personnel_renewal_cases where id='af900000-0000-4000-8000-000000000001'),'HRGA starts immediately as processing');
+select pg_temp.assert_workflow((select count(*)=1 and bool_and(new_status='processing' and previous_status is null) from public.personnel_renewal_events where case_id='af900000-0000-4000-8000-000000000001'),'first log contains only actual processing start');
 update public.personnel_renewal_cases set status='processing',notes='[CONTOH] Waiting for new certificate' where id='af900000-0000-4000-8000-000000000001';
 select pg_temp.expect_workflow_failure($q$update public.personnel_renewal_cases set status='renewed',replacement_certificate_id='af600000-0000-4000-8000-000000000002' where id='af900000-0000-4000-8000-000000000001'$q$,'replacement needs evidence');
 update public.personnel_certificates set source_folder_url='https://drive.google.com/drive/folders/CONTOH-WORKFLOW',source_provider='google_drive_folder' where id='af600000-0000-4000-8000-000000000002';
@@ -74,7 +76,7 @@ select pg_temp.assert_workflow((select expiry_date='2025-01-01' from public.pers
 select set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000005',true);
 select pg_temp.assert_workflow(private.actor_enabled(),'active account does not require employee activation');
 select pg_temp.assert_workflow((select status='renewed' from public.personnel_renewal_cases where id='af900000-0000-4000-8000-000000000001'),'holder own status');
-select pg_temp.assert_workflow((select count(*)=3 from public.user_notifications where profile_id=auth.uid()),'holder receives 3 status events');
+select pg_temp.assert_workflow((select count(*)=2 from public.user_notifications where profile_id=auth.uid()),'holder receives processing start and completion without placeholder event');
 select pg_temp.assert_workflow(not exists(select 1 from public.user_notifications where profile_id<>auth.uid()),'inbox isolation');
 update public.user_notifications set read_at=now() where profile_id=auth.uid();
 select pg_temp.assert_workflow(not exists(select 1 from public.user_notifications where read_at is null),'mark read');
