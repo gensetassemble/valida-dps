@@ -181,7 +181,7 @@ export function PipelineAction({
   }
   const fieldClass = "h-10 w-full rounded-lg border border-input px-3";
   return (
-    <div className="mt-3 space-y-2">
+    <div className="mt-2 space-y-1.5">
       {canWrite && <RenewalEmailPreview certificate={certificate} branch={branch} compact/>}
       <div className="flex gap-1.5">
         <Button
@@ -190,7 +190,7 @@ export function PipelineAction({
           className="min-w-0 flex-1 px-1 text-[10px]"
           onClick={() => void open("log")}
         >
-          Riwayat Kontak
+          Riwayat
         </Button>
         {canWrite && next[stage] && (
           <Button
@@ -206,10 +206,10 @@ export function PipelineAction({
         )}
       </div>
       <button
-        className="block w-full text-left text-[10px] text-muted-foreground underline"
+        className="block w-full rounded py-1 text-left text-[10px] text-muted-foreground underline underline-offset-2 hover:text-primary-hover"
         onClick={() => void open("status")}
       >
-        Status · {labels[stage]}
+        Riwayat / ubah status
       </button>
       <Modal
         open={!!mode && !isContact}

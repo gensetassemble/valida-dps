@@ -27,11 +27,11 @@ export function CalibrationMeasurementDetails({
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <button type="button" className="group block w-full whitespace-normal text-left text-xs hover:text-primary-hover">
-          <span className="block font-semibold">
+        <button type="button" data-hover="subtle" className="group -mx-1 block w-full rounded-md px-1 py-1 whitespace-normal text-left text-xs transition-colors hover:bg-primary/5 hover:text-primary-hover focus-visible:bg-primary/5">
+          <span className="block font-medium">
             {field === "measurement_range" ? `${groups.length} kelompok pengukuran` : "Faktor koreksi tersedia"}
           </span>
-          <span className="mt-1 block text-[10px] text-primary-hover underline underline-offset-2 group-hover:text-white">Lihat rincian</span>
+          <span className="mt-1 block text-[10px] text-primary-hover underline underline-offset-2">Lihat rincian</span>
         </button>
       </Popover.Trigger>
       <Popover.Portal>

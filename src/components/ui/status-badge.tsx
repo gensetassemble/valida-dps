@@ -61,7 +61,7 @@ const statuses: Record<
     color: "#1F9D6B",
   },
   "Berlaku Seumur Hidup": {
-    label: "Berlaku Seumur Hidup",
+    label: "Seumur hidup",
     style: "bg-violet-50 text-violet-900 border-violet-200",
   },
   "Tanpa Expired (perlu verifikasi dokumen)": {
@@ -82,10 +82,14 @@ export function StatusBadge({ value }: { value: string | boolean }) {
     label: String(value),
     style: "bg-slate-100 text-slate-700 border-slate-200",
   };
+  const label = String(value) === "Tanggal Belum Diisi" ? "Tanpa tanggal" : status.label;
   return (
     <span
+      title={typeof value === "string" ? value : status.label}
+      aria-label={typeof value === "string" ? value : status.label}
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 whitespace-normal break-words rounded-full border px-2 py-1 text-[11px] font-semibold leading-4",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal break-words border px-1 py-1 text-[11px] font-semibold leading-4",
+        label.length > 18 ? "rounded-md" : "rounded-full",
         status.style,
       )}
     >
@@ -96,7 +100,7 @@ export function StatusBadge({ value }: { value: string | boolean }) {
           aria-hidden
         />
       )}
-      {status.label}
+      {label}
     </span>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useState, type CSSProperties } from "react";
-import { certificateFrozenColumn, certificateColumnWidth } from "./certificate-table-layout";
+import { certificateFrozenColumn, certificateColumnWidth, emailColumnWidth } from "./certificate-table-layout";
 import { DeadlineDate } from "./deadline-date";
 import { DeadlineRemaining } from "./deadline-remaining";
 import { CalibrationMeasurementDetails } from "./calibration-measurement-details";
@@ -194,6 +194,7 @@ export function DataTable({
     ].includes(entity.key);
   const frozenCertificates = ["sertifikat-klien", "kompetensi-personil"].includes(entity.key);
   const certificateColumns = ["number", ...(mayBulk ? ["selection"] : []), ...displayColumns, "actions"];
+  const columnWidth = (column:string) => /email/i.test(column) ? emailColumnWidth(data.rows.map(row=>row[column])) : certificateColumnWidth(column);
   function navigate(values: Record<string, string>) {
     const next = new URLSearchParams(params.toString());
     next.delete("page");
@@ -336,6 +337,7 @@ export function DataTable({
       data.labels[column]?.[String(value)] ||
       field?.options?.find((option) => option.value === value)?.label ||
       String(value);
+    if (/email/i.test(column)) return <span className="inline-block whitespace-nowrap" title={display}>{display}</span>;
     return (
       <span className="block max-w-64 whitespace-normal break-words [overflow-wrap:anywhere]" title={display}>
         {display}
@@ -401,9 +403,9 @@ export function DataTable({
                   ? "calibration-frozen-table text-left text-xs"
                   : frozenCertificates ? "certificate-frozen-table text-left text-xs" : "w-full min-w-[640px] border-collapse text-left text-xs"
               }
-              style={frozenCertificates ? {width: `calc(${certificateColumns.map(certificateColumnWidth).join(" + ")})`} : undefined}
+              style={frozenCertificates ? {width: `calc(${certificateColumns.map(columnWidth).join(" + ")})`} : undefined}
             >
-              {frozenCertificates && <colgroup>{certificateColumns.map((column) => <col key={column} style={{width: certificateColumnWidth(column)}} />)}</colgroup>}
+              {frozenCertificates && <colgroup>{certificateColumns.map((column) => <col key={column} style={{width: columnWidth(column)}} />)}</colgroup>}
               {entity.key === "kalibrasi-alat" && (
                 <colgroup>
                   {[

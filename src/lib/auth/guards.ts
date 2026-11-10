@@ -5,11 +5,13 @@ import { getSupabaseConfig } from "@/lib/env/public";
 import { cache } from "react";
 import { isRole, type Scope } from "./permissions";
 import { hasSecondFactor } from "./security";
+import { initialPasswordRequired } from "./initial-password";
 export const requireActiveUser = cache(async () => {
   if (!getSupabaseConfig()) redirect("/login?status=unconfigured");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect("/login");
+  if (await initialPasswordRequired(supabase)) redirect("/initial-password");
   const [
     { data: profile, error: profileError },
     { data: grants, error: grantError },

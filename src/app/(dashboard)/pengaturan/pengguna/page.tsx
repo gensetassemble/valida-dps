@@ -37,6 +37,7 @@ export default async function UsersPage({
         </Link>
         <Link href={`/pengaturan/template-email?branch=${params.branch || "DPS"}`}>Template Email</Link>
       </div>
+      {context.scopes.some(s=>s.branch_code===params.branch&&s.role_code==="super_admin")&&<div className="mb-4"><Link className="inline-flex rounded-lg border border-input bg-white px-4 py-3 text-xs font-bold" href={`/pengaturan/pengguna/bulk?branch=${params.branch}`}>Impor akun massal</Link></div>}
       <MasterPage entity="pengguna" params={params} />
     </>
   );

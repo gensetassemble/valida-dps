@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { changeOwnPasswordSchema } from "@/lib/auth/schemas";
 import { changeOwnPassword } from "@/app/(dashboard)/profil/actions";
+import { changeInitialPassword } from "@/app/(auth)/initial-password/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
@@ -19,7 +20,7 @@ const fields = [
   ["password", "Password baru", "new-password"],
   ["confirmation", "Konfirmasi password baru", "new-password"],
 ] as const;
-export function ChangePasswordForm() {
+export function ChangePasswordForm({initial=false}:{initial?:boolean}) {
   const [visible, setVisible] = useState(false),
     [error, setError] = useState("");
   const {
@@ -37,7 +38,7 @@ export function ChangePasswordForm() {
       onSubmit={handleSubmit(async (values) => {
         setError("");
         try {
-          const result = await changeOwnPassword(values);
+          const result = await (initial ? changeInitialPassword(values) : changeOwnPassword(values));
           if (result.ok) {
             reset();
             window.location.replace("/login?status=password-updated");

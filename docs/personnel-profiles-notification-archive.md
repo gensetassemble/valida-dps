@@ -21,4 +21,4 @@ Notifikasi proses saat ini berupa pemberitahuan di aplikasi kepada pemilik yang 
 
 ## Rekomendasi onboarding bulk
 
-Gunakan CSV/XLSX dengan nama, NPP (teks; kosong untuk Non-NPP), email, peran, cabang, dan portofolio bila diperlukan. File tidak berisi password. Alur yang disarankan: unggah → cocokkan Direktori Pegawai → laporan duplikat/identitas ambigu → pratinjau → konfirmasi Super Admin dengan MFA → undangan aktivasi melalui email organisasi → laporan berhasil/gagal per baris. Akun lama tidak ditimpa dan peran berisiko tidak diberikan tanpa review. Impor data bisnis yang ada bukan alat provisioning akun; impor bulk akun belum diaktifkan pada rilis ini.
+Fitur akun massal kini tersedia tanpa email/undangan, sesuai instruksi lanjutan. Gunakan template Nama, NPP, Email, Peran. Alurnya: unggah → cocokkan direktori → pratinjau → konfirmasi Super Admin dengan MFA → pembuatan akun/password awal server → laporan hasil. Pengguna wajib mengganti password saat login pertama. Cabang mengikuti konteks Admin; portofolio Koordinator mengikuti penugasan yang sudah ada. Lihat [panduan akun massal](bulk-user-provisioning.md).

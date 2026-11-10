@@ -1,8 +1,8 @@
+import { PipelineCard } from "@/features/operations/pipeline-card";
 import { AccessDenied } from "@/components/ui/access-denied";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { StatusBadge } from "@/components/ui/status-badge";
 import {
   pageEntityContext,
   masterClient,
@@ -10,7 +10,6 @@ import {
 } from "@/features/master-data/server";
 import { PipelineAction } from "@/features/operations/pipeline-action";
 import { formatRupiah } from "@/lib/format";
-import { remainingDays } from "@/lib/domain/validity";
 import { safeSearch } from "@/features/master-data/validation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ import {
   PipelineDropColumn,
   PipelineDragHandle,
 } from "@/features/operations/pipeline-drag";
-import { DeadlineDate } from "@/components/ui/deadline-date";
 import { ScrollMore } from "@/components/ui/scroll-more";
 const BOARD_PAGE_SIZE = 20;
 const stages = [
@@ -31,14 +29,7 @@ const stages = [
   ["deferred", "Ditunda", "border-t-purple-500"],
   ["not_renewed", "Tidak Diperpanjang", "border-t-pink-500"],
 ];
-function remainingText(value: unknown) {
-  const days = typeof value === "string" ? remainingDays(value) : null;
-  return days === null
-    ? "Tanggal belum diketahui"
-    : days < 0
-      ? Math.abs(days) + " hari lewat"
-      : days + " hari lagi";
-}
+
 export default async function Page({
   searchParams,
 }: {
@@ -160,11 +151,11 @@ export default async function Page({
               <PipelineDropColumn key={stage} stage={stage} label={label}>
                 <Card
                   className={
-                    "min-h-[calc(100dvh-220px)] min-w-0 border-t-4 bg-slate-50 p-2.5 " +
+                    "min-h-48 min-w-0 border-t-4 bg-slate-50 p-2.5 " +
                     color
                   }
                 >
-                  <div className="mb-3 border-b border-border pb-2">
+                  <div className="mb-2 border-b border-border pb-2">
                     <div className="flex items-center justify-between gap-2">
                       <h2 className="text-xs font-bold">{label}</h2>
                       <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] tabular-nums">
@@ -175,80 +166,14 @@ export default async function Page({
                       {formatRupiah(summary[stage]?.amount || "0")}
                     </p>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {columns[index].length ? (
                       columns[index].map((row) => (
-                        <article
-                          key={String(row.id)}
-                          className="min-w-0 rounded-lg border border-border bg-white p-2.5 shadow-sm"
+                        <PipelineCard
+                          key={String(row.id)} row={row} branch={c.branch}
+                          accountManager={String(row.account_manager_name || row.example_am_label || (row.account_manager_id === c.user.id ? c.profile.full_name : null) || "AM belum ditugaskan")}
+                          dragHandle={<PipelineDragHandle id={String(row.id)} stage={stage} customer={String(row.client_name)} canWrite={c.canWrite} />}
                         >
-                          <PipelineDragHandle
-                            id={String(row.id)}
-                            stage={stage}
-                            customer={String(row.client_name)}
-                            canWrite={c.canWrite}
-                          />
-                          <Link
-                            className="line-clamp-2 break-words text-xs font-bold leading-4 text-brand-navy hover:underline"
-                            title={String(row.client_name)}
-                            href={
-                              "/sertifikat-klien/" +
-                              row.id +
-                              "?branch=" +
-                              c.branch
-                            }
-                          >
-                            {String(row.client_name)}
-                          </Link>
-                          <p
-                            title={String(row.certificate_number || "")}
-                            className="mt-1 truncate text-[10px] text-muted-foreground"
-                          >
-                            {String(
-                              row.certificate_number || "Nomor belum diisi",
-                            )}
-                          </p>
-                          <p
-                            title={String(row.certificate_type_name)}
-                            className="my-2 line-clamp-1 text-[10px]"
-                          >
-                            {String(row.certificate_type_name)}
-                          </p>
-                          <div className="space-y-1 border-y border-border py-2 text-[10px]">
-                            <p>
-                              Jatuh tempo:{" "}
-                              <DeadlineDate value={row.expiry_date} />
-                            </p>
-                            <p>{remainingText(row.expiry_date)}</p>
-                            <StatusBadge value={String(row.validity_status)} />
-                          </div>
-                          <p
-                            className="mt-2 truncate text-[10px] text-muted-foreground"
-                            title={String(
-                              row.account_manager_name ||
-                                row.example_am_label ||
-                                c.profile.full_name ||
-                                "AM terdaftar",
-                            )}
-                          >
-                            {String(
-                              row.account_manager_name ||
-                                row.example_am_label ||
-                                (row.account_manager_id === c.user.id
-                                  ? c.profile.full_name
-                                  : "AM terdaftar") ||
-                                "AM belum ditugaskan",
-                            )}
-                          </p>
-                          <p className="mt-2 break-words text-xs font-semibold text-primary-hover tabular-nums">
-                            {formatRupiah(
-                              String(
-                                row.previous_order_value_text ||
-                                  row.previous_order_value ||
-                                  "0",
-                              ),
-                            )}
-                          </p>
                           <PipelineAction
                             certificate={String(row.id)}
                             customer={String(row.client_name)}
@@ -271,10 +196,10 @@ export default async function Page({
                                 original_name: String(d.original_name),
                               }))}
                           />
-                        </article>
+                        </PipelineCard>
                       ))
                     ) : (
-                      <p className="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+                      <p className="rounded-lg border border-dashed border-border py-4 text-center text-xs text-muted-foreground">
                         Kosong
                       </p>
                     )}

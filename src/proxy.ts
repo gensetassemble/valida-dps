@@ -55,8 +55,10 @@ export const config = {
     "/api/workflows/:path*",
     "/reset-password",
     "/update-password",
+    "/initial-password",
     "/auth/:path*",
     "/api/microsoft/:path*",
     "/api/master-data/:path*",
+    "/api/bulk-users/:path*",
   ],
 };

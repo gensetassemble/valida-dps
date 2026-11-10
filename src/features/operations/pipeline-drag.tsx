@@ -117,7 +117,7 @@ export function PipelineDragHandle({
       draggable
       aria-label={"Angkat kartu " + customer}
       title="Seret ke tahap tujuan. Gunakan Status untuk memindahkan dengan keyboard atau ponsel."
-      className="mb-1 flex w-full cursor-grab justify-end text-muted-foreground active:cursor-grabbing"
+      className="flex size-6 shrink-0 cursor-grab items-center justify-center rounded text-muted-foreground hover:bg-slate-200 active:cursor-grabbing"
       onDragStart={(e) => {
         e.dataTransfer.setData(
           "application/x-valida-renewal",

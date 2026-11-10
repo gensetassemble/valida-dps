@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.10-personnel-directory-inbox.1";
+export const APPLICATION_RELEASE = "2026.11.11-bulk-users-initial-password.1";

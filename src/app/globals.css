@@ -59,7 +59,7 @@ input {
 .valida-button[data-variant="outline"]:not(:disabled):not([aria-disabled="true"]):hover,
 .valida-button[data-variant="ghost"]:not(:disabled):not([aria-disabled="true"]):hover { background: #008580; border-color: #008580; color: white; }
 .valida-button[data-variant="danger"]:not(:disabled):not([aria-disabled="true"]):hover { background: #7f1d1d; border-color: #7f1d1d; color: white; }
-button:not([data-slot="button"]):not(:disabled):not([aria-disabled="true"]):hover,
+button:not([data-slot="button"]):not([data-hover="subtle"]):not(:disabled):not([aria-disabled="true"]):hover,
 [role="button"]:not([data-slot="button"]):not([aria-disabled="true"]):hover,
 a[href][class~="border"][class*="rounded"]:not([data-slot="button"]):not([aria-disabled="true"]):hover {
   background-color: var(--action-hover-bg, #008580);
