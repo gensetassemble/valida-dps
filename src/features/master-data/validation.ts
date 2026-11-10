@@ -126,6 +126,8 @@ export function recordSchema(entity: EntityConfig, editing = false) {
       : ["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["laboratory", "initial_laboratory"].includes(field.key)
         ? fieldSchema(field).transform((value) => typeof value === "string" ? normalizeCalibrationLaboratory(value) : value)
         : fieldSchema(field);
+    if (entity.key === "pengguna" && field.key === "employee_id")
+      shape[field.key] = shape[field.key].optional();
   }
   if (entity.key === "kalibrasi-alat")
     shape.measurement_range = z.preprocess(

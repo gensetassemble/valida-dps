@@ -1,4 +1,5 @@
 import "server-only";
+import { personnelRow, personnelText } from "@/lib/personnel-text";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireActiveUser } from "@/lib/auth/guards";
 import {
@@ -270,7 +271,7 @@ export async function listRecords(
       "Data belum dapat dimuat. Silakan coba kembali atau hubungi administrator.",
     );
   }
-  const rows = (data ?? []) as DataRow[];
+  const rows = ((data ?? []) as DataRow[]).map(personnelRow);
   if (entity.key === "kompetensi-personil" && rows.length) {
     for (const row of rows)
       row.renewal_process_status = personnelRenewalDisplay(
@@ -305,7 +306,7 @@ export async function listRecords(
         labels[field.key] = Object.fromEntries(
           visible.map((row) => [
             String(row[target.idKey]),
-            String(row[target.labelKey] || row[target.idKey]),
+            ["pegawai", "pengguna", "koordinator", "marketing"].includes(target.key) ? personnelText(row[target.labelKey]) : String(row[target.labelKey] || row[target.idKey]),
           ]),
         );
       }),
@@ -350,7 +351,7 @@ export async function getRecord(
   }
   if (data && typeof data.previous_order_value_text === "string")
     data.previous_order_value = data.previous_order_value_text;
-  return data as DataRow | null;
+  return data ? personnelRow(data as DataRow) : null;
 }
 export async function referenceLabels(
   entity: EntityConfig,

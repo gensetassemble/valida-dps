@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { personnelText } from "@/lib/personnel-text";
 import { Card } from "@/components/ui/card";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
@@ -115,7 +116,7 @@ export async function OperationalFilters({
         options={options.map((o) => ({
           key: o.param,
           label: o.title,
-          options: o.rows.map((r) => ({ value: r.id, label: r[o.label] })),
+          options: o.rows.map((r) => ({ value: r.id, label: o.label === "full_name" ? personnelText(r[o.label]) : r[o.label] })),
         }))}
       />
     );

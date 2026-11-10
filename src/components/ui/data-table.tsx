@@ -270,7 +270,7 @@ export function DataTable({
           className={`block min-w-20 max-w-64 whitespace-pre-wrap break-words${centeredCalibrationColumns.has(column) ? " mx-auto text-center" : ""}`}
           title={display}
         >
-          <span className="line-clamp-2">{display || "—"}</span>
+          <span className="whitespace-normal break-words [overflow-wrap:anywhere]">{display || "—"}</span>
           {column === "name" && (
             <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">
               Portofolio: {String(row.portfolio_code || "Belum dipetakan")}
@@ -337,7 +337,7 @@ export function DataTable({
       field?.options?.find((option) => option.value === value)?.label ||
       String(value);
     return (
-      <span className="block max-w-64 truncate" title={display}>
+      <span className="block max-w-64 whitespace-normal break-words [overflow-wrap:anywhere]" title={display}>
         {display}
       </span>
     );

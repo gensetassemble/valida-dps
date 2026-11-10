@@ -121,4 +121,16 @@ describe("Super Admin account provisioning", () => {
         .error,
     ).toMatch(/Identitas tersimpan, tetapi password/);
   });
+  it("resolves the selected employee from this branch before creating Auth and ignores typed identity overrides", async () => {
+    const q = { select:vi.fn().mockReturnThis(),eq:vi.fn().mockReturnThis(),maybeSingle:vi.fn().mockResolvedValue({data:{id:"employee-id",full_name:"Directory Name",npp:"04125"},error:null}) };
+    await run({db:{rpc,from:vi.fn(()=>q)} as unknown as SupabaseClient,details:{...details,employee_id:"employee-id",full_name:"Wrong",npp:"99999"},password:"SyntheticPassword123!"});
+    expect(q.eq).toHaveBeenCalledWith("branch_code","DPS");
+    expect(rpc).toHaveBeenCalledWith("save_profile_identity",expect.objectContaining({details:expect.objectContaining({employee_id:"employee-id",full_name:"Directory Name",npp:"04125"})}));
+    expect(q.maybeSingle.mock.invocationCallOrder[0]).toBeLessThan(createUser.mock.invocationCallOrder[0]);
+  });
+  it("does not create Auth when the chosen employee is unavailable", async () => {
+    const q = { select:vi.fn().mockReturnThis(),eq:vi.fn().mockReturnThis(),maybeSingle:vi.fn().mockResolvedValue({data:null,error:null}) };
+    expect((await run({db:{rpc,from:vi.fn(()=>q)} as unknown as SupabaseClient,details:{...details,employee_id:"employee-id"},password:"SyntheticPassword123!"})).error).toMatch(/Pegawai tidak tersedia/);
+    expect(createUser).not.toHaveBeenCalled();expect(rpc).not.toHaveBeenCalled();
+  });
 });

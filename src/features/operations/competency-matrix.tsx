@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { personnelText } from "@/lib/personnel-text";
 import { AccessDenied } from "@/components/ui/access-denied";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -63,7 +64,7 @@ export default async function CompetencyMatrix({
       );
     const r = await query.order("full_name").order("id").limit(5000);
     if (r.error) throw Error("Pegawai pada matriks belum dapat dimuat.");
-    employees = r.data || [];
+    employees = (r.data || []).map(e => ({...e, full_name: personnelText(e.full_name)}));
     total = r.count || 0;
   }
   const types = [

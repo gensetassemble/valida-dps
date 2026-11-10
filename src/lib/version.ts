@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.10-semantic-hover-personnel.1";
+export const APPLICATION_RELEASE = "2026.11.10-personnel-directory-inbox.1";

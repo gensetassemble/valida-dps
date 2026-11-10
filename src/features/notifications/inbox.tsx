@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { formatBusinessDate, formatTimestamp } from "@/lib/format";
-import { readNotifications } from "./actions";
+import { readNotifications, archiveNotifications } from "./actions";
 import {
   CATEGORIES,
   DATE_GROUPS,
@@ -107,6 +107,15 @@ export function NotificationInbox({
     }));
     start(() => router.replace(`/notifikasi?${next}`, { scroll: false }));
   }
+  async function archive(ids: string[]) {
+    setSaving(true);
+    try {
+      const result = await archiveNotifications(ids, filters.folder !== "archive");
+      if (result.error) toast(result.error, "error");
+      else { toast(filters.folder === "archive" ? "Notifikasi dikembalikan ke inbox." : "Notifikasi diarsipkan untuk akun Anda."); start(() => router.refresh()); }
+    } catch { toast("Arsip belum tersimpan. Silakan coba kembali.", "error"); }
+    finally { setSaving(false); }
+  }
   useEffect(() => {
     if (q.trim() === filters.q || q.trim() === search.requested) return;
     const timer = setTimeout(() => {
@@ -178,7 +187,7 @@ export function NotificationInbox({
             type="button"
             variant="outline"
             size="sm"
-            disabled={saving || counts.unread === 0}
+            disabled={saving || counts.unread === 0 || filters.folder === "archive"}
             onClick={() => mark(null)}
           >
             <CheckCheck aria-hidden="true" />
@@ -187,6 +196,11 @@ export function NotificationInbox({
         </div>
       </header>
       <div className={styles.toolbar}>
+        <nav className="flex flex-wrap gap-2 border-b border-border p-3" aria-label="Folder notifikasi">
+          <Button size="sm" variant={filters.folder !== "archive" ? "default" : "outline"} onClick={() => navigate({folder:"",state:"all"})}>Inbox</Button>
+          <Button size="sm" variant={filters.folder === "archive" ? "default" : "outline"} onClick={() => navigate({folder:"archive",state:"all"})}>Arsip</Button>
+          <span className="self-center text-[10px] text-muted-foreground">Arsip pribadi tidak menghapus proses atau notifikasi pengguna lain.</span>
+        </nav>
         <nav className={styles.tabs} aria-label="Kategori notifikasi">
           <FilterChip
             active={filters.category === "all" && filters.state !== "unread"}
@@ -261,6 +275,7 @@ export function NotificationInbox({
               <option value="all">Semua status baca</option>
               <option value="unread">Belum dibaca</option>
               <option value="read">Sudah dibaca</option>
+              <option value="active">Perlu tindak lanjut</option>
             </select>
           </label>
         </div>
@@ -271,7 +286,7 @@ export function NotificationInbox({
             ? "Memuat notifikasi…"
             : `${feed.total} pemberitahuan${filters.q ? " sesuai pencarian" : ""}`}
         </span>
-        <span>{counts.unread} belum dibaca</span>
+        <span>{counts.unread} belum dibaca di inbox</span>
       </div>
       <div aria-busy={pending} className={pending ? styles.pending : undefined}>
         {!feed.rows.length ? (
@@ -330,6 +345,8 @@ export function NotificationInbox({
                       events={group.events}
                       saving={saving}
                       mark={mark}
+                      archive={archive}
+                      archived={filters.folder === "archive"}
                     />
                   ))}
                 </div>
@@ -401,10 +418,14 @@ export function NotificationCard({
   events,
   saving,
   mark,
+  archive,
+  archived = false,
 }: {
   events: Notification[];
   saving: boolean;
   mark: (ids: string[]) => Promise<void>;
+  archive?: (ids: string[]) => Promise<void>;
+  archived?: boolean;
 }) {
   const n = events[0],
     category = CATEGORIES[n.category],
@@ -524,6 +545,7 @@ export function NotificationCard({
         </details>
       </div>
       <div className={styles.cardActions}>
+        {archive && <Button size="sm" variant="outline" disabled={saving} onClick={() => archive(events.map(event => event.id))}>{archived ? "Kembalikan ke inbox" : "Arsipkan"}</Button>}
         {href ? (
           <Link
             href={href}
@@ -538,7 +560,7 @@ export function NotificationCard({
             Detail tidak tersedia atau akses telah berubah.
           </span>
         )}
-        {unread.length > 0 ? (
+        {unread.length > 0 && !archived ? (
           <button
             type="button"
             disabled={saving}
@@ -552,7 +574,7 @@ export function NotificationCard({
         ) : (
           <span className={styles.readState}>
             <CheckCheck size={14} aria-hidden="true" />
-            Sudah dibaca
+            {unread.length ? "Belum dibaca · diarsipkan" : "Sudah dibaca"}
           </span>
         )}
       </div>

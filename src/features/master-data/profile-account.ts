@@ -25,6 +25,12 @@ export async function saveProfileAccount({
     };
   if (!(await hasSecondFactor(db)))
     return { error: "Verifikasi MFA diperlukan sebelum mengelola akun." };
+  if (details.employee_id) {
+    const {data: employee, error} = await db.from("employee_directory_records")
+      .select("id,full_name,npp").eq("branch_code", branch).eq("id", details.employee_id).maybeSingle();
+    if (error || !employee) return {error: "Pegawai tidak tersedia pada direktori cabang."};
+    details = {...details, full_name: employee.full_name, npp: employee.npp};
+  }
   const admin = password ? getAuthAdminClient() : null;
   if (password && !admin)
     return {

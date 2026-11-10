@@ -572,6 +572,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     description:
       "Kelola identitas dan akun login. Password hanya dapat dikelola Super Admin.",
     fields: [
+      lookup("employee_id", "Pegawai dari direktori", "pegawai"),
       text("full_name", "Nama", true, 160),
       { key: "email", label: "Email", kind: "email", required: true },
       { ...text("npp", "NPP", false, 40), hint: "Kosongkan untuk Non-NPP." },

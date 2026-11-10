@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { entityContext, masterClient } from "@/features/master-data/server";
 import { getEntity } from "@/features/master-data/registry";
 import { safeSearch } from "@/features/master-data/validation";
+import { personnelText } from "@/lib/personnel-text";
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const context = await entityContext(
@@ -73,8 +74,9 @@ export async function GET(request: NextRequest) {
     {
       options: rows.map((row) => ({
         value: String(row[target.idKey]),
+        ...(target.key === "pegawai" ? { full_name: personnelText(row.full_name), npp: row.npp } : {}),
         label:
-          String(row[target.labelKey] || "Tanpa nama") +
+          (target.key === "pegawai" ? personnelText(row[target.labelKey]) : String(row[target.labelKey] || "Tanpa nama")) +
           (target.key === "pegawai"
             ? row.npp
               ? " · NPP " + String(row.npp)

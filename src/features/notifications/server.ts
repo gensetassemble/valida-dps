@@ -21,29 +21,31 @@ export function parseInboxParams(
       ? (params.category as Category)
       : "all";
   const state =
-    params.state === "unread" || params.state === "read" ? params.state : "all";
+    params.state === "unread" || params.state === "read" || params.state === "active" ? params.state : "all";
   const q = typeof params.q === "string" ? params.q.trim().slice(0, 100) : "";
   const page = Math.max(
     1,
     Math.min(100000, Math.floor(Number(params.page) || 1)),
   );
-  return { filters: { category, state, q } as Filters, page };
+  return { filters: { category, state, q, folder: params.folder === "archive" ? "archive" : "inbox" } as Filters, page };
 }
 
 export async function loadInbox(filters: Filters, page: number) {
   const { user } = await requireActiveUser();
   const db = await masterClient();
   let query = db
-    .from("notification_inbox_records")
+    .from("notification_user_feed")
     .select(
       "id,category,title,event_status,current_status,context_name,entity_title,reference_number,replacement_certificate_number,portfolio_code,expires_on,event_notes,target_href,activity_group_id,process_reset,read_at,created_at",
       { count: "exact" },
     )
     .eq("profile_id", user.id);
+  query = filters.folder === "archive" ? query.not("user_archived_at", "is", null) : query.is("user_archived_at", null);
   if (filters.category !== "all")
     query = query.eq("category", filters.category);
   if (filters.state === "unread") query = query.is("read_at", null);
   if (filters.state === "read") query = query.not("read_at", "is", null);
+  if (filters.state === "active") query = query.or("current_status.is.null,current_status.not.in.(completed,cancelled,renewed)");
   for (const term of safeSearch(filters.q)
     .split(/\s+/)
     .filter(Boolean)
@@ -61,10 +63,10 @@ export async function loadInbox(filters: Filters, page: number) {
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
     ...keys.map((key) => {
       let count = db
-        .from("user_notifications")
+        .from("notification_user_feed")
         .select("id", { count: "exact", head: true })
-        .eq("profile_id", user.id)
-        .is("archived_at", null);
+        .eq("profile_id", user.id);
+      count = key === "unread" || filters.folder !== "archive" ? count.is("user_archived_at", null) : count.not("user_archived_at", "is", null);
       if (key === "unread") count = count.is("read_at", null);
       else if (key === "personnel")
         count = count.like("href", "/kompetensi-personil/%");

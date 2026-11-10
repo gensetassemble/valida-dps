@@ -22,7 +22,7 @@ describe("profile identity and workflow pages", () => {
     const entity = ENTITIES.pengguna;
     expect(
       entity.fields.filter((f) => f.key !== "is_active").map((f) => f.label),
-    ).toEqual(["Nama", "Email", "NPP", "WhatsApp", "Password"]);
+    ).toEqual(["Pegawai dari direktori", "Nama", "Email", "NPP", "WhatsApp", "Password"]);
     const input = {
       full_name: "[CONTOH] User",
       email: "user@example.invalid",

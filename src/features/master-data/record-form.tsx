@@ -64,7 +64,7 @@ function Lookup({
     (entity === "sertifikat-klien" && ["client_id", "certificate_type_id"].includes(field.key))
   );
   const createLabel = entity === "kompetensi-personil" ? "jenis kompetensi" : field.key === "client_id" ? "pelanggan" : "jenis sertifikat";
-  const searchable = entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key);
+  const searchable = (entity === "pengguna" && field.key === "employee_id") || entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [savingType, setSavingType] = useState(false);
@@ -426,6 +426,7 @@ export function RecordForm({
   const [overrideResponsible, setOverrideResponsible] = useState(false);
   const initialEnabled = useWatch({ control, name: "initial_enabled" });
   const portfolio = useWatch({ control, name: "portfolio_id" });
+  const profileEmployee = useWatch({ control, name: "employee_id" });
   const calibrationDate = useWatch({
     control,
     name: initialEquipment ? "initial_calibration_date" : "calibration_date",
@@ -779,7 +780,19 @@ export function RecordForm({
                           field={field}
                           branch={branch}
                           value={String(input.value || "")}
-                          onChange={input.onChange}
+                          onChange={async value => {
+                            input.onChange(value);
+                            if (entity.key !== "pengguna" || field.key !== "employee_id" || !value) return;
+                            try {
+                              const response = await fetch("/api/master-data/lookups?" + new URLSearchParams({entity: "pengguna", field: "employee_id", branch, id: value}));
+                              if (!response.ok) throw Error();
+                              const option = (await response.json()).options.find((o: {value:string}) => o.value === value);
+                              if (!option) throw Error();
+                              if (getValues("employee_id") !== value) return;
+                              setValue("full_name", option.full_name, {shouldDirty:true,shouldValidate:true});
+                              setValue("npp", option.npp || "", {shouldDirty:true,shouldValidate:true});
+                            } catch { setFailure("Identitas pegawai belum dapat dimuat. Pilih kembali nama pegawai."); }
+                          }}
                           disabled={locked}
                         />
                       )}
@@ -886,7 +899,7 @@ export function RecordForm({
                               })
                           : undefined
                       }
-                      readOnly={field.key === endField && automaticEnd}
+                      readOnly={field.key === endField && automaticEnd || entity.key === "pengguna" && !!profileEmployee && ["full_name", "npp"].includes(field.key)}
                     />
                   )}
                 </FormField>

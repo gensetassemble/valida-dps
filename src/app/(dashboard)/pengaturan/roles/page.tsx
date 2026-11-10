@@ -36,9 +36,9 @@ export default async function RolesPage({
           Peran &amp; penugasan
         </Link>
       </div>
-      <MasterPage entity="roles" params={params} />
+      <MasterTable entity="penugasan-peran" params={params} />
       <section className="mt-8">
-        <MasterTable entity="penugasan-peran" params={params} />
+        <MasterPage entity="roles" params={params} />
       </section>
     </>
   );

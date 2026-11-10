@@ -535,22 +535,6 @@ export async function OperationDetail({
       {entity === "kalibrasi-alat" && (
         <>
           <WorkflowPanel kind="calibration" branch={c.branch} row={row} />
-          <div className="mb-4 flex gap-3">
-            {canEditRow && (
-              <Button asChild>
-                <Link
-                  href={
-                    "/kalibrasi-alat/" +
-                    id +
-                    "/kalibrasi/baru?branch=" +
-                    c.branch
-                  }
-                >
-                  Tambah peristiwa kalibrasi
-                </Link>
-              </Button>
-            )}
-          </div>
           <MasterTable
             entity="riwayat-kalibrasi"
             params={{ branch: c.branch, sort: "calibration_date", dir: "desc" }}

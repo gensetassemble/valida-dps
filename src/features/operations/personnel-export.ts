@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { personnelText } from "@/lib/personnel-text";
 import { exportContinuationRows } from "@/lib/export-continuation";
 import { RENEWAL_STATUSES } from "@/features/workflows/model";
 import { businessNotes } from "./notes";
@@ -123,8 +124,8 @@ export function addPersonnelSheet(
     const values = [
       index + 1,
       npp,
-      String(record.employee_name || ""),
-      String(record.position || ""),
+      personnelText(record.employee_name),
+      personnelText(record.position),
       String(record.portfolio_plot || ""),
       String(record.original_title || record.certificate_type_name || ""),
       date(record.issue_date),

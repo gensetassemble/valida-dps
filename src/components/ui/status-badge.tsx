@@ -85,13 +85,13 @@ export function StatusBadge({ value }: { value: string | boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-1 text-[11px] font-semibold",
+        "inline-flex max-w-full items-center gap-1.5 whitespace-normal break-words rounded-full border px-2 py-1 text-[11px] font-semibold leading-4",
         status.style,
       )}
     >
       {status.color && (
         <span
-          className="size-2 rounded-full"
+          className="size-2 shrink-0 rounded-full"
           style={{ backgroundColor: status.color }}
           aria-hidden
         />

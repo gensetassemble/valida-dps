@@ -47,8 +47,9 @@ export type Notification = {
   created_at: string;
 };
 export type Filters = {
+  folder?: "inbox" | "archive";
   category: "all" | Category;
-  state: "all" | "unread" | "read";
+  state: "all" | "unread" | "read" | "active";
   q: string;
 };
 export type Counts = Record<"all" | "unread" | Category, number>;

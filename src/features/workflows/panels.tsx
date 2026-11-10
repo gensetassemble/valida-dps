@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { personnelText, processNotes } from "@/lib/personnel-text";
 import { masterClient, type DataRow } from "@/features/master-data/server";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -96,6 +97,9 @@ async function LegacyWorkflowPanel({
         .in(kind === "calibration" ? "request_id" : "case_id", ids)
         .order("created_at", { ascending: false })
     : { data: [] };
+  const actorIds = [...new Set((history || []).map(h => String(h.actor_id)).filter(Boolean))];
+  const { data: actors } = actorIds.length ? await db.from("profiles").select("id,full_name").eq("branch_code", branch).in("id", actorIds) : { data: [] };
+  const actorNames = new Map((actors || []).map(actor => [String(actor.id), personnelText(actor.full_name)]));
   const { data: replacementData } =
     kind === "personnel" && hrga
       ? await db
@@ -138,6 +142,7 @@ async function LegacyWorkflowPanel({
   const lifetime = kind === "personnel" && row.validity_kind === "lifetime";
   return (
     <Card className="mb-5 p-4">
+      <p className="mb-3 text-xs text-muted-foreground">Pembaruan dikirim sebagai notifikasi dalam aplikasi ke akun pemilik yang terhubung. Email otomatis belum diaktifkan.</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-bold">
           {kind === "calibration"
@@ -321,14 +326,12 @@ async function LegacyWorkflowPanel({
                     <strong>{labels[h.new_status]}</strong> ·{" "}
                     {formatTimestamp(h.created_at)}
                     <span className="block text-[10px] text-muted-foreground">
-                      Aktor: {h.actor_id}
+                      Dicatat oleh: {actorNames.get(String(h.actor_id)) || "Petugas berwenang"}
                     </span>
-                    <p>{h.notes}</p>
+                    <p className="whitespace-pre-wrap break-words">{processNotes(h.notes)}</p>
                     {kind === "personnel" && !h.holder_delivery_available && (
                       <p className="text-amber-800">
-                        Notifikasi pemilik belum dapat dikirim: akun aktif belum
-                        ditautkan ke identitas pegawai. Administrator perlu
-                        menautkan akun.
+                        Saat pembaruan ini dicatat, pemilik belum memiliki akun penerima notifikasi dalam aplikasi.
                       </p>
                     )}
                   </li>

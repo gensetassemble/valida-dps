@@ -12,10 +12,10 @@ export default async function DashboardLayout({
   const { count, error } = await (
     await masterClient()
   )
-    .from("user_notifications")
+    .from("notification_user_feed")
     .select("id", { count: "exact", head: true })
     .eq("profile_id", user.id)
-    .is("archived_at", null)
+    .is("user_archived_at", null)
     .is("read_at", null);
   if (error) throw Error("Jumlah notifikasi belum dapat dimuat.");
   return (
