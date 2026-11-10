@@ -52,11 +52,11 @@ async function highlightDeadlines(zip: JSZip, sheets: Record<string, DeadlineHig
     .replace("</cellXfs>", added.join("") + "</cellXfs>"));
   zip.file("xl/styles.xml", styles);
 }
-export function monitoringFilename(rows: Row[], today = todayWita()) {
+export function monitoringFilename(rows: Row[], today = todayWita(), allPortfolios = false) {
   const codes = [
     ...new Set(rows.map((r) => String(r.portfolio_code || "")).filter(Boolean)),
   ];
-  const code = codes.length === 1 ? codes[0] : "ALL";
+  const code = !allPortfolios && codes.length === 1 ? codes[0] : "ALL";
   return `Form Laporan Monitoring Peralatan - ${code.replace(/[\\/:*?"<>|]/g, "-")} ${today.slice(0, 4)}.xlsx`;
 }
 function shiftRow(xml: string, delta: number) {

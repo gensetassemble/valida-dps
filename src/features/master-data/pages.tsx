@@ -207,7 +207,7 @@ export async function DetailPage({
               {entity.fields.find((field) => field.key === column)?.label ||
                 column}
             </p>
-            <p className="mt-1 break-words text-sm font-semibold">
+            <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold [overflow-wrap:anywhere]">
               {column === "npp" && !record[column]
                 ? "Non-NPP"
                 : labels[column] ||

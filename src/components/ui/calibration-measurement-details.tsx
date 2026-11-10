@@ -27,34 +27,36 @@ export function CalibrationMeasurementDetails({
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <button type="button" className="block w-full whitespace-normal text-left text-xs hover:text-primary-hover">
+        <button type="button" className="group block w-full whitespace-normal text-left text-xs hover:text-primary-hover">
           <span className="block font-semibold">
             {field === "measurement_range" ? `${groups.length} kelompok pengukuran` : "Faktor koreksi tersedia"}
           </span>
-          <span className="mt-1 block text-[10px] text-primary-hover underline underline-offset-2">Lihat rincian</span>
+          <span className="mt-1 block text-[10px] text-primary-hover underline underline-offset-2 group-hover:text-white">Lihat rincian</span>
         </button>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content side="bottom" align="end" sideOffset={8} collisionPadding={12}
           aria-label="Rincian rentang ukur dan faktor koreksi"
-          className="z-[60] w-[min(40rem,calc(100vw-1.5rem)) rounded-xl border border-border bg-white p-4 text-foreground shadow-xl">
-          <div className="mb-3 flex items-start justify-between gap-3">
+          className="z-[60] flex max-h-[min(65dvh,var(--radix-popover-content-available-height))] w-[min(28rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-xl border border-border bg-white p-3 text-foreground shadow-xl">
+          <div className="mb-2 flex shrink-0 items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="text-sm font-semibold">Rentang ukur & faktor koreksi</h3>
-              <p className="mt-1 break-words text-xs text-muted-foreground">{String(row.name || "Alat")} · {String(row.tag || "Tanpa tag")}</p>
+              <p className="mt-1 break-words text-[11px] text-muted-foreground">{String(row.name || "Alat")} · {String(row.tag || "Tanpa tag")}</p>
             </div>
             <Popover.Close aria-label="Tutup rincian" className="rounded-md p-1 hover:bg-slate-100"><X className="size-4" /></Popover.Close>
           </div>
-          <div className="max-h-[min(55dvh,28rem)] space-y-2 overflow-y-auto overscroll-contain">
-            {groups.map((group, index) => (
-              <div key={index} className="rounded-lg border border-border bg-slate-50 p-3">
-                <p className="mb-2 text-[10px] font-semibold text-muted-foreground">Kelompok {index + 1}</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div><p className="mb-1 text-[10px] font-semibold">Rentang / kapasitas</p><p className="whitespace-pre-wrap break-words text-xs">{group.range || "—"}</p></div>
-                  <div><p className="mb-1 text-[10px] font-semibold">Faktor koreksi</p><p className="whitespace-pre-wrap break-words text-xs tabular-nums">{group.correction || "—"}</p></div>
-                </div>
-              </div>
-            ))}
+          <div className="min-h-0 max-h-88 overflow-y-auto overscroll-contain rounded-lg border border-border">
+            <table className="w-full table-fixed text-left text-xs">
+              <colgroup><col/><col className="w-28"/></colgroup>
+              <thead className="sticky top-0 bg-surface-muted text-[10px] text-muted-foreground"><tr>
+                <th scope="col" className="px-2.5 py-2">Rentang / kapasitas</th>
+                <th scope="col" className="px-2.5 py-2">Faktor koreksi</th>
+              </tr></thead>
+              <tbody>{groups.map((group, index) => <tr key={index} className="border-t border-border align-top">
+                <td className="px-2.5 py-2"><span className="mb-1 block text-[10px] font-semibold text-muted-foreground">Kelompok {index + 1}</span><span className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{group.range || "—"}</span></td>
+                <td className="px-2.5 py-2 whitespace-pre-wrap break-words tabular-nums [overflow-wrap:anywhere]">{group.correction || "—"}</td>
+              </tr>)}</tbody>
+            </table>
           </div>
         </Popover.Content>
       </Popover.Portal>

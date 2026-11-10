@@ -11,6 +11,7 @@ import { personnelFilename } from "@/features/operations/export-context";
 import { addClientSheet } from "@/features/operations/client-export";
 import { readableXlsx } from "@/lib/xlsx-readability";
 import { exportContinuationRows } from "@/lib/export-continuation";
+import { normalizeEquipmentExport } from "@/features/operations/equipment-export-scope";
 import {
   entityContext,
   listRecords,
@@ -19,9 +20,13 @@ import {
   type DataRow,
 } from "@/features/master-data/server";
 export async function GET(request: NextRequest) {
-  const params = Object.fromEntries(
-    request.nextUrl.searchParams,
-  ) as QueryParams & { entity?: string };
+  let search = request.nextUrl.searchParams;
+  try {
+    if (search.get("entity") === "kalibrasi-alat") search = normalizeEquipmentExport(search);
+  } catch {
+    return NextResponse.json({ error: "Pilih setidaknya satu portofolio yang valid untuk ekspor." }, { status: 400 });
+  }
+  const params = Object.fromEntries(search) as QueryParams & { entity?: string };
   if (
     ![
       "sertifikat-klien",
@@ -88,7 +93,7 @@ export async function GET(request: NextRequest) {
       );
     }
     const bytes = await monitoringXlsx(rows, c.branch, undefined, context);
-    const filename = monitoringFilename(rows);
+    const filename = monitoringFilename(rows, undefined, search.get("portfolio_selection") === "all");
     return new NextResponse(new Uint8Array(bytes), {
       headers: {
         "Content-Type":

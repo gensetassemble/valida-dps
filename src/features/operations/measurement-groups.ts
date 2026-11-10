@@ -54,16 +54,16 @@ export function measurementInputs(
       const g = group as Record<string, unknown>;
       return {
         measurement_range: String(
-          g.measurement_range || row.measurement_range || "",
+          g.measurement_range ?? row.measurement_range ?? "",
         ),
-        correction_factor: String(g.correction_factor || ""),
+        correction_factor: String(g.correction_factor ?? ""),
         source_index: index,
       };
     });
   return [
     {
-      measurement_range: String(row?.measurement_range || ""),
-      correction_factor: String(row?.correction_factor || ""),
+      measurement_range: String(row?.measurement_range ?? ""),
+      correction_factor: String(row?.correction_factor ?? ""),
     },
   ];
 }

@@ -2,7 +2,7 @@ export function certificateFrozenColumn(entity: string, column: string) {
   const keys = entity === "sertifikat-klien"
     ? ["number", "selection", "validity_status", "expiry_date", "client_name"]
     : entity === "kompetensi-personil"
-      ? ["number", "selection", "original_title", "employee_name"] : [];
+      ? ["number", "selection", "validity_status", "original_title", "employee_name"] : [];
   return keys.includes(column) ? column : undefined;
 }
 

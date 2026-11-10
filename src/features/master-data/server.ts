@@ -11,6 +11,7 @@ import { getEntity, type EntityConfig } from "./registry";
 import { safeSearch } from "./validation";
 import { personnelRenewalDisplay } from "@/features/workflows/model";
 import { operationalOrder } from "@/features/operations/list-order";
+import { portfolioIds } from "@/features/operations/equipment-export-scope";
 export type DataRow = Record<string, unknown>;
 export type QueryParams = {
   q?: string;
@@ -28,6 +29,7 @@ export type QueryParams = {
   am?: string;
   marketing?: string;
   portfolio?: string;
+  portfolios?: string;
   type?: string;
   area?: string;
   employee?: string;
@@ -222,6 +224,8 @@ export async function listRecords(
   }
   for (const [column, value] of operationalFilterPairs(entity.key, params))
     query = query.eq(column, value);
+  if (entity.key === "kalibrasi-alat" && params.portfolios !== undefined)
+    query = query.in("portfolio_id", portfolioIds(params.portfolios));
   if (
     entity.key === "kompetensi-personil" &&
     params.portfolio &&

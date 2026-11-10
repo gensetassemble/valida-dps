@@ -27,6 +27,8 @@ import { businessNotes } from "./notes";
 import { WorkflowPanel, WorkflowOverview } from "@/features/workflows/panels";
 import { EquipmentRequestForm } from "@/features/workflows/calibration-controls";
 import { RenewalEmailPreview } from "./renewal-email-preview";
+import { EquipmentExportMenu } from "./equipment-export-menu";
+import { MeasurementSummary } from "./measurement-summary";
 export async function OperationList({
   entity,
   params,
@@ -36,6 +38,20 @@ export async function OperationList({
 }) {
   const c = await pageEntityContext(entity, params.branch);
   if (!c) return <AccessDenied />;
+  const exportOptions: { id: string; code: string; count: number }[] = [];
+  let exportUnavailable = false;
+  if (entity === "kalibrasi-alat") {
+    const db = await masterClient();
+    const { data, error } = await db.from("equipment_monitoring_records")
+      .select("portfolio_id,portfolio_code").eq("branch_code", c.branch).limit(10000);
+    exportUnavailable = !!error;
+    const grouped = new Map<string, { id: string; code: string; count: number }>();
+    for (const row of data || []) if (row.portfolio_id && row.portfolio_code) {
+      const option = grouped.get(String(row.portfolio_id)) || { id: String(row.portfolio_id), code: String(row.portfolio_code), count: 0 };
+      option.count++; grouped.set(option.id, option);
+    }
+    exportOptions.push(...[...grouped.values()].sort((a,b) => a.code.localeCompare(b.code)));
+  }
   const compact = ["sertifikat-klien", "kompetensi-personil", "kalibrasi-alat"].includes(entity);
   return (
     <>
@@ -64,7 +80,7 @@ export async function OperationList({
             </Link>
           </Button>
         )}
-        <Button asChild variant="outline">
+        {entity === "kalibrasi-alat" ? <EquipmentExportMenu key={c.branch} branch={c.branch} portfolios={exportOptions} unavailable={exportUnavailable}/> : <Button asChild variant="outline">
           <a
             href={
               "/api/operations/export?" +
@@ -77,7 +93,7 @@ export async function OperationList({
           >
             Ekspor XLSX sesuai filter
           </a>
-        </Button>
+        </Button>}
         {entity === "kompetensi-personil" && (
           <Button asChild variant="outline">
             <a
@@ -424,8 +440,10 @@ export async function OperationDetail({
           .map((f) => (
             <div key={f.key}>
               <p className="text-[11px] text-muted-foreground">{f.label}</p>
-              <p className="mt-1 break-words text-sm">
-                {entity === "sertifikat-klien" && f.key === "interval_months" ? (
+              <div className="mt-1 min-w-0 whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">
+                {f.key === "measurement_range" || f.key === "correction_factor" ? (
+                  <MeasurementSummary row={row} field={f.key} assetRanges={entity === "kalibrasi-alat" && f.key === "measurement_range"}/>
+                ) : entity === "sertifikat-klien" && f.key === "interval_months" ? (
                   String(row.interval_label || "—")
                 ) : f.key === "notes" ? (
                   businessNotes(row.notes)
@@ -454,7 +472,7 @@ export async function OperationDetail({
                       "—",
                   )
                 )}
-              </p>
+              </div>
             </div>
           ))}
       </Card>

@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.10-document-removal-interactions.1";
+export const APPLICATION_RELEASE = "2026.11.10-equipment-export-readable-details.1";

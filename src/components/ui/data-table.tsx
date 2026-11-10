@@ -178,7 +178,9 @@ export function DataTable({
         )
       : entity.key === "kalibrasi-alat"
         ? monitoringColumns.map(([key]) => key)
-        : entity.columns;
+        : entity.key === "kompetensi-personil"
+          ? ["validity_status", ...entity.columns.filter(column => column !== "validity_status")]
+          : entity.columns;
   const mayBulk =
     canWrite &&
     ![
@@ -733,7 +735,7 @@ export function DataTable({
                 <dt className="mb-1 font-semibold text-muted-foreground">
                   {labelFor(key)}
                 </dt>
-                <dd className="break-words leading-6">
+                <dd className="whitespace-pre-wrap break-words leading-6 [overflow-wrap:anywhere]">
                   {typeof value === "object" && value !== null ? (
                     <pre className="max-h-60 overflow-auto whitespace-pre-wrap text-[11px]">
                       {JSON.stringify(value, null, 2)}
