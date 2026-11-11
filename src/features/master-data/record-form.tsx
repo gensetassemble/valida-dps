@@ -370,6 +370,9 @@ export function RecordForm({
     "unit",
     "location",
   ];
+  const eventFieldRank = (key: string) => unsortedFields.findIndex((field) =>
+    field.key === (key === "issue_date" ? "interval_months" : key === "interval_months" ? "issue_date" : key),
+  );
   const formFields =
     entity.key === "kalibrasi-alat"
       ? [...unsortedFields].sort((a, b) => {
@@ -382,7 +385,9 @@ export function RecordForm({
                 : 50 + entity.fields.findIndex((x) => x.key === f.key);
           return rank(a) - rank(b);
         })
-      : unsortedFields;
+      : entity.key === "riwayat-kalibrasi"
+        ? [...unsortedFields].sort((a, b) => eventFieldRank(a.key) - eventFieldRank(b.key))
+        : unsortedFields;
   const editableFields = formFields.filter(
     (field) => !editing || (field.key !== entity.idKey && !field.immutable),
   );
@@ -590,7 +595,7 @@ export function RecordForm({
             )}
           />
         )}
-        {endField && !lifetime && (!initialEquipment || !!initialEnabled) && (
+        {endField && entity.key !== "riwayat-kalibrasi" && !lifetime && (!initialEquipment || !!initialEnabled) && (
           <label className="block max-w-sm space-y-1 text-xs font-semibold">
             Tanggal berakhir otomatis
             <select
@@ -627,6 +632,7 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
+            if (entity.key === "riwayat-kalibrasi" && ["calculation_base", "reported_due_date", "due_date", "date_basis", "date_source", "resolution_note"].includes(field.key)) return null;
             if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["interval_label", "initial_interval_label"].includes(field.key)) return null;
             const markChoice = calibrationChoice(field.key);
             if (pairedCalibrationField(field.key) && !markChoice) return null;
@@ -983,8 +989,9 @@ export function RecordForm({
                 ? formatBusinessDate(calculated)
                 : "Pilih tanggal dasar dan interval positif."}
             </strong>
-            . Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin
-            tanggal dokumen bila tersedia.
+            {entity.key === "riwayat-kalibrasi"
+              ? ". Tanggal berakhir dihitung otomatis dari tanggal kalibrasi dan interval."
+              : ". Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin tanggal dokumen bila tersedia."}
           </p>
         )}
         {error && (
