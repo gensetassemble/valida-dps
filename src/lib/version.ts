@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.11-searchable-personnel-contract.1";
+export const APPLICATION_RELEASE = "2026.11.11-portfolio-calibration-choices.1";

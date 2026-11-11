@@ -37,6 +37,9 @@ import {
   calibrationMark,
   pairedCalibrationField,
   oppositeCalibrationMark,
+  calibrationChoice,
+  calibrationChoiceValue,
+  laboratoryForCalibrationChoice,
 } from "@/features/operations/calibration-marks";
 type Option = { value: string; label: string };
 function Lookup({
@@ -64,7 +67,8 @@ function Lookup({
     (entity === "sertifikat-klien" && ["client_id", "certificate_type_id"].includes(field.key))
   );
   const createLabel = entity === "kompetensi-personil" ? "jenis kompetensi" : field.key === "client_id" ? "pelanggan" : "jenis sertifikat";
-  const searchable = (entity === "pengguna" && field.key === "employee_id") ||
+  const searchable = field.lookup === "portofolio" ||
+    (entity === "pengguna" && field.key === "employee_id") ||
     (entity === "kompetensi-personil" && ["employee_id", "certificate_type_id"].includes(field.key)) ||
     (entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key));
   const [creating, setCreating] = useState(false);
@@ -274,7 +278,7 @@ function initialValue(
   if (field.kind === "boolean")
     return typeof value === "boolean"
       ? value
-      : field.key === "is_primary"
+      : ["is_primary", "initial_enabled"].includes(field.key)
         ? false
         : !["pegawai", "pengguna"].includes(entity);
   if (entity === "kalibrasi-alat" && field.key === "unit" && typeof value === "string")
@@ -398,6 +402,10 @@ export function RecordForm({
         defaults[field.key] = ["√", "-"].includes(value) ? value : "";
       }
     }
+    const prefix = initialEquipment ? "initial_" : "";
+    if (calibrationChoiceValue(defaults[prefix + "calibration_internal"], defaults[prefix + "calibration_external"]) === "√") {
+      defaults[prefix + "laboratory"] = laboratoryForCalibrationChoice("√", defaults[prefix + "laboratory"]);
+    }
     defaults.measurement_groups = measurementInputs(
       row ? { ...measurementDefaults, ...row } : measurementDefaults,
       entity.key === "kalibrasi-alat" || !row,
@@ -427,6 +435,9 @@ export function RecordForm({
   const [error, setFailure] = useState<string>();
   const [overrideResponsible, setOverrideResponsible] = useState(false);
   const initialEnabled = useWatch({ control, name: "initial_enabled" });
+  const calibrationInternal = useWatch({ control, name: initialEquipment ? "initial_calibration_internal" : "calibration_internal" });
+  const calibrationExternal = useWatch({ control, name: initialEquipment ? "initial_calibration_external" : "calibration_external" });
+  const internalLaboratory = calibrationChoiceValue(calibrationInternal, calibrationExternal) === "√";
   const portfolio = useWatch({ control, name: "portfolio_id" });
   const profileEmployee = useWatch({ control, name: "employee_id" });
   const calibrationDate = useWatch({
@@ -609,6 +620,8 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
+            const markChoice = calibrationChoice(field.key);
+            if (pairedCalibrationField(field.key) && !markChoice) return null;
             if (entity.key === "sertifikat-klien" && ["interval_days", "previous_certificate_id"].includes(field.key)) return null;
             if (
               (entity.key === "riwayat-kalibrasi" &&
@@ -672,7 +685,7 @@ export function RecordForm({
               "aria-invalid": !!message,
               "aria-describedby": message
                 ? `${field.key}-error`
-                : field.hint
+                : field.hint && !markChoice
                   ? `${field.key}-hint`
                   : undefined,
             };
@@ -695,8 +708,8 @@ export function RecordForm({
                     entity.key === "kalibrasi-alat" ? "table" : "standard"
                   }
                   id={field.key}
-                  label={field.label}
-                  hint={field.hint}
+                  label={markChoice?.label ?? field.label}
+                  hint={markChoice ? undefined : field.hint}
                   required={field.required}
                   error={message}
                   wide={field.key === "measurement_range"}
@@ -737,6 +750,37 @@ export function RecordForm({
                         />
                       )}
                     />
+                  ) : markChoice ? (
+                    <Controller
+                      control={control}
+                      name={field.key}
+                      render={({ field: input }) => (
+                        <select
+                          {...common}
+                          name={input.name}
+                          ref={input.ref}
+                          onBlur={input.onBlur}
+                          value={calibrationChoiceValue(input.value, getValues(pairedCalibrationField(field.key)!))}
+                          onChange={(event) => {
+                            input.onChange(event.target.value);
+                            setValue(pairedCalibrationField(field.key)!, oppositeCalibrationMark(event.target.value), {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            if (field.key.replace(/^initial_/, "") === "calibration_internal") {
+                              const laboratoryKey = field.key.startsWith("initial_") ? "initial_laboratory" : "laboratory";
+                              setValue(laboratoryKey, laboratoryForCalibrationChoice(event.target.value, getValues(laboratoryKey)), { shouldDirty: true, shouldValidate: true });
+                            }
+                          }}
+                          className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+                        >
+                          <option value="" disabled>Pilih {markChoice.label.toLowerCase()}</option>
+                          {markChoice.options.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
+                      )}
+                    />
                   ) : field.kind === "boolean" ? (
                     <Controller
                       control={control}
@@ -769,7 +813,7 @@ export function RecordForm({
                     </>
                   ) : ["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["laboratory", "initial_laboratory"].includes(field.key) ? (
                     <>
-                      <Input {...common} {...register(field.key)} list="calibration-laboratories" maxLength={200} placeholder="Pilih lembaga atau tulis lembaga lain" />
+                      <Input {...common} {...register(field.key)} readOnly={internalLaboratory} list={internalLaboratory ? undefined : "calibration-laboratories"} maxLength={200} placeholder="Cari lembaga atau ketik nama baru" className={internalLaboratory ? "bg-muted" : undefined} />
                       <datalist id="calibration-laboratories">{calibrationLaboratories.map((name) => <option key={name} value={name} />)}</datalist>
                     </>
                   ) : field.kind === "lookup" ? (
