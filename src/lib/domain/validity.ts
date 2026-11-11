@@ -88,6 +88,7 @@ export function driveFolder(value: string | null | undefined) {
 export type Calibration = {
   id: string;
   calibration_date: string | null;
+  issue_date?: string | null;
   created_at: string;
   verification_status: string;
   result: string | null;
@@ -117,7 +118,7 @@ export function equipmentEligibility(
 ) {
   const sorted = [...events].sort(
     (a, b) =>
-      (b.calibration_date || "").localeCompare(a.calibration_date || "") ||
+      (b.issue_date || b.calibration_date || "").localeCompare(a.issue_date || a.calibration_date || "") ||
       b.created_at.localeCompare(a.created_at) ||
       b.id.localeCompare(a.id),
   );

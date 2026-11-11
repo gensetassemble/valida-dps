@@ -371,7 +371,7 @@ export function RecordForm({
     "location",
   ];
   const eventFieldRank = (key: string) => unsortedFields.findIndex((field) =>
-    field.key === (key === "issue_date" ? "interval_months" : key === "interval_months" ? "issue_date" : key),
+    field.key === (key === "issue_date" ? "calibration_date" : key === "interval_months" ? "issue_date" : key === "due_date" ? "interval_months" : key),
   );
   const formFields =
     entity.key === "kalibrasi-alat"
@@ -426,6 +426,7 @@ export function RecordForm({
   }
   if (entity.key === "riwayat-kalibrasi" && row)
     defaults.measurement_revision = String(row.updated_at || "");
+  if (entity.key === "riwayat-kalibrasi") defaults.calculation_base = "issue_date";
   const {
     register,
     control,
@@ -483,6 +484,7 @@ export function RecordForm({
       ? addMonths(baseDate, Number(months))
       : null;
   const [automaticEnd, setAutomaticEnd] = useState(() => {
+    if (entity.key === "riwayat-kalibrasi") return true;
     if (!editing || !endField || !row?.[endField]) return true;
     const base = String(
       row[
@@ -632,7 +634,7 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
-            if (entity.key === "riwayat-kalibrasi" && ["calculation_base", "reported_due_date", "due_date", "date_basis", "date_source", "resolution_note"].includes(field.key)) return null;
+            if (entity.key === "riwayat-kalibrasi" && ["calibration_date", "calculation_base", "reported_due_date", "date_basis", "date_source", "resolution_note"].includes(field.key)) return null;
             if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["interval_label", "initial_interval_label"].includes(field.key)) return null;
             const markChoice = calibrationChoice(field.key);
             if (pairedCalibrationField(field.key) && !markChoice) return null;
@@ -722,7 +724,7 @@ export function RecordForm({
                     entity.key === "kalibrasi-alat" ? "table" : "standard"
                   }
                   id={field.key}
-                  label={markChoice?.label ?? field.label}
+                  label={entity.key === "riwayat-kalibrasi" && field.key === "due_date" ? "Tanggal berakhir" : entity.key === "riwayat-kalibrasi" && field.key === "issue_date" ? "Tanggal terbit sertifikat" : markChoice?.label ?? field.label}
                   hint={markChoice ? undefined : field.hint}
                   required={field.required}
                   error={message}
@@ -990,7 +992,7 @@ export function RecordForm({
                 : "Pilih tanggal dasar dan interval positif."}
             </strong>
             {entity.key === "riwayat-kalibrasi"
-              ? ". Tanggal berakhir dihitung otomatis dari tanggal kalibrasi dan interval."
+              ? ". Tanggal berakhir dihitung otomatis dari tanggal terbit sertifikat dan interval."
               : ". Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin tanggal dokumen bila tersedia."}
           </p>
         )}

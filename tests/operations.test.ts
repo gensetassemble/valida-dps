@@ -70,6 +70,10 @@ describe("Calibration eligibility", () => {
     result: "layak",
     due_date: "2027-01-01",
   };
+  it("orders certificate issue dates alongside legacy calibration dates", () => {
+    const newer = { ...event, id: "2", calibration_date: null, issue_date: "2026-10-01", result: null };
+    expect(equipmentEligibility([event, newer], "2026-10-29")).toBe("Hasil Belum Diisi");
+  });
   it("requires a recorded result and future/current due date", () => {
     expect(equipmentEligibility([event], "2026-10-29")).toBe("Layak Pakai");
     expect(

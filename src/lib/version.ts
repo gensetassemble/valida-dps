@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.11-simple-calibration-event.1";
+export const APPLICATION_RELEASE = "2026.11.11-calibration-certificate-dates.1";
