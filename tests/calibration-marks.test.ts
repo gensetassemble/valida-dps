@@ -8,12 +8,21 @@ import {
   calibrationChoice,
   calibrationChoiceValue,
   laboratoryForCalibrationChoice,
+  calibrationChoiceLabel,
 } from "@/features/operations/calibration-marks";
 import {
   monitoringCalibrationFields,
   monitoringValue,
 } from "@/features/operations/monitoring";
 describe("exclusive calibration report marks", () => {
+  it("shows one readable type and significance without guessing conflicting data", () => {
+    expect(calibrationChoiceLabel("calibration_internal", {calibration_internal:"√",calibration_external:"-"})).toBe("Internal");
+    expect(calibrationChoiceLabel("calibration_internal", {calibration_internal:"-",calibration_external:"√"})).toBe("Eksternal");
+    expect(calibrationChoiceLabel("significant_yes", {significant_yes:"√",significant_no:"-"})).toBe("Ya");
+    expect(calibrationChoiceLabel("significant_yes", {significant_yes:"-",significant_no:"√"})).toBe("Tidak");
+    expect(calibrationChoiceLabel("calibration_internal", {calibration_internal:"√",calibration_external:"√"})).toBe("Periksa pilihan");
+    expect(calibrationChoiceLabel("significant_yes", {})).toBe("Belum diisi");
+  });
   it("fills the internal laboratory and allows a new external laboratory", () => {
     expect(laboratoryForCalibrationChoice("√", "PT Caltesys Indonesia")).toBe("PT SUCOFINDO Laboratorium Cibitung");
     expect(laboratoryForCalibrationChoice("-", "PT SUCOFINDO Laboratorium Cibitung")).toBe("");

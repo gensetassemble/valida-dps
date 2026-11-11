@@ -55,3 +55,12 @@ export function calibrationChoiceValue(primary: unknown, secondary: unknown) {
     ? value
     : "";
 }
+
+export function calibrationChoiceLabel(key: string, row: Record<string, unknown>) {
+  const choice = calibrationChoice(key);
+  const pair = pairedCalibrationField(key);
+  if (!choice || !pair) return "—";
+  const selected = calibrationChoiceValue(row[key], row[pair]);
+  return choice.options.find((option) => option.value === selected)?.label ||
+    (calibrationMark(row[key]) || calibrationMark(row[pair]) ? "Periksa pilihan" : "Belum diisi");
+}

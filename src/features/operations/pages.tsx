@@ -22,7 +22,8 @@ import { driveFolder, validityLabel, todayWita } from "@/lib/domain/validity";
 import { OperationalForm, CorrectionForm } from "./forms";
 import { CertificateDocuments } from "./certificate-documents";
 import { OperationalFilters } from "./filters";
-import { monitoringColumns } from "./monitoring";
+import { measurementKeys } from "./monitoring";
+import { calibrationChoice, calibrationChoiceLabel } from "./calibration-marks";
 import { businessNotes } from "./notes";
 import { WorkflowPanel, WorkflowOverview } from "@/features/workflows/panels";
 import { EquipmentRequestForm } from "@/features/workflows/calibration-controls";
@@ -230,6 +231,7 @@ export async function OperationDetail({
   }
   const canEditRow = c.canWrite;
   const expiryReview = calibrationExpiryReview(row);
+  const hasMeasurementTable = Array.isArray(row.monitoring_measurements) && row.monitoring_measurements.length > 1;
   const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
   if (
@@ -336,11 +338,10 @@ export async function OperationDetail({
           </Button>
         )}
       </div>
-      {Array.isArray(row.monitoring_measurements) &&
-        row.monitoring_measurements.length > 1 && (
+      {hasMeasurementTable && Array.isArray(row.monitoring_measurements) && (
           <Card className="mb-4 overflow-x-auto p-4">
             <h2 className="mb-2 text-sm font-bold">
-              Rincian parameter kalibrasi dari Excel
+              Rincian parameter kalibrasi
             </h2>
             <table className="w-full text-left text-xs">
               <thead>
@@ -349,10 +350,8 @@ export async function OperationDetail({
                     "Parameter",
                     "Range / Kapasitas",
                     "Faktor Koreksi",
-                    "Internal",
-                    "Eksternal",
-                    "Signifikan — Ya",
-                    "Signifikan — Tidak",
+                    "Jenis kalibrasi",
+                    "Signifikan",
                   ].map((label) => (
                     <th className="border-b p-2" key={label}>
                       {label}
@@ -365,37 +364,10 @@ export async function OperationDetail({
                   <tr key={index}>
                     {[
                       String(index + 1),
-                      ...monitoringColumns
-                        .filter(([key]) =>
-                          [
-                            "measurement_range",
-                            "correction_factor",
-                            "calibration_internal",
-                            "calibration_external",
-                            "significant_yes",
-                            "significant_no",
-                          ].includes(key),
-                        )
-                        .sort(
-                          (a, b) =>
-                            [
-                              "measurement_range",
-                              "correction_factor",
-                              "calibration_internal",
-                              "calibration_external",
-                              "significant_yes",
-                              "significant_no",
-                            ].indexOf(a[0]) -
-                            [
-                              "measurement_range",
-                              "correction_factor",
-                              "calibration_internal",
-                              "calibration_external",
-                              "significant_yes",
-                              "significant_no",
-                            ].indexOf(b[0]),
-                        )
-                        .map(([key]) => String((m as DataRow)[key] ?? "—")),
+                      String((m as DataRow).measurement_range ?? "—"),
+                      String((m as DataRow).correction_factor ?? "—"),
+                      calibrationChoiceLabel("calibration_internal", { ...row, ...(m as DataRow) }),
+                      calibrationChoiceLabel("significant_yes", { ...row, ...(m as DataRow) }),
                     ].map((v, col) => (
                       <td
                         className="border-b p-2 align-top whitespace-pre-wrap"
@@ -436,15 +408,17 @@ export async function OperationDetail({
           .filter(
             (f) =>
               !["is_active", "verification_status"].includes(f.key) &&
+              !(hasMeasurementTable && measurementKeys.some((key) => key === f.key)) &&
+              !["calibration_external", "significant_no"].includes(f.key) &&
               !(entity === "sertifikat-klien" && f.key === "interval_days") &&
               !(entity === "riwayat-kalibrasi" && ["calibration_date", "calculation_base", "reported_due_date", "date_basis", "date_source", "resolution_note", "interval_label"].includes(f.key)) &&
               (f.key !== "notes" || !!businessNotes(row.notes)),
           )
           .map((f) => (
             <div key={f.key}>
-              <p className="text-[11px] text-muted-foreground">{entity === "riwayat-kalibrasi" && f.key === "due_date" ? "Tanggal berakhir" : entity === "riwayat-kalibrasi" && f.key === "issue_date" ? "Tanggal terbit sertifikat" : f.label}</p>
+              <p className="text-[11px] text-muted-foreground">{entity === "riwayat-kalibrasi" && f.key === "due_date" ? "Tanggal berakhir" : entity === "riwayat-kalibrasi" && f.key === "issue_date" ? "Tanggal terbit sertifikat" : calibrationChoice(f.key)?.label ?? f.label}</p>
               <div className="mt-1 min-w-0 whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">
-                {f.key === "measurement_range" || f.key === "correction_factor" ? (
+                {calibrationChoice(f.key) ? calibrationChoiceLabel(f.key, row) : f.key === "measurement_range" || f.key === "correction_factor" ? (
                   <MeasurementSummary row={row} field={f.key} assetRanges={entity === "kalibrasi-alat" && f.key === "measurement_range"}/>
                 ) : entity === "sertifikat-klien" && f.key === "interval_months" ? (
                   String(row.interval_label || "—")
