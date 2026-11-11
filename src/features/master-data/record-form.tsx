@@ -266,6 +266,7 @@ function initialValue(
   if (field.kind === "password") return "";
   if (field.key === "is_test") return row?.is_test === true;
   const value = row?.[field.key];
+  if (entity === "riwayat-kalibrasi" && field.key === "result") return value == null ? "layak" : String(value);
   if (
     field.key === "notes" &&
     [
@@ -918,7 +919,7 @@ export function RecordForm({
                           Pilih Ya / Tidak
                         </option>
                       )}
-                      {field.options!.map((option) => (
+                      {field.options!.filter((option) => entity.key !== "riwayat-kalibrasi" || field.key !== "result" || option.value !== "").map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>

@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.11-calibration-certificate-dates.1";
+export const APPLICATION_RELEASE = "2026.11.11-calibration-layak-default.1";
