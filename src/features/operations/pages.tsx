@@ -29,6 +29,7 @@ import { EquipmentRequestForm } from "@/features/workflows/calibration-controls"
 import { RenewalEmailPreview } from "./renewal-email-preview";
 import { EquipmentExportMenu } from "./equipment-export-menu";
 import { MeasurementSummary } from "./measurement-summary";
+import { calibrationExpiryReview } from "./calibration-expiry";
 export async function OperationList({
   entity,
   params,
@@ -228,6 +229,7 @@ export async function OperationDetail({
     notFound();
   }
   const canEditRow = c.canWrite;
+  const expiryReview = calibrationExpiryReview(row);
   const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
   if (
@@ -435,11 +437,12 @@ export async function OperationDetail({
             (f) =>
               !["is_active", "verification_status"].includes(f.key) &&
               !(entity === "sertifikat-klien" && f.key === "interval_days") &&
+              !(entity === "riwayat-kalibrasi" && ["calibration_date", "calculation_base", "reported_due_date", "date_basis", "date_source", "resolution_note", "interval_label"].includes(f.key)) &&
               (f.key !== "notes" || !!businessNotes(row.notes)),
           )
           .map((f) => (
             <div key={f.key}>
-              <p className="text-[11px] text-muted-foreground">{f.label}</p>
+              <p className="text-[11px] text-muted-foreground">{entity === "riwayat-kalibrasi" && f.key === "due_date" ? "Tanggal berakhir" : entity === "riwayat-kalibrasi" && f.key === "issue_date" ? "Tanggal terbit sertifikat" : f.label}</p>
               <div className="mt-1 min-w-0 whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">
                 {f.key === "measurement_range" || f.key === "correction_factor" ? (
                   <MeasurementSummary row={row} field={f.key} assetRanges={entity === "kalibrasi-alat" && f.key === "measurement_range"}/>
@@ -476,22 +479,20 @@ export async function OperationDetail({
             </div>
           ))}
       </Card>
-      {entity === "riwayat-kalibrasi" && (
-        <Card className="mb-5 grid gap-4 p-5 sm:grid-cols-3">
-          {[
-            ["Tanggal akhir pada dokumen", row.reported_due_date],
-            ["Hasil perhitungan kalender", row.calculated_due_date],
-            ["Tanggal akhir yang digunakan", row.due_date],
-          ].map(([label, value]) => (
-            <div key={String(label)}>
-              <p className="text-[11px] text-muted-foreground">
-                {String(label)}
-              </p>
-              <strong className="mt-1 block text-sm">
-                {<DeadlineDate value={value} />}
-              </strong>
-            </div>
-          ))}
+      {entity === "riwayat-kalibrasi" && expiryReview.differs && (
+        <Card className="mb-5 border-amber-200 bg-amber-50 p-4 text-sm">
+          <p className="font-semibold">{expiryReview.needsReview ? "Periksa tanggal berakhir" : "Tanggal berakhir dikoreksi sesuai dokumen"}</p>
+          <p className="mt-1">Hasil hitungan tanggal terbit + interval: {formatBusinessDate(expiryReview.calculated)}. Monitoring mengikuti Tanggal Berakhir yang tercatat di atas.</p>
+          {expiryReview.needsReview
+            ? <p className="mt-1">Periksa sertifikat asli, lalu gunakan hitungan otomatis atau catat alasan koreksi pada Ubah rekaman.</p>
+            : <p className="mt-1">Alasan: {String(row.resolution_note)}</p>}
+        </Card>
+      )}
+      {entity === "kalibrasi-alat" && row.calibration_expiry_needs_review === true && (
+        <Card className="mb-5 border-amber-200 bg-amber-50 p-4 text-sm">
+          <p className="font-semibold">Periksa tanggal berakhir kalibrasi</p>
+          <p className="mt-1">Tanggal tersimpan berbeda dari tanggal terbit + interval. Tanggal tersimpan tetap menjadi acuan monitoring sampai diperiksa.</p>
+          <Link className="mt-2 inline-block font-semibold underline" href={`/peristiwa-kalibrasi/${String(row.latest_calibration_id)}?branch=${c.branch}`}>Periksa peristiwa kalibrasi</Link>
         </Card>
       )}
       {entity === "sertifikat-klien" && (

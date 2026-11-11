@@ -88,6 +88,7 @@ const extraLabels: Record<string, string> = {
   validity_status: "Masa berlaku",
   eligibility_status: "Kelayakan alat",
   latest_due_date: "Batas kalibrasi",
+  due_date: "Tanggal berakhir",
   days_remaining: "Sisa hari",
   npp: "NPP",
   work_area_name: "Wilayah",
@@ -261,7 +262,9 @@ export function DataTable({
       const raw = monitoringValue(row, column);
       const days = remainingDays(String(row.latest_due_date || ""));
       if (column === "due_date" || column === "latest_due_date")
-        return <DeadlineDate value={raw} />;
+        return <span className="flex flex-col items-center gap-1"><DeadlineDate value={raw} />
+          {row.calibration_expiry_needs_review === true && <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">Periksa tanggal</span>}
+        </span>;
       const display =
         column.endsWith("_date") && /^\d{4}-\d{2}-\d{2}$/.test(raw)
           ? formatBusinessDate(raw)

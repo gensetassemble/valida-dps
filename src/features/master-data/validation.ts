@@ -140,7 +140,7 @@ export function recordSchema(entity: EntityConfig, editing = false) {
     .superRefine((values, context) => {
       const base =
         values[
-          values.calculation_base === "issue_date"
+          entity.key === "riwayat-kalibrasi" || values.calculation_base === "issue_date"
             ? "issue_date"
             : "calibration_date"
         ];
@@ -156,6 +156,9 @@ export function recordSchema(entity: EntityConfig, editing = false) {
           : null;
       const fail = (path: string, message: string) =>
         context.addIssue({ code: "custom", path: [path], message });
+      if (entity.key === "riwayat-kalibrasi" && values.due_date &&
+          (!computed || values.due_date !== computed) && String(values.resolution_note || "").trim().length < 8)
+        fail("resolution_note", "Isi alasan koreksi sesuai dokumen minimal 8 karakter.");
       if (entity.key === "sertifikat-klien" && values.interval_months && values.interval_days)
         fail("interval_months", "Pilih satu satuan interval: hari atau bulan.");
       const markPrefix =

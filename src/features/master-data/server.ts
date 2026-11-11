@@ -13,7 +13,19 @@ import { safeSearch } from "./validation";
 import { personnelRenewalDisplay } from "@/features/workflows/model";
 import { operationalOrder } from "@/features/operations/list-order";
 import { portfolioIds } from "@/features/operations/equipment-export-scope";
+import { calibrationExpiryReview } from "@/features/operations/calibration-expiry";
 export type DataRow = Record<string, unknown>;
+
+async function annotateCalibrationExpiry(db: Awaited<ReturnType<typeof masterClient>>, branch: string, rows: DataRow[]) {
+  const ids = [...new Set(rows.map((row) => row.latest_calibration_id).filter((id): id is string => typeof id === "string"))];
+  if (!ids.length) return;
+  const { data, error } = await db.from("calibrations")
+    .select("id,issue_date,calibration_date,interval_months,due_date,reported_due_date,resolution_note")
+    .eq("branch_code", branch).in("id", ids);
+  if (error) throw new Error("Status pemeriksaan tanggal belum dapat dimuat.");
+  const reviews = new Map((data || []).map((row) => [row.id, calibrationExpiryReview(row)]));
+  for (const row of rows) row.calibration_expiry_needs_review = reviews.get(String(row.latest_calibration_id))?.needsReview ?? false;
+}
 export type QueryParams = {
   q?: string;
   sort?: string;
@@ -272,6 +284,7 @@ export async function listRecords(
     );
   }
   const rows = ((data ?? []) as DataRow[]).map(personnelRow);
+  if (entity.key === "kalibrasi-alat") await annotateCalibrationExpiry(db, branch, rows);
   if (entity.key === "kompetensi-personil" && rows.length) {
     for (const row of rows)
       row.renewal_process_status = personnelRenewalDisplay(
@@ -340,6 +353,7 @@ export async function getRecord(
   const { data, error } = await query.maybeSingle();
   if (error) throw new Error("Detail data belum dapat dimuat.");
   if (data && entity.key === "kalibrasi-alat") {
+    await annotateCalibrationExpiry(db, branch, [data]);
     const { data: ranges, error: rangesError } = await db
       .from("equipment")
       .select("measurement_ranges")

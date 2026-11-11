@@ -485,7 +485,6 @@ export function RecordForm({
       ? addMonths(baseDate, Number(months))
       : null;
   const [automaticEnd, setAutomaticEnd] = useState(() => {
-    if (entity.key === "riwayat-kalibrasi") return true;
     if (!editing || !endField || !row?.[endField]) return true;
     const base = String(
       row[
@@ -534,7 +533,10 @@ export function RecordForm({
       const payload = initialEquipment
         ? { ...values, initial_interval_label: "" }
         : entity.key === "riwayat-kalibrasi"
-          ? { ...values, interval_label: "" }
+          ? { ...values, interval_label: "", reported_due_date: automaticEnd ? null : values.due_date,
+              resolution_note: automaticEnd ? null : values.resolution_note,
+              date_basis: automaticEnd ? "approved_interval" : "certificate",
+              date_source: automaticEnd ? "Tanggal terbit sertifikat + interval." : "Koreksi tanggal berakhir sesuai dokumen sertifikat." }
           : values;
       const result = await saveRecord(
         {
@@ -748,6 +750,20 @@ export function RecordForm({
                           Koreksi penanggung jawab dengan alasan
                         </button>
                       )}
+                    </>
+                  ) : entity.key === "riwayat-kalibrasi" && field.key === "due_date" ? (
+                    <>
+                      <Input {...common} {...register(field.key)} type="date" readOnly={automaticEnd} className={automaticEnd ? "bg-muted" : undefined} />
+                      <button type="button" className="text-xs font-semibold text-primary underline" onClick={() => setAutomaticEnd(!automaticEnd)}>
+                        {automaticEnd ? "Koreksi sesuai dokumen" : "Gunakan hitungan otomatis"}
+                      </button>
+                      {!automaticEnd && <div className="space-y-1">
+                        <label htmlFor="expiry-correction-reason" className="text-xs font-semibold">Alasan koreksi sesuai dokumen *</label>
+                        <textarea id="expiry-correction-reason" {...register("resolution_note")} minLength={8} maxLength={200} required
+                          aria-invalid={!!errors.resolution_note} aria-describedby={errors.resolution_note ? "expiry-correction-error" : undefined}
+                          className="min-h-20 w-full rounded-lg border border-input bg-white p-2 text-sm" />
+                        {errors.resolution_note && <p id="expiry-correction-error" role="alert" className="text-xs text-red-700">{String(errors.resolution_note.message)}</p>}
+                      </div>}
                     </>
                   ) : field.key === "measurement_range" ? (
                     <Controller
@@ -993,7 +1009,7 @@ export function RecordForm({
                 : "Pilih tanggal dasar dan interval positif."}
             </strong>
             {entity.key === "riwayat-kalibrasi"
-              ? ". Tanggal berakhir dihitung otomatis dari tanggal terbit sertifikat dan interval."
+              ? automaticEnd ? ". Digunakan sebagai tanggal berakhir monitoring." : ". Monitoring memakai tanggal berakhir sesuai dokumen yang Anda koreksi."
               : ". Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin tanggal dokumen bila tersedia."}
           </p>
         )}

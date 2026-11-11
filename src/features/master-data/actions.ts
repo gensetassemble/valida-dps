@@ -71,12 +71,8 @@ export async function saveRecord(
     }
   }
   if (entity.key === "riwayat-kalibrasi") {
-    const base =
-      payload[
-        payload.calculation_base === "issue_date"
-          ? "issue_date"
-          : "calibration_date"
-      ];
+    payload.calculation_base = "issue_date";
+    const base = payload.issue_date;
     if (
       typeof base === "string" &&
       typeof payload.interval_months === "number"
