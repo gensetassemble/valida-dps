@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.11-calibration-form-order.1";
+export const APPLICATION_RELEASE = "2026.11.11-searchable-equipment-coordinator.1";

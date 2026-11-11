@@ -68,6 +68,7 @@ function Lookup({
   );
   const createLabel = entity === "kompetensi-personil" ? "jenis kompetensi" : field.key === "client_id" ? "pelanggan" : "jenis sertifikat";
   const searchable = field.lookup === "portofolio" ||
+    (entity === "kalibrasi-alat" && field.key === "responsible_employee_id") ||
     (entity === "pengguna" && field.key === "employee_id") ||
     (entity === "kompetensi-personil" && ["employee_id", "certificate_type_id"].includes(field.key)) ||
     (entity === "sertifikat-klien" && ["client_id", "certificate_type_id", "certificate_work_area_id"].includes(field.key));
