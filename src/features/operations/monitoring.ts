@@ -196,7 +196,7 @@ export const initialCalibrationFields: Field[] = [
     key: "initial_enabled",
     label: "Catat kalibrasi awal",
     kind: "boolean",
-    hint: "Tanggal di bawah disimpan sebagai peristiwa kalibrasi pertama. Matikan bila alat belum pernah dikalibrasi.",
+    hint: "Pilih Ya hanya jika alat sudah pernah dikalibrasi.",
   },
   {
     key: "initial_calibration_date",
@@ -204,31 +204,33 @@ export const initialCalibrationFields: Field[] = [
     kind: "date",
   },
   {
-    key: "initial_due_date",
-    label: "Tanggal berakhir kalibrasi awal",
-    kind: "date",
-  },
-  {
     key: "initial_interval_months",
-    label: "Interval kalibrasi awal (bulan)",
+    label: "Interval kalibrasi (bulan)",
     kind: "integer",
   },
   {
-    key: "initial_certificate_number",
-    label: "Nomor sertifikat kalibrasi awal",
+    key: "initial_due_date",
+    label: "Tanggal berakhir",
+    kind: "date",
+  },
+  ...monitoringCalibrationFields
+    .filter((field) => ["calibration_internal", "calibration_external"].includes(field.key))
+    .map((field) => ({ ...field, key: "initial_" + field.key })),
+  {
+    key: "initial_laboratory",
+    label: "Lembaga kalibrasi",
     kind: "text",
     max: 200,
   },
   {
-    key: "initial_laboratory",
-    label: "Lembaga kalibrasi awal",
+    key: "initial_certificate_number",
+    label: "Nomor sertifikat",
     kind: "text",
     max: 200,
   },
-  ...monitoringCalibrationFields.map((field) => ({
-    ...field,
-    key: "initial_" + field.key,
-  })),
+  ...monitoringCalibrationFields
+    .filter((field) => !["calibration_internal", "calibration_external"].includes(field.key))
+    .map((field) => ({ ...field, key: "initial_" + field.key })),
 ];
 
 export function monitoringValue(

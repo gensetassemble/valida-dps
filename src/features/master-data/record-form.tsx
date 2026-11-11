@@ -521,13 +521,19 @@ export function RecordForm({
     setSaving(true);
     setFailure(undefined);
     try {
+      // The report derives its interval from interval_months; no second manual value.
+      const payload = initialEquipment
+        ? { ...values, initial_interval_label: "" }
+        : entity.key === "riwayat-kalibrasi"
+          ? { ...values, interval_label: "" }
+          : values;
       const result = await saveRecord(
         {
           entity: entity.key,
           branch,
           ...(editing ? { id: String(row![entity.idKey]) } : {}),
         },
-        values,
+        payload,
       );
       if (!result.ok) {
         setFailure(result.error);
@@ -620,6 +626,7 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
+            if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["interval_label", "initial_interval_label"].includes(field.key)) return null;
             const markChoice = calibrationChoice(field.key);
             if (pairedCalibrationField(field.key) && !markChoice) return null;
             if (entity.key === "sertifikat-klien" && ["interval_days", "previous_certificate_id"].includes(field.key)) return null;
