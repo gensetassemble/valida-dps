@@ -127,7 +127,11 @@ function worksheet(
     merges: string[] = [];
   const highlights: DeadlineHighlight[] = [];
   let next = 9;
-  (records.length ? records : [null]).forEach((record, index) => {
+  (records.length ? records : [null]).forEach((equipment, index) => {
+    const assetStart=next;
+    const components=Array.isArray(equipment?.calibration_components) && equipment.calibration_components.length
+      ? equipment.calibration_components as Row[] : [equipment];
+    components.forEach(record=>{
     const sourceGroups = Array.isArray(record?.monitoring_measurements)
       ? record.monitoring_measurements.filter(
           (group): group is Row => !!group && typeof group === "object" && !Array.isArray(group),
@@ -174,7 +178,9 @@ function worksheet(
                 86400000,
               true,
             );
-          else xml = setCell(xml, ref, monitoringValue(record, key));
+          else xml = setCell(xml, ref, key==='monitoring_certificate' && record.component_label
+            ? `Bagian: ${record.component_label}\n${monitoringValue(record,key)}`
+            : monitoringValue(record, key));
         });
         xml = setCell(xml, "V" + next, businessNotes(record.notes));
       }
@@ -191,11 +197,14 @@ function worksheet(
       body.push(xml);
     }
     for (let col = 0; col < 22; col++)
-      if (col !== 17 && col !== 18 && count > 1)
+      if (![0,1,2,3,4,5,6,7,8,13,17,18].includes(col) && count > 1)
         merges.push(
           `${String.fromCharCode(65 + col)}${next}:${String.fromCharCode(65 + col)}${next + count - 1}`,
         );
     next += count;
+    });
+    for(const col of [0,1,2,3,4,5,6,7,8,13])
+      if(next-assetStart>1)merges.push(`${String.fromCharCode(65+col)}${assetStart}:${String.fromCharCode(65+col)}${next-1}`);
   });
   const delta = next - 20;
   const footer = sourceRows

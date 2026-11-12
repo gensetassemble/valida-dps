@@ -680,7 +680,11 @@ export const MASTER_KEYS = [
   "layanan",
 ];
 export function getEntity(key: string, branch?:string) {
-  const entity=Object.hasOwn(ENTITIES, key) ? ENTITIES[key] : undefined;
+  const registered=Object.hasOwn(ENTITIES, key) ? ENTITIES[key] : undefined;
+  const entity=registered && key==='riwayat-kalibrasi' ? {...registered,
+    fields:[registered.fields[0],{key:'component_label',label:'Bagian / katup',kind:'text' as const,max:100,hint:'Contoh: Katup A. Kosongkan jika sertifikat berlaku untuk seluruh alat.'},...registered.fields.slice(1)],
+    columns:['component_label',...registered.columns],search:[...registered.search,'component_label'],
+  } : registered;
   if(!entity || branch!=="SIMDPS")return entity;
   if(key==="pengguna")return {...entity,title:"Pengguna simulasi",description:"Profil latihan; tidak membuat akun login nyata dan tidak menyimpan password.",table:"simulation_profiles",readTable:"simulation_profile_records"};
   if(key==="penugasan-peran")return {...entity,title:"Penugasan Peran Simulasi",description:"Peran latihan ini tidak memberikan akses login atau kewenangan nyata.",table:"simulation_role_assignments",readTable:"simulation_role_records"};

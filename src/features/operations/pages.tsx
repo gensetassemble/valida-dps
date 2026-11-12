@@ -36,6 +36,8 @@ import { MeasurementSummary } from "./measurement-summary";
 import { calibrationExpiryReview } from "./calibration-expiry";
 import { EquipmentArchiveAction, EquipmentPermanentDelete } from "./equipment-archive-action";
 import { EquipmentImportButton } from "@/features/equipment-sync/import-button";
+import { currentComponentData } from "./calibration-component-data";
+import { CalibrationComponentsTable } from "./calibration-components-table";
 async function EquipmentExportAction({branch}:{branch:string}) {
   const options = await equipmentOptions(branch);
   return <EquipmentExportMenu key={branch} branch={branch} portfolios={options.portfolios} unavailable={options.unavailable}/>;
@@ -239,6 +241,7 @@ export async function OperationDetail({
   ) : [];
   const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
+  const componentRows=entity==='kalibrasi-alat' ? (await currentComponentData(db,c.branch,[id])).filter(r=>r.component_label) : [];
   if (
     entity === "kalibrasi-alat" &&
     !row.responsible_employee_id &&
@@ -346,7 +349,8 @@ export async function OperationDetail({
           </Button>
         )}
       </div>
-      {hasMeasurementTable && (
+      {componentRows.length>0 && <CalibrationComponentsTable rows={componentRows} branch={c.branch}/>}
+      {hasMeasurementTable && componentRows.length===0 && (
           <Card className="mb-4 overflow-x-auto p-4">
             <h2 className="mb-2 text-sm font-bold">
               Rincian parameter kalibrasi

@@ -8,6 +8,7 @@ import { addPersonnelSheet } from "@/features/operations/personnel-export";
 import { personnelExportData } from "@/features/operations/personnel-export-data";
 import { monitoringExportData } from "@/features/operations/monitoring-export-data";
 import { monitoringExportNotes } from "@/features/operations/monitoring-export-notes";
+import { componentExportData } from "@/features/operations/calibration-component-data";
 import { personnelFilename } from "@/features/operations/export-context";
 import { addClientSheet } from "@/features/operations/client-export";
 import { withManagementSummary } from "@/features/operations/management-summary";
@@ -91,6 +92,7 @@ export async function GET(request: NextRequest) {
         monitoringExportData(db, c.branch),
         monitoringExportNotes(db, rows, c.branch),
       ]);
+      reportRows = await componentExportData(db, reportRows, c.branch);
     } catch (error) {
       return NextResponse.json(
         {

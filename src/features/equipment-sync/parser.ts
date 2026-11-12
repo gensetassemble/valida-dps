@@ -26,6 +26,7 @@ const aliases:Record<string,string[]> = {
   calibration_internal:["Internal"],calibration_external:["Eksternal"],measurement_range:["Range / Kapasitas","Rentang ukur / kapasitas"],
   correction_factor:["Faktor Koreksi"],significant_yes:["Ya","Signifikan Ya"],significant_no:["Tidak","Signifikan Tidak"],
   notes:["Keterangan","Catatan"],portfolio:["Portofolio","Portfolio"],location:["Lokasi"],result:["Hasil Kalibrasi"],
+  component_label:["Bagian / katup","Bagian alat","Katup"],
   calibration_kind:["Jenis Kalibrasi"],significant:["Signifikan"],
 };
 function key(value:string) {
@@ -78,6 +79,8 @@ function portfolio(value:string) {
   return '';
 }
 function normalizeRow(v:Values,sheet:string,row:number,fallback:string):SyncRow {
+  const component=v.certificate_number?.match(/^Bagian:\s*([^\n]+)\n([\s\S]*)$/i);
+  if(component)v={...v,component_label:v.component_label||component[1].trim(),certificate_number:component[2].trim()};
   const name=text(v.name),tag=text(v.tag),p=portfolio(v.portfolio||'')||portfolio(sheet)||portfolio(fallback);
   if(!p)throw Error("Portofolio tidak terbaca. Pilih portofolio file atau isi kolom Portofolio.");
   if(!name||!tag)throw Error("Nama Barang dan Tag-Number wajib diisi untuk pencocokan alat.");
@@ -86,7 +89,7 @@ function normalizeRow(v:Values,sheet:string,row:number,fallback:string):SyncRow 
   for(const k of ['serial','brand','color','specification_size','item_condition','item_status','unit','location','notes'])if(v[k])asset[k]=v[k]==='[KOSONGKAN]'?null:v[k];
   if(v.brand)asset.model=null; // UMA stores Merk/Type in one column; do not append the old model twice.
   if(typeof asset.unit==='string')asset.unit=normalizeEquipmentUnit(asset.unit);
-  for(const k of ['certificate_number','laboratory','notes'])if(v[k])calibration[k]=v[k]==='[KOSONGKAN]'?null:v[k];
+  for(const k of ['certificate_number','laboratory','notes','component_label'])if(v[k])calibration[k]=v[k]==='[KOSONGKAN]'?null:v[k];
   if(/^(n\/?a|-)$/i.test(v.certificate_number||''))calibration.certificate_number=null;
   for(const k of ['issue_date','due_date'])if(v[k])calibration[k]=umaDate(v[k]);
   if(v.issue_date)calibration.calibration_date=calibration.issue_date;
@@ -154,9 +157,11 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
         if(/Diketahui oleh|Disiapkan oleh|Keterangan\s*:|FOR\/SCI|Nama barang\s*=/i.test(first)){flush();break;}
         const nameCell=r.getCell(cols.name),nameValue=text(cellText(nameCell));
         if(!nameValue){if(current&&r.values.toString().replace(/,/g,'').trim()==='')flush();continue;}
-        if(!current||current.master!==nameCell.master.address){flush();const v:Values={};for(const [k,i]of Object.entries(cols)){const c=r.getCell(i);const raw=c.value;if(raw&&typeof raw==='object'&&'formula'in raw&&raw.result===undefined){issues.push(`${sheet.name} baris ${n}: formula tanpa hasil tersimpan.`);}v[k]=raw instanceof Date?raw.toISOString().slice(0,10):text(cellText(c));}
+        const certificateCell=cols.certificate_number?r.getCell(cols.certificate_number):undefined;
+        const master=nameCell.master.address+'|'+(certificateCell&&text(cellText(certificateCell))?certificateCell.master.address:'');
+        if(!current||current.master!==master){flush();const v:Values={};for(const [k,i]of Object.entries(cols)){const c=r.getCell(i);const raw=c.value;if(raw&&typeof raw==='object'&&'formula'in raw&&raw.result===undefined){issues.push(`${sheet.name} baris ${n}: formula tanpa hasil tersimpan.`);}v[k]=raw instanceof Date?raw.toISOString().slice(0,10):text(cellText(c));}
           if(!v.portfolio&&inferredPortfolio)v.portfolio=inferredPortfolio;
-          current={v,row:n,master:nameCell.master.address,groups:new Map()};
+          current={v,row:n,master,groups:new Map()};
         }
         if(cols.measurement_range){const range=r.getCell(cols.measurement_range);const rv=text(cellText(range));if(rv){const id=range.master.address;let g=current.groups.get(id);if(!g){g={measurement_range:rv,factors:[]};current.groups.set(id,g);}if(cols.correction_factor){const f=r.getCell(cols.correction_factor);if(f.master.address===f.address&&text(cellText(f)))g.factors.push(text(cellText(f)));}}}
       }
@@ -165,7 +170,7 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
   }else throw new UmaImportError(['Gunakan XLSX atau CSV. Untuk XLS lama, simpan sebagai XLSX terlebih dahulu.']);
   const merged=new Map<string,SyncRow>();
   for(const r of rows){
-    const id=[r.portfolio,label(r.tag),label(r.name),label(r.serial),label(r.calibration.certificate_number),r.calibration.issue_date||''].join('|');const previous=merged.get(id);
+    const id=[r.portfolio,label(r.tag),label(r.name),label(r.serial),label(r.calibration.component_label),label(r.calibration.certificate_number),r.calibration.issue_date||''].join('|');const previous=merged.get(id);
     for(const v of Object.values(r.raw))if(v.length>12000)issues.push(`${r.sheet} baris ${r.row}: isi sel terlalu panjang.`);
     if(!previous){merged.set(id,r);continue;}
     if(r.sheet!==previous.sheet){issues.push(`${r.sheet} baris ${r.row}: alat berulang pada sheet berbeda. Pilih data terbaru saja.`);continue;}
