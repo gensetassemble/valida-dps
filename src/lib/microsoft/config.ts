@@ -1,4 +1,5 @@
 import "server-only";
+import { isTrainingEnvironment } from "@/lib/env/training";
 import { z } from "zod";
 const schema = z.object({
   tenantId: z.uuid(),
@@ -7,6 +8,7 @@ const schema = z.object({
   redirectUri: z.url(),
 });
 export function getMicrosoftConfig() {
+  if (isTrainingEnvironment()) return null;
   const parsed = schema.safeParse({
     tenantId: process.env.MICROSOFT_TENANT_ID,
     clientId: process.env.MICROSOFT_CLIENT_ID,

@@ -6,6 +6,7 @@ import { getAppConfig } from "@/lib/env/server";
 import { loginSchema, resetSchema, passwordSchema } from "@/lib/auth/schemas";
 import { signOutCurrentDevice } from "@/lib/auth/logout";
 import { hasRecoverySession } from "@/lib/auth/security";
+import { isTrainingEnvironment } from "@/lib/env/training";
 export async function login(input: unknown) {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return { error: "Periksa alamat email dan kata sandi." };
@@ -25,6 +26,7 @@ export async function logout() {
   redirect("/login");
 }
 export async function resetPassword(input: unknown) {
+  if (isTrainingEnvironment()) return { message: "Sandbox tidak mengirim email pemulihan. Hubungi pengelola sandbox untuk mereset akun latihan." };
   const parsed = resetSchema.safeParse(input);
   if (!parsed.success) return { error: "Alamat email tidak valid." };
   if (!getSupabaseConfig())
