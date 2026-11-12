@@ -4,6 +4,8 @@ Ekspor Sertifikat Klien, Kompetensi Personil, dan Kalibrasi Alat membuka tab per
 
 Ringkasan berisi total rekaman, jumlah Expired + Kritis, jumlah yang berakhir dalam 0–90 hari, tabel jumlah/persentase setiap status, dan grafik batang Excel yang dapat diedit. Sheet disiapkan untuk cetak A4 landscape satu halaman.
 
+Khusus Kalibrasi Alat, sheet yang sama juga memuat tabel **Status Alat per Portofolio**: total alat, Expired, Kritis, Perhatian, Pantau, Aman, dan Tanggal Belum Diisi. Hanya portofolio dari alat yang diekspor yang ditampilkan; alat tanpa portofolio masuk “Belum dipetakan”. Baris total dapat direkonsiliasi dengan ringkasan keseluruhan. Ringkasan kalibrasi disiapkan dalam dua halaman cetak agar tabel tambahan tetap terbaca.
+
 ## Dasar hitungan
 
 - Hanya rekaman yang benar-benar diekspor, mengikuti filter dan hak akses akun.
