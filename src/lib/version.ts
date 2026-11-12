@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.12-not-recorded.1";
+export const APPLICATION_RELEASE = "2026.11.12-source-remarks.1";

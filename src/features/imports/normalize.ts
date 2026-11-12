@@ -152,7 +152,7 @@ export function normalize(
       issue_date: get("issue_date"),
       due_date: get("due_date", "TanggalBerakhirISO"),
       interval_months: get("interval_months", "IntervalBulan"),
-      notes: get("notes", "CatatanValidasi", "KeteranganAsli"),
+      notes: get("notes", "Catatan", "KeteranganAsli", "Keterangan"),
     };
   if (domain === "clients")
     n = Object.fromEntries(

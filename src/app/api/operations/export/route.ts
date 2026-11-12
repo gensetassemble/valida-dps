@@ -7,6 +7,7 @@ import {
 import { addPersonnelSheet } from "@/features/operations/personnel-export";
 import { personnelExportData } from "@/features/operations/personnel-export-data";
 import { monitoringExportData } from "@/features/operations/monitoring-export-data";
+import { monitoringExportNotes } from "@/features/operations/monitoring-export-notes";
 import { personnelFilename } from "@/features/operations/export-context";
 import { addClientSheet } from "@/features/operations/client-export";
 import { withManagementSummary } from "@/features/operations/management-summary";
@@ -83,8 +84,13 @@ export async function GET(request: NextRequest) {
   let filename = c.entity.key + "-sesuai-akses.xlsx";
   if (c.entity.key === "kalibrasi-alat") {
     let context;
+    let reportRows: DataRow[];
     try {
-      context = await monitoringExportData(await masterClient(), c.branch);
+      const db = await masterClient();
+      [context, reportRows] = await Promise.all([
+        monitoringExportData(db, c.branch),
+        monitoringExportNotes(db, rows, c.branch),
+      ]);
     } catch (error) {
       return NextResponse.json(
         {
@@ -96,7 +102,7 @@ export async function GET(request: NextRequest) {
         { status: 503 },
       );
     }
-    const bytes = await withManagementSummary(await monitoringXlsx(rows, c.branch, today, context), {
+    const bytes = await withManagementSummary(await monitoringXlsx(reportRows, c.branch, today, context), {
       entity: "kalibrasi-alat", rows, branch: c.branch, today,
     });
     const filename = monitoringFilename(rows, today, search.get("portfolio_selection") === "all");
