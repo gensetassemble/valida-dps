@@ -10,6 +10,17 @@ import {
   preserveImportNotes,
 } from "@/features/operations/notes";
 describe("operational workflows", () => {
+  it("leaves generated import notes blank and preserves human operational notes", () => {
+    const technical = "HMPM baris 50 | Observasi sumber identik ditautkan ke satu peristiwa.";
+    expect(businessNotes(technical)).toBe("");
+    expect(businessNotes("Tanpa nomor urut sumber; Tag dan sertifikat berulang; cek apakah detail pengukuran atau kalibrasi berbeda; Tanggal berakhir belum tersedia")).toBe("");
+    expect(businessNotes("Tanggal akhir berbeda dari interval tercatat")).toBe("");
+    expect(businessNotes("Personil sudah resign | Dalam Proses Perpanjangan di AISI | Alat Hibah dari Lab Cibitung")).toBe("Personil sudah resign | Dalam Proses Perpanjangan di AISI | Alat Hibah dari Lab Cibitung");
+    const edited = preserveImportNotes(technical, "Hubungi laboratorium sebelum Jumat");
+    expect(businessNotes(edited)).toBe("Hubungi laboratorium sebelum Jumat");
+    expect(edited).toContain("Observasi sumber identik");
+    expect(businessNotes("Tanggal berakhir belum tersedia; Hubungi PIC untuk konfirmasi")).toContain("Hubungi PIC untuk konfirmasi");
+  });
   it("removes import diagnostics while keeping business follow-up notes", () => {
     expect(
       businessNotes(
