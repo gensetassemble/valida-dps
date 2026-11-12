@@ -7,12 +7,13 @@ import { signOutCurrentDevice } from "@/lib/auth/logout";
 export async function changeOwnPassword(
   input: unknown,
 ): Promise<{ ok?: true; error?: string }> {
-  await requireActiveUser();
+  const context=await requireActiveUser();
   const parsed = changeOwnPasswordSchema.safeParse(input);
   if (!parsed.success)
     return {
       error: parsed.error.issues[0]?.message || "Periksa isian password.",
     };
+  if(context.isSimulation)return {error:"Simulasi valid. Password akun nyata tidak diubah. Keluar Mode Simulasi untuk mengganti password sebenarnya."};
   try {
     const db = await createClient();
     // updateUser is scoped to the authenticated session, never a supplied user ID.

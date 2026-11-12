@@ -61,7 +61,7 @@ export async function entityContext(
   writing = false,
 ) {
   const context = await requireActiveUser();
-  const entity = getEntity(key);
+  const entity = getEntity(key,requestedBranch||context.profile.branch_code);
   if (!entity) throw new Error("Jenis data tidak tersedia.");
   const branch = activeBranch(
     context.scopes,
@@ -302,7 +302,7 @@ export async function listRecords(
     entity.fields
       .filter((field) => field.kind === "lookup")
       .map(async (field) => {
-        const target = getEntity(field.lookup!);
+        const target = getEntity(field.lookup!,branch);
         const ids = [
           ...new Set(
             rows
@@ -389,7 +389,7 @@ export async function referenceLabels(
         .filter((f) => f.kind === "lookup" && row[f.key])
         .map(async (field) => {
           if (known[field.key]) return [field.key, String(known[field.key])];
-          const target = getEntity(field.lookup!);
+          const target = getEntity(field.lookup!,branch);
           if (!target) return [field.key, "Referensi tidak tersedia"];
           let query = db
             .from(

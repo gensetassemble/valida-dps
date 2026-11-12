@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthAdminClient } from "@/lib/supabase/auth-admin";
 import { publicDatabaseError } from "./server";
 import { hasSecondFactor } from "@/lib/auth/security";
+import {SIMULATION_BRANCH} from "@/lib/simulation";
+import {saveSimulationProfile} from "./simulation-profile";
 
 export async function saveProfileAccount({
   db,
@@ -31,6 +33,7 @@ export async function saveProfileAccount({
     if (error || !employee) return {error: "Pegawai tidak tersedia pada direktori cabang."};
     details = {...details, full_name: employee.full_name, npp: employee.npp};
   }
+  if(branch===SIMULATION_BRANCH)return saveSimulationProfile(db,branch,id,details);
   const admin = password ? getAuthAdminClient() : null;
   if (password && !admin)
     return {

@@ -679,6 +679,10 @@ export const MASTER_KEYS = [
   "jenis-sertifikat",
   "layanan",
 ];
-export function getEntity(key: string) {
-  return Object.hasOwn(ENTITIES, key) ? ENTITIES[key] : undefined;
+export function getEntity(key: string, branch?:string) {
+  const entity=Object.hasOwn(ENTITIES, key) ? ENTITIES[key] : undefined;
+  if(!entity || branch!=="SIMDPS")return entity;
+  if(key==="pengguna")return {...entity,title:"Pengguna simulasi",description:"Profil latihan; tidak membuat akun login nyata dan tidak menyimpan password.",table:"simulation_profiles",readTable:"simulation_profile_records"};
+  if(key==="penugasan-peran")return {...entity,title:"Penugasan Peran Simulasi",description:"Peran latihan ini tidak memberikan akses login atau kewenangan nyata.",table:"simulation_role_assignments",readTable:"simulation_role_records"};
+  return entity;
 }

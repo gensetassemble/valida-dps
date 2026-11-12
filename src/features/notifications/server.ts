@@ -31,7 +31,7 @@ export function parseInboxParams(
 }
 
 export async function loadInbox(filters: Filters, page: number) {
-  const { user } = await requireActiveUser();
+  const { user,profile } = await requireActiveUser();
   const db = await masterClient();
   let query = db
     .from("notification_user_feed")
@@ -39,7 +39,7 @@ export async function loadInbox(filters: Filters, page: number) {
       "id,category,title,event_status,current_status,context_name,entity_title,reference_number,replacement_certificate_number,portfolio_code,expires_on,event_notes,target_href,activity_group_id,process_reset,read_at,created_at",
       { count: "exact" },
     )
-    .eq("profile_id", user.id);
+    .eq("profile_id", user.id).eq("branch_code",profile.branch_code);
   query = filters.folder === "archive" ? query.not("user_archived_at", "is", null) : query.is("user_archived_at", null);
   if (filters.category !== "all")
     query = query.eq("category", filters.category);
@@ -65,7 +65,7 @@ export async function loadInbox(filters: Filters, page: number) {
       let count = db
         .from("notification_user_feed")
         .select("id", { count: "exact", head: true })
-        .eq("profile_id", user.id);
+        .eq("profile_id", user.id).eq("branch_code",profile.branch_code);
       count = key === "unread" || filters.folder !== "archive" ? count.is("user_archived_at", null) : count.not("user_archived_at", "is", null);
       if (key === "unread") count = count.is("read_at", null);
       else if (key === "personnel")

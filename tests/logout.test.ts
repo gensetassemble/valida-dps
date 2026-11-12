@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
   getAll: vi.fn(),
   set: vi.fn(),
+  delete: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@supabase/ssr", () => ({
@@ -12,7 +13,7 @@ vi.mock("@supabase/ssr", () => ({
   },
 }));
 vi.mock("next/headers", () => ({
-  cookies: async () => ({ getAll: mocks.getAll, set: mocks.set }),
+  cookies: async () => ({ getAll: mocks.getAll, set: mocks.set, delete: mocks.delete }),
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { signOut: mocks.signOut } }),
@@ -51,6 +52,7 @@ describe("full-document logout", () => {
     );
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(mocks.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(mocks.delete).toHaveBeenCalledWith("valida-simulation");
     expect(mocks.set.mock.calls.map((c) => c[0])).toEqual([
       "sb-qa-project-auth-token.0",
       "sb-qa-project-auth-token.1",

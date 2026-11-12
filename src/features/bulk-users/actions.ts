@@ -8,6 +8,8 @@ import { masterClient } from "@/features/master-data/server";
 import { getAuthAdminClient } from "@/lib/supabase/auth-admin";
 import { todayWita } from "@/lib/domain/validity";
 import { bulkRowSchema, MAX_BULK_USERS, reviewBulkRows, type BulkReviewRow, type Employee } from "./model";
+import {SIMULATION_BRANCH} from "@/lib/simulation";
+import {saveSimulationProfile} from "@/features/master-data/simulation-profile";
 
 async function context(branch:string) {
  const c=await requireActiveUser();const db=await masterClient();
@@ -24,11 +26,11 @@ function readReview(token:string):Review {
 }
 export async function previewBulkUsers(branch:string,input:unknown) {
  try {
-  const c=await context(branch);configuration();if(!getAuthAdminClient())return {error:"Layanan pembuatan akun belum dikonfigurasi."};
+  const c=await context(branch);configuration();if(branch!==SIMULATION_BRANCH&&!getAuthAdminClient())return {error:"Layanan pembuatan akun belum dikonfigurasi."};
   if(!Array.isArray(input)||!input.length||input.length>MAX_BULK_USERS||JSON.stringify(input).length>100000)return {error:"Unggah 1–100 baris sesuai template."};
   const [people,profiles,coordinators]=await Promise.all([
    c.db.from("employee_directory_records").select("id,full_name,npp,employment_status,is_active,updated_at").eq("branch_code",branch).limit(5001),
-   c.db.from("profiles").select("email,employee_id").eq("branch_code",branch).limit(5001),
+   c.db.from(branch===SIMULATION_BRANCH?"simulation_profiles":"profiles").select("email,employee_id").eq("branch_code",branch).limit(5001),
    c.db.from("portfolio_coordinators").select("employee_id,effective_until").eq("branch_code",branch).eq("is_active",true).lte("effective_from",todayWita()).limit(1000),
   ]);
   if(people.error||profiles.error||coordinators.error||people.data.length>5000||profiles.data.length>5000)return {error:"Direktori atau akun belum dapat diperiksa. Hubungi IT."};
@@ -54,10 +56,17 @@ export async function createBulkUser(token:string,index:number) {
   if(c.user.id!==review.actor||!Number.isInteger(index)||index<0||index>=review.rows.length)throw Error("Pratinjau tidak sesuai sesi Admin.");
   const r=review.rows[index];if(r.status!=="ready"||!r.employeeId)return {status:"skip" as const,message:"Baris tidak disetujui untuk dibuat."};
   const parsed=bulkRowSchema.safeParse({name:r.name,npp:r.npp,email:r.email,roles:r.roles});if(!parsed.success)throw Error("Isi pratinjau tidak valid.");
-  const {data:existing,error:existingError}=await c.db.from("profiles").select("id").eq("branch_code",review.branch).ilike("email",r.email).limit(1);
+  const {data:existing,error:existingError}=await c.db.from(review.branch===SIMULATION_BRANCH?"simulation_profiles":"profiles").select("id").eq("branch_code",review.branch).ilike("email",r.email).limit(1);
   if(existingError)throw Error("Profil belum dapat diperiksa.");if(existing.length)return {status:"skip" as const,message:"Akun sudah ada; tidak diubah."};
   const {data:e,error}=await c.db.from("employee_directory_records").select("id,full_name,npp,employment_status,is_active,updated_at").eq("branch_code",review.branch).eq("id",r.employeeId).maybeSingle();
   if(error||!e||!e.is_active||e.employment_status!=="active"||e.updated_at!==r.version)throw Error("Data pegawai berubah atau tidak aktif. Ulangi pratinjau.");
+  if(review.branch===SIMULATION_BRANCH){
+    const saved=await saveSimulationProfile(c.db,review.branch,undefined,{employee_id:e.id,full_name:e.full_name,npp:e.npp,email:r.email,whatsapp:null,is_active:true});
+    if(saved.error||!saved.id)throw Error(saved.error||"Profil simulasi belum dibuat.");
+    const {error}=await c.db.from("simulation_role_assignments").insert(r.roles.map(role_code=>({profile_id:saved.id,branch_code:review.branch,role_code,grant_reason:"Simulasi pembuatan akun massal; tidak memberi login nyata.",is_active:true})));
+    if(error)throw Error("Profil simulasi tersimpan; peran simulasi belum berhasil dicatat.");
+    return {status:"success" as const,message:"Profil dan peran simulasi dibuat; tidak membuat login, password, atau email sungguhan."};
+  }
   const admin=getAuthAdminClient();if(!admin)throw Error("Layanan akun belum dikonfigurasi.");
   const result=await admin.auth.admin.createUser({email:r.email,password:configuration().password,email_confirm:true});
   if(result.error||!result.data.user)return {status:"error" as const,message:"Login belum dibuat. Email mungkin sudah terdaftar atau layanan Auth menolak permintaan; akun lama tidak diubah."};

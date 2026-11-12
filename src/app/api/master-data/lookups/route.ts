@@ -3,6 +3,7 @@ import { entityContext, masterClient } from "@/features/master-data/server";
 import { getEntity } from "@/features/master-data/registry";
 import { safeSearch } from "@/features/master-data/validation";
 import { personnelText } from "@/lib/personnel-text";
+import { SIMULATION_BRANCH } from "@/lib/simulation";
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const context = await entityContext(
@@ -12,7 +13,14 @@ export async function GET(request: NextRequest) {
   const field = context.entity.fields.find(
     (field) => field.key === params.get("field") && field.kind === "lookup",
   );
-  const target = field?.lookup && getEntity(field.lookup);
+  const target = field?.lookup && getEntity(field.lookup,context.branch);
+  // Business ownership still references the authenticated profile. Fake user
+  // identities are only valid in the separate simulated role-assignment table.
+  if (context.branch === SIMULATION_BRANCH && field?.key === "account_manager_id" && field.lookup === "pengguna") {
+    const label = "[LATIHAN] " + context.profile.full_name;
+    const matches = !params.get("q") || label.toLowerCase().includes((params.get("q") || "").toLowerCase());
+    return NextResponse.json({options: matches ? [{value:context.user.id,label}] : []}, {headers:{"Cache-Control":"private, no-store"}});
+  }
   if (!target)
     return NextResponse.json(
       { error: "Pilihan tidak tersedia." },

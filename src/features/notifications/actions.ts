@@ -6,10 +6,10 @@ import { masterClient } from "@/features/master-data/server";
 
 const idsSchema = z.array(z.uuid()).min(1).max(25);
 export async function archiveNotifications(ids: string[], archived: boolean) {
-  const { user } = await requireActiveUser();
+  const { user,profile } = await requireActiveUser();
   if (!idsSchema.safeParse(ids).success || typeof archived !== "boolean") return {error: "Pilihan arsip tidak valid."};
   const db = await masterClient();
-  const {data, error: readError} = await db.from("user_notifications").select("id").eq("profile_id", user.id).is("archived_at", null).in("id", [...new Set(ids)]);
+  const {data, error: readError} = await db.from("user_notifications").select("id").eq("profile_id", user.id).eq("branch_code",profile.branch_code).is("archived_at", null).in("id", [...new Set(ids)]);
   if (readError || data?.length !== new Set(ids).size) return {error: "Notifikasi tidak tersedia untuk akun Anda."};
   const now = new Date().toISOString();
   const {error} = await db.from("notification_archive_preferences").upsert(data.map(n => ({notification_id:n.id,profile_id:user.id,archived_at:archived ? now : null,updated_at:now})), {onConflict:"notification_id"});
@@ -18,11 +18,11 @@ export async function archiveNotifications(ids: string[], archived: boolean) {
   return {count:data.length};
 }
 export async function readNotifications(ids: string[] | null) {
-  const { user } = await requireActiveUser();
+  const { user,profile } = await requireActiveUser();
   if (ids !== null && !idsSchema.safeParse(ids).success)
     return { error: "Pilihan notifikasi tidak valid." };
   const db = await masterClient();
-  let visible = db.from("notification_user_feed").select("id").eq("profile_id", user.id).is("user_archived_at", null).is("read_at", null).limit(10000);
+  let visible = db.from("notification_user_feed").select("id").eq("profile_id", user.id).eq("branch_code",profile.branch_code).is("user_archived_at", null).is("read_at", null).limit(10000);
   if (ids !== null) visible = visible.in("id", [...new Set(ids)]);
   const {data: inbox, error: inboxError} = await visible;
   if (inboxError) return {error: "Inbox belum dapat dimuat."};

@@ -1,5 +1,6 @@
 "use server";
 import { preserveImportNotes } from "@/features/operations/notes";
+import {SIMULATION_BRANCH} from "@/lib/simulation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -47,6 +48,7 @@ export async function saveRecord(
       ),
     };
   const payload: Record<string, unknown> = { ...parsed.data };
+  if(branch===SIMULATION_BRANCH && entity.key==="cabang")return {ok:true,id:branch,message:"Simulasi pengaturan cabang berhasil; ruang latihan tetap aktif dan konfigurasi organisasi tidak diubah."};
   let measurementGroups = payload.measurement_groups as
     MeasurementGroupInput[] | undefined;
   if (
@@ -160,7 +162,7 @@ export async function saveRecord(
     return {
       ok: true,
       id: result.id,
-      message: scope.data.id
+      message: branch===SIMULATION_BRANCH ? "Profil simulasi tersimpan. Tidak ada login atau password nyata yang dibuat/diubah." : scope.data.id
         ? "Identitas pengguna tersimpan."
         : "Akun tersimpan. Tambahkan Penugasan Peran pada detail pengguna agar akun dapat mengakses aplikasi.",
     };

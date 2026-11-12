@@ -1,7 +1,8 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
-const mocks = vi.hoisted(() => ({ from: vi.fn(), getUser: vi.fn(), secondFactor: vi.fn(), rpc:vi.fn() }));
+const mocks = vi.hoisted(() => ({ from: vi.fn(), getUser: vi.fn(), secondFactor: vi.fn(), rpc:vi.fn(),mode:vi.fn() }));
 vi.mock("@/lib/auth/security", () => ({ hasSecondFactor: mocks.secondFactor }));
 vi.mock("server-only", () => ({}));
+vi.mock("next/headers",()=>({cookies:async()=>({get:mocks.mode})}));
 vi.mock("react", () => ({ cache: (fn: unknown) => fn }));
 vi.mock("next/navigation", () => ({
   redirect: (to: string) => {
@@ -23,6 +24,7 @@ describe("application access requires an assigned active role", () => {
   let grants: Record<string, unknown>[];
   beforeEach(() => {
     grants = [];
+    mocks.mode.mockReturnValue(undefined);
     mocks.rpc.mockResolvedValue({data:false,error:null});
     mocks.secondFactor.mockResolvedValue(true);
     mocks.getUser.mockResolvedValue({
@@ -36,7 +38,7 @@ describe("application access requires an assigned active role", () => {
             ? { id: "qa-user", is_active: true, branch_code: "DPS" }
             : table === "user_role_assignments"
               ? grants
-              : [{ code: "DPS", name: "QA branch" }],
+              : table==="simulation_workspaces" ? (grants.some(g=>g.branch_code==="SIMDPS")?[{branch_code:"SIMDPS"}]:[]) : [{ code: "DPS", name: "QA branch" },{code:"SIMDPS",name:"Simulation"}],
         error: null,
       });
       const chain = {
@@ -67,6 +69,20 @@ describe("application access requires an assigned active role", () => {
     await expect(requireActiveUser()).rejects.toThrow(
       "REDIRECT:/login?status=unassigned",
     );
+  });
+  it("keeps normal reader sessions unchanged until simulation is explicitly enabled",async()=>{
+    grants=[{role_code:"tester",branch_code:"DPS"},{role_code:"super_admin",branch_code:"SIMDPS"}];
+    mocks.secondFactor.mockResolvedValue(false);
+    const c=await requireActiveUser();expect(c.isSimulation).toBe(false);expect(c.canSimulate).toBe(true);
+    expect(c.scopes).toEqual([{role_code:"tester",branch_code:"DPS"}]);
+  });
+  it("requires MFA on entering simulation and never combines it with DPS write scope",async()=>{
+    grants=[{role_code:"tester",branch_code:"DPS"},{role_code:"super_admin",branch_code:"SIMDPS"}];
+    mocks.mode.mockReturnValue({value:"true"});mocks.secondFactor.mockResolvedValue(false);
+    await expect(requireActiveUser()).rejects.toThrow("REDIRECT:/mfa");
+    mocks.secondFactor.mockResolvedValue(true);const c=await requireActiveUser();
+    expect(c.isSimulation).toBe(true);expect(c.profile.branch_code).toBe("SIMDPS");
+    expect(c.scopes).toEqual([{role_code:"super_admin",branch_code:"SIMDPS"}]);
   });
   it("requires MFA for privileged sessions", async () => {
     grants = [{ role_code: "super_admin", branch_code: "DPS" }];

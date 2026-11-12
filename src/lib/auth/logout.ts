@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseConfig } from "@/lib/env/public";
+import {SIMULATION_COOKIE} from "@/lib/simulation";
 
 export async function signOutCurrentDevice() {
   const config = getSupabaseConfig();
@@ -13,6 +14,7 @@ export async function signOutCurrentDevice() {
   } catch {
     // Local logout must still complete if Auth cannot revoke the remote refresh token.
   } finally {
+    (await cookies()).delete(SIMULATION_COOKIE);
     if (config) {
       const store = await cookies();
       const base = `sb-${new URL(config.url).hostname.split(".")[0]}-auth-token`;
