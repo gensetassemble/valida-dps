@@ -8,6 +8,17 @@ import { monitoringValue } from "@/features/operations/monitoring";
 import ExcelJS from "exceljs";
 import { addMonitoringSheets } from "@/features/operations/monitoring-export";
 describe("Repeatable measurement/factor pairs", () => {
+  it("keeps a single recorded group authoritative over stale asset text", () => {
+    expect(measurementInputs({
+      measurement_range: "Old range",
+      correction_factor: "Old factor",
+      measurement_ranges: ["Old asset range"],
+      monitoring_measurements: [{ measurement_range: "0–10 kg", correction_factor: "0,01" }],
+    })).toEqual([{ measurement_range: "0–10 kg", correction_factor: "0,01", source_index: 0 }]);
+    expect(measurementInputs({ monitoring_measurements: [] })).toEqual([
+      { measurement_range: "", correction_factor: "" },
+    ]);
+  });
   it("keeps legacy records with an unknown range editable without inventing measurements", () => {
     expect(
       measurementGroupsSchema.safeParse([

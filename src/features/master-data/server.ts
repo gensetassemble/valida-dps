@@ -221,6 +221,7 @@ export async function listRecords(
     );
   if (params.active === "true" || params.active === "false")
     query = query.eq("is_active", params.active === "true");
+  else if (entity.key === "kalibrasi-alat") query = query.eq("is_active", true);
   const field = entity.fields.find(
     (field) => field.key === params.filter && field.kind === "select",
   );

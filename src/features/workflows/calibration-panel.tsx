@@ -46,7 +46,7 @@ export async function CalibrationRequestPanel({
         <h2 className="text-sm font-bold">
           Permintaan perbaikan / kalibrasi · FOR/SCI-UMA/197
         </h2>
-        {coordinator && !active && (
+        {coordinator && row.is_active === true && !active && (
           <EquipmentRequestForm branch={branch} equipment={String(row.id)} />
         )}
       </div>

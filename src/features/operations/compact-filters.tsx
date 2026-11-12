@@ -138,8 +138,11 @@ export function CompactOperationalFilters({
           }] : []),
           {
             key: "active",
-            label: "Rekaman",
-            options: [
+            label: entity === "kalibrasi-alat" ? "Daftar alat" : "Rekaman",
+            options: entity === "kalibrasi-alat" ? [
+              { value: "", label: "Alat aktif" },
+              { value: "false", label: "Arsip alat" },
+            ] : [
               { value: "true", label: "Aktif" },
               { value: "false", label: "Nonaktif" },
             ],

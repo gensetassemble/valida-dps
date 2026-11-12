@@ -356,6 +356,8 @@ export async function setRecordsActive(
   revalidatePath(entity.path, "layout");
   return {
     ok: true,
-    message: `Status ${data.length} rekaman telah diperbarui.`,
+    message: entity.key === "kalibrasi-alat"
+      ? active ? `${data.length} alat dipulihkan ke daftar aktif.` : `${data.length} alat dipindahkan ke Arsip. Riwayat tetap tersimpan.`
+      : `Status ${data.length} rekaman telah diperbarui.`,
   };
 }

@@ -17,6 +17,8 @@ import {
   Pencil,
   Plus,
   Power,
+  Trash2,
+  RotateCcw,
 } from "lucide-react";
 import { Card } from "./card";
 import { Button } from "./button";
@@ -33,6 +35,7 @@ import {
 import { DirectoryActionsDialog } from "@/features/master-data/directory-actions-dialog";
 import { EmployeeStatusDialog } from "@/features/workflows/employee-status-dialog";
 import { businessNotes } from "@/features/operations/notes";
+import { EquipmentPermanentDelete } from "@/features/operations/equipment-archive-action";
 import dynamic from "next/dynamic";
 const RecordForm = dynamic(
   () => import("@/features/master-data/record-form").then((m) => m.RecordForm),
@@ -384,7 +387,7 @@ export function DataTable({
               variant="outline"
               onClick={() => beginChange(selected, false)}
             >
-              Nonaktifkan pilihan
+              {entity.key === "kalibrasi-alat" ? "Hapus pilihan ke Arsip" : "Nonaktifkan pilihan"}
             </Button>
           </div>
         )}
@@ -641,16 +644,18 @@ export function DataTable({
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    aria-label={`${row.is_active ? "Nonaktifkan" : "Aktifkan"} ${name}`}
+                                    aria-label={`${entity.key === "kalibrasi-alat" ? row.is_active ? "Hapus ke Arsip" : "Pulihkan" : row.is_active ? "Nonaktifkan" : "Aktifkan"} ${name}`}
+                                    title={entity.key === "kalibrasi-alat" ? row.is_active ? "Hapus alat ke Arsip" : "Pulihkan alat" : undefined}
                                     disabled={own}
                                     onClick={() =>
                                       beginChange([id], !row.is_active)
                                     }
                                   >
-                                    <Power size={15} />
+                                    {entity.key === "kalibrasi-alat" ? row.is_active ? <Trash2 size={15} /> : <RotateCcw size={15} /> : <Power size={15} />}
                                   </Button>
                                 )
                               )}
+                              {entity.key === "kalibrasi-alat" && row.is_active === false && canManagePasswords && <EquipmentPermanentDelete id={id} name={name} branch={branch} updatedAt={String(row.updated_at)}/>}
                             </>
                           )}
                         </div>
@@ -760,7 +765,9 @@ export function DataTable({
         onOpenChange={(open) => {
           if (!open) setChange(null);
         }}
-        title={change?.active ? "Aktifkan rekaman?" : "Nonaktifkan rekaman?"}
+        title={entity.key === "kalibrasi-alat" ? change?.active ? "Pulihkan alat?" : "Hapus alat ke Arsip?" : change?.active ? "Aktifkan rekaman?" : "Nonaktifkan rekaman?"}
+        confirmLabel={entity.key === "kalibrasi-alat" ? change?.active ? "Pulihkan alat" : "Hapus ke Arsip" : undefined}
+        destructive={entity.key === "kalibrasi-alat" && !change?.active}
         pending={busy}
         error={error}
         onConfirm={async () => {
@@ -791,11 +798,11 @@ export function DataTable({
           }
         }}
       >
-        <p>
+        {entity.key === "kalibrasi-alat" ? <p>{change?.active ? "Alat kembali ke daftar aktif dan monitoring." : "Alat dipindahkan ke Arsip dan dikeluarkan dari monitoring aktif. Riwayat kalibrasi, dokumen, dan pengajuan UMA tetap tersimpan. Buka Arsip alat untuk memulihkannya."}</p> : <p>
           Perubahan berlaku pada {change?.ids.length} rekaman yang dipilih. Data
           dan riwayat tetap dipertahankan. Penonaktifan akun, peran, pegawai,
           atau cabang dapat langsung menutup akses terkait.
-        </p>
+        </p>}
         {entity.key === "penugasan-peran" && (
           <label className="mt-4 block text-xs font-semibold">
             Alasan perubahan

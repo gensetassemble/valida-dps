@@ -22,7 +22,7 @@ import { driveFolder, validityLabel, todayWita } from "@/lib/domain/validity";
 import { OperationalForm, CorrectionForm } from "./forms";
 import { CertificateDocuments } from "./certificate-documents";
 import { OperationalFilters } from "./filters";
-import { measurementKeys } from "./monitoring";
+import { measurementInputs } from "./measurement-groups";
 import { calibrationChoice, calibrationChoiceLabel } from "./calibration-marks";
 import { businessNotes } from "./notes";
 import { WorkflowPanel, WorkflowOverview } from "@/features/workflows/panels";
@@ -31,6 +31,7 @@ import { RenewalEmailPreview } from "./renewal-email-preview";
 import { EquipmentExportMenu } from "./equipment-export-menu";
 import { MeasurementSummary } from "./measurement-summary";
 import { calibrationExpiryReview } from "./calibration-expiry";
+import { EquipmentArchiveAction, EquipmentPermanentDelete } from "./equipment-archive-action";
 export async function OperationList({
   entity,
   params,
@@ -45,7 +46,7 @@ export async function OperationList({
   if (entity === "kalibrasi-alat") {
     const db = await masterClient();
     const { data, error } = await db.from("equipment_monitoring_records")
-      .select("portfolio_id,portfolio_code").eq("branch_code", c.branch).limit(10000);
+      .select("portfolio_id,portfolio_code").eq("branch_code", c.branch).eq("is_active", true).limit(10000);
     exportUnavailable = !!error;
     const grouped = new Map<string, { id: string; code: string; count: number }>();
     for (const row of data || []) if (row.portfolio_id && row.portfolio_code) {
@@ -63,7 +64,7 @@ export async function OperationList({
           <p className="mt-1 text-xs text-muted-foreground">{entity === "kalibrasi-alat" ? "Monitoring alat internal per portofolio." : entity === "sertifikat-klien" ? "Arsip bertahap · PIC [UJI] untuk pengujian internal." : "Pantau masa berlaku dan tindak lanjut sertifikat."}</p>
         </header>}
       <div className={compact ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
-        {entity === "kalibrasi-alat" &&
+        {entity === "kalibrasi-alat" && params.active !== "false" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",
           ) && <EquipmentRequestForm branch={c.branch} />}
@@ -116,6 +117,10 @@ export async function OperationList({
         {entity === "sertifikat-klien" && <nav aria-label="Versi sertifikat klien" className="flex flex-wrap gap-2 text-xs">
           <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}`}>Sertifikat terkini</Link>
           <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>
+        </nav>}
+        {entity === "kalibrasi-alat" && <nav aria-label="Daftar dan arsip alat" className="flex gap-2 text-xs">
+          <Link aria-current={params.active !== "false" ? "page" : undefined} className="rounded-lg border border-border bg-white px-3 py-2 aria-[current=page]:bg-primary aria-[current=page]:text-white" href={`?branch=${c.branch}`}>Alat aktif</Link>
+          <Link aria-current={params.active === "false" ? "page" : undefined} className="rounded-lg border border-border bg-white px-3 py-2 aria-[current=page]:bg-primary aria-[current=page]:text-white" href={`?branch=${c.branch}&active=false`}>Arsip alat</Link>
         </nav>}
       </div>
       </div>
@@ -231,7 +236,10 @@ export async function OperationDetail({
   }
   const canEditRow = c.canWrite;
   const expiryReview = calibrationExpiryReview(row);
-  const hasMeasurementTable = Array.isArray(row.monitoring_measurements) && row.monitoring_measurements.length > 1;
+  const hasMeasurementTable = ["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity);
+  const detailMeasurements = hasMeasurementTable ? measurementInputs(row,
+    entity === "kalibrasi-alat" && !(Array.isArray(row.monitoring_measurements) && row.monitoring_measurements.length > 0),
+  ) : [];
   const labels = await referenceLabels(c.entity, c.branch, row);
   const db = await masterClient();
   if (
@@ -303,6 +311,9 @@ export async function OperationDetail({
         </p>
       )}
       <div className="mb-4 flex flex-wrap gap-2">
+        {entity === "kalibrasi-alat" && canEditRow && <EquipmentArchiveAction id={id} name={String(row.name)} branch={c.branch} active={row.is_active === true}/>}
+        {entity === "kalibrasi-alat" && row.is_active === false && c.scopes.some(s=>s.branch_code===c.branch && s.role_code==="super_admin") && <EquipmentPermanentDelete id={id} name={String(row.name)} branch={c.branch} updatedAt={String(row.updated_at)}/>}
+        {entity === "kalibrasi-alat" && row.is_active === false && <span className="rounded-md border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold">Alat diarsipkan · tidak masuk monitoring aktif</span>}
         {entity === "sertifikat-klien" && canEditRow && row.is_active === true && row.is_example !== true && <RenewalEmailPreview certificate={id} branch={c.branch}/>}
         {row.validity_status ? (
           <StatusBadge
@@ -338,7 +349,7 @@ export async function OperationDetail({
           </Button>
         )}
       </div>
-      {hasMeasurementTable && Array.isArray(row.monitoring_measurements) && (
+      {hasMeasurementTable && (
           <Card className="mb-4 overflow-x-auto p-4">
             <h2 className="mb-2 text-sm font-bold">
               Rincian parameter kalibrasi
@@ -347,11 +358,9 @@ export async function OperationDetail({
               <thead>
                 <tr>
                   {[
-                    "Parameter",
+                    "No.",
                     "Range / Kapasitas",
                     "Faktor Koreksi",
-                    "Jenis kalibrasi",
-                    "Signifikan",
                   ].map((label) => (
                     <th className="border-b p-2" key={label}>
                       {label}
@@ -360,14 +369,12 @@ export async function OperationDetail({
                 </tr>
               </thead>
               <tbody>
-                {row.monitoring_measurements.map((m, index) => (
+                {detailMeasurements.map((m, index) => (
                   <tr key={index}>
                     {[
                       String(index + 1),
-                      String((m as DataRow).measurement_range ?? "—"),
-                      String((m as DataRow).correction_factor ?? "—"),
-                      calibrationChoiceLabel("calibration_internal", { ...row, ...(m as DataRow) }),
-                      calibrationChoiceLabel("significant_yes", { ...row, ...(m as DataRow) }),
+                      m.measurement_range.replace(/\\n/g, "\n").trim() || "—",
+                      m.correction_factor.replace(/\\n/g, "\n").trim() || "—",
                     ].map((v, col) => (
                       <td
                         className="border-b p-2 align-top whitespace-pre-wrap"
@@ -408,7 +415,7 @@ export async function OperationDetail({
           .filter(
             (f) =>
               !["is_active", "verification_status"].includes(f.key) &&
-              !(hasMeasurementTable && measurementKeys.some((key) => key === f.key)) &&
+              !(hasMeasurementTable && ["measurement_range", "correction_factor"].includes(f.key)) &&
               !["calibration_external", "significant_no"].includes(f.key) &&
               !(entity === "sertifikat-klien" && f.key === "interval_days") &&
               !(entity === "riwayat-kalibrasi" && ["calibration_date", "calculation_base", "reported_due_date", "date_basis", "date_source", "resolution_note", "interval_label"].includes(f.key)) &&
