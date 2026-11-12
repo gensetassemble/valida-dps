@@ -110,6 +110,7 @@ export function DataTable({
   userId,
   isAdmin,
   canManagePasswords = false,
+  canDeleteEquipment = false,
   canManageDirectory = false,
   parent,
   hideFilters = false,
@@ -121,6 +122,7 @@ export function DataTable({
   userId: string;
   isAdmin: boolean;
   canManagePasswords?: boolean;
+  canDeleteEquipment?: boolean;
   canManageDirectory?: boolean;
   parent?: { field: string; id: string };
   hideFilters?: boolean;
@@ -448,7 +450,7 @@ export function DataTable({
                         </th>
                       ))}
                       {index === 0 && (
-                        <th rowSpan={3} scope="col" className="px-3">
+                        <th rowSpan={3} scope="col" className="px-3 text-center">
                           Tindakan
                         </th>
                       )}
@@ -521,7 +523,7 @@ export function DataTable({
                         </button>
                       </th>
                     ))}
-                    <th scope="col" className="px-4 py-3 text-right">
+                    <th scope="col" className="px-4 py-3 text-center">
                       Tindakan
                     </th>
                   </tr>
@@ -655,7 +657,7 @@ export function DataTable({
                                   </Button>
                                 )
                               )}
-                              {entity.key === "kalibrasi-alat" && row.is_active === false && canManagePasswords && <EquipmentPermanentDelete id={id} name={name} branch={branch} updatedAt={String(row.updated_at)}/>}
+                              {entity.key === "kalibrasi-alat" && row.is_active === false && canDeleteEquipment && <EquipmentPermanentDelete id={id} name={name} branch={branch} updatedAt={String(row.updated_at)}/>}
                             </>
                           )}
                         </div>

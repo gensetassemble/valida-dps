@@ -312,7 +312,7 @@ export async function OperationDetail({
       )}
       <div className="mb-4 flex flex-wrap gap-2">
         {entity === "kalibrasi-alat" && canEditRow && <EquipmentArchiveAction id={id} name={String(row.name)} branch={c.branch} active={row.is_active === true}/>}
-        {entity === "kalibrasi-alat" && row.is_active === false && c.scopes.some(s=>s.branch_code===c.branch && s.role_code==="super_admin") && <EquipmentPermanentDelete id={id} name={String(row.name)} branch={c.branch} updatedAt={String(row.updated_at)}/>}
+        {entity === "kalibrasi-alat" && row.is_active === false && c.scopes.some(s=>s.branch_code===c.branch && ["super_admin","equipment_manager","coordinator"].includes(s.role_code)) && <EquipmentPermanentDelete id={id} name={String(row.name)} branch={c.branch} updatedAt={String(row.updated_at)}/>}
         {entity === "kalibrasi-alat" && row.is_active === false && <span className="rounded-md border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold">Alat diarsipkan · tidak masuk monitoring aktif</span>}
         {entity === "sertifikat-klien" && canEditRow && row.is_active === true && row.is_example !== true && <RenewalEmailPreview certificate={id} branch={c.branch}/>}
         {row.validity_status ? (

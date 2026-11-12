@@ -16,8 +16,8 @@ export async function deleteArchivedEquipment(input: unknown): Promise<MutationR
   if (!parsed.success) return { ok: false, error: "Periksa konfirmasi dan muat ulang data alat." };
   const { id, branch, updatedAt } = parsed.data;
   const context = await entityContext("kalibrasi-alat", branch, true);
-  if (!context.scopes.some(s => s.branch_code === branch && s.role_code === "super_admin"))
-    return { ok: false, error: "Hapus permanen hanya untuk Super Admin." };
+  if (!context.scopes.some(s => s.branch_code === branch && ["super_admin", "equipment_manager", "coordinator"].includes(s.role_code)))
+    return { ok: false, error: "Hapus permanen hanya untuk Super Admin, PTK, atau Koordinator portofolio terkait." };
   const db = await masterClient();
   const { data, error } = await db.from("equipment").delete()
     .eq("id", id).eq("branch_code", branch).eq("is_active", false)

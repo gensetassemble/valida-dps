@@ -54,6 +54,7 @@ export async function MasterTable({
         (s) =>
           s.branch_code === context.branch && s.role_code === "super_admin",
       )}
+      canDeleteEquipment={context.scopes.some(s => s.branch_code === context.branch && ["super_admin", "equipment_manager", "coordinator"].includes(s.role_code))}
       parent={parent}
       hideFilters={hideFilters}
       canManageDirectory={canManageEmployeeDirectory(

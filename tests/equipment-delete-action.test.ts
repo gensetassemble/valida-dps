@@ -11,12 +11,24 @@ describe("Permanent deletion of archived equipment",()=>{
     expect((await deleteArchivedEquipment({...input,role:"super_admin"})).ok).toBe(false);
     expect(mocks.client).not.toHaveBeenCalled();
   });
-  it("rejects coordinators and Super Admins from another branch",async()=>{
-    for(const scopes of [[{branch_code:"DPS",role_code:"coordinator"}],[{branch_code:"OTHER",role_code:"super_admin"}]]){
+  it("rejects readers and Super Admins from another branch",async()=>{
+    for(const scopes of [[{branch_code:"DPS",role_code:"tester"}],[{branch_code:"OTHER",role_code:"super_admin"}]]){
       mocks.context.mockResolvedValue({scopes});
       expect((await deleteArchivedEquipment(input)).ok).toBe(false);
     }
     expect(mocks.client).not.toHaveBeenCalled();
+  });
+  it("allows PTK and coordinators to request deletion while RLS remains authoritative",async()=>{
+    const query={delete:vi.fn(),eq:vi.fn(),select:vi.fn()};
+    query.delete.mockReturnValue(query);query.eq.mockReturnValue(query);
+    query.select.mockResolvedValue({data:[],error:null});
+    mocks.client.mockResolvedValue({from:()=>query});
+    for(const role_code of ["equipment_manager","coordinator"]){
+      mocks.context.mockResolvedValue({scopes:[{branch_code:"DPS",role_code}]});
+      expect((await deleteArchivedEquipment(input)).ok).toBe(false);
+    }
+    expect(query.delete).toHaveBeenCalledTimes(2);
+    expect(mocks.revalidate).not.toHaveBeenCalled();
   });
   it("limits deletion to the archived row and rejects stale results",async()=>{
     const query={delete:vi.fn(),eq:vi.fn(),select:vi.fn()};
