@@ -6,12 +6,14 @@ import {
   FileStack,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { DashboardStatusCard } from "./dashboard-status-card";
 const statuses = [
   {
     name: "Aman",
     hint: "> 90 hari",
     color: "#1f9d6b",
     cls: "border-emerald-200 text-emerald-700",
+    hoverColor: "#065f46",
     Icon: CheckCircle2,
   },
   {
@@ -19,6 +21,7 @@ const statuses = [
     hint: "61–90 hari",
     color: "#0d9488",
     cls: "border-teal-200 text-teal-700",
+    hoverColor: "#115e59",
     Icon: Activity,
   },
   {
@@ -26,6 +29,7 @@ const statuses = [
     hint: "31–60 hari",
     color: "#d49a00",
     cls: "border-yellow-300 text-yellow-800",
+    hoverColor: "#854d0e",
     Icon: Clock3,
   },
   {
@@ -33,6 +37,7 @@ const statuses = [
     hint: "0–30 hari",
     color: "#ea920c",
     cls: "border-amber-300 text-amber-700",
+    hoverColor: "#92400e",
     Icon: AlertTriangle,
   },
   {
@@ -40,6 +45,7 @@ const statuses = [
     hint: "Lewat tanggal akhir",
     color: "#dc4c4c",
     cls: "border-red-200 text-red-700",
+    hoverColor: "#991b1b",
     Icon: AlertTriangle,
   },
 ];
@@ -49,12 +55,14 @@ export function DashboardOverview({
   lifetime,
   unfit,
   showCalibrations,
+  destinations,
 }: {
   total: number;
   buckets: Record<string, number>;
   lifetime: number;
   unfit: number;
   showCalibrations: boolean;
+  destinations: { label: string; href: string }[];
 }) {
   const series = [
     ...statuses.map((s) => ({ ...s, value: buckets[s.name] || 0 })),
@@ -82,17 +90,21 @@ export function DashboardOverview({
             Rekaman aktif
           </p>
         </Card>
-        {statuses.map(({ name, hint, cls, Icon }) => (
-          <Card key={name} className={`px-3 py-3 ${cls}`}>
-            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide">
+        {statuses.map(({ name, hint, cls, hoverColor, Icon }) => (
+          <DashboardStatusCard key={name} status={name} className={cls} hoverColor={hoverColor}
+            destinations={destinations.map((destination) => ({
+              ...destination,
+              href: destination.href + "&validity=" + encodeURIComponent(name),
+            }))}>
+            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide">
               <Icon size={13} />
               {name}
-            </p>
-            <p className="mt-2 text-3xl font-bold tabular-nums">
+            </span>
+            <span className="mt-2 block text-3xl font-bold tabular-nums">
               {buckets[name] || 0}
-            </p>
-            <p className="mt-1 text-[10px]">{hint}</p>
-          </Card>
+            </span>
+            <span className="mt-1 block text-[10px]">{hint}</span>
+          </DashboardStatusCard>
         ))}
       </div>
       <Card className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_17rem]">

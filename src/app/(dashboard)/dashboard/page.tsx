@@ -262,6 +262,10 @@ export default async function DashboardPage({
         lifetime={s.lifetime_count}
         unfit={s.unfit_equipment_count}
         showCalibrations={showCalibrations}
+        destinations={domains.filter((domain) => category === "all" || domain === category).map((domain) => ({
+          label: MODULE_ACCESS[domain].label,
+          href: routes[domain] + "?" + new URLSearchParams({ branch, active: "true" }),
+        }))}
       />
       {showClients && (
         <Card className="border-brand-navy bg-brand-navy px-4 py-4 text-white">
