@@ -4,7 +4,7 @@ Ekspor Sertifikat Klien, Kompetensi Personil, dan Kalibrasi Alat membuka tab per
 
 Ringkasan berisi total rekaman, jumlah Expired + Kritis, jumlah yang berakhir dalam 0–90 hari, tabel jumlah/persentase setiap status, dan grafik batang Excel yang dapat diedit. Sheet disiapkan untuk cetak A4 landscape satu halaman.
 
-Khusus Kalibrasi Alat, sheet yang sama juga memuat tabel **Status Alat per Portofolio**: total alat, Expired, Kritis, Perhatian, Pantau, Aman, dan Tanggal Belum Diisi. Hanya portofolio dari alat yang diekspor yang ditampilkan; alat tanpa portofolio masuk “Belum dipetakan”. Baris total dapat direkonsiliasi dengan ringkasan keseluruhan. Ringkasan kalibrasi disiapkan dalam dua halaman cetak agar tabel tambahan tetap terbaca.
+Khusus Kalibrasi Alat, sheet yang sama juga memuat tabel **Status Alat per Portofolio**: total alat, Expired, Kritis, Perhatian, Pantau, Aman, dan Not Recorded. Hanya portofolio dari alat yang diekspor yang ditampilkan; alat tanpa portofolio masuk “Belum dipetakan”. Baris total dapat direkonsiliasi dengan ringkasan keseluruhan. Ringkasan kalibrasi disiapkan dalam dua halaman cetak agar tabel tambahan tetap terbaca.
 
 ## Dasar hitungan
 
@@ -13,7 +13,8 @@ Khusus Kalibrasi Alat, sheet yang sama juga memuat tabel **Status Alat per Porto
 - Satu alat dihitung sekali walaupun memiliki beberapa parameter atau faktor koreksi.
 - Sertifikat dihitung per rekaman/versi yang masuk ekspor, bukan jumlah unik pegawai atau pelanggan.
 - Status dihitung ulang pada satu tanggal acuan WITA: Expired <0 hari; Kritis 0–30; Perhatian 31–60; Pantau 61–90; Aman >90.
-- Tanggal belum diisi dan Berlaku Seumur Hidup tetap dihitung terpisah agar total cocok.
+- **Not Recorded** menggantikan label “Tanggal Belum Diisi”/“Tanpa tanggal” pada tampilan, filter, ekspor, dan grafik. Kategori ini mencakup tanggal kosong, tidak valid, atau N/A; terpisah dari Expired dan Berlaku Seumur Hidup. Kunci filter lama tetap kompatibel.
+- Tidak Signifikan tidak otomatis menghapus atau mengabaikan tanggal valid yang sudah tercatat. Nilai N/A pada sel sumber laporan tidak ditulis ulang menjadi tanggal atau status lain.
 - Angka/grafik adalah snapshot saat ekspor, bukan koneksi langsung ke database. Ekspor ulang untuk data terbaru.
 
 Grafik menggunakan bagian OOXML native dan referensi ke tabel ringkasan. Penyisipan dilakukan setelah pemformatan laporan, tanpa menyimpan ulang template kalibrasi melalui parser yang dapat mengubah layout atau gambar.

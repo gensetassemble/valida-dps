@@ -5,6 +5,7 @@ import { Popover } from "radix-ui";
 import { ChevronDown, LoaderCircle } from "lucide-react";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import { personnelFilterOptions } from "./personnel-filter-options";
+import { validityDisplayLabel } from "@/lib/domain/validity";
 type Choice = { value: string; label: string };
 type Group = { key: string; label: string; options: Choice[] };
 export function FilterChoices({
@@ -125,7 +126,7 @@ export function CompactOperationalFilters({
               "Pantau",
               "Aman",
               "Tanggal Belum Diisi",
-            ].map((value) => ({ value, label: value })),
+            ].map((value) => ({ value, label: validityDisplayLabel(value) })),
           },
           ...(entity === "kalibrasi-alat" ? [{
             key: "eligibility",
@@ -136,7 +137,7 @@ export function CompactOperationalFilters({
               "Hasil Belum Diisi",
               "Tanggal Belum Diisi",
               "Belum Ada Kalibrasi",
-            ].map((value) => ({ value, label: value })),
+            ].map((value) => ({ value, label: validityDisplayLabel(value) })),
           }] : []),
           {
             key: "active",

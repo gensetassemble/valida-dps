@@ -28,7 +28,7 @@ export const personnelFilterOptions = [
       ["Perhatian", "Perhatian"],
       ["Pantau", "Pantau"],
       ["Aman", "Aman"],
-      ["Tanggal Belum Diisi", "Tanggal belum diisi"],
+      ["Tanggal Belum Diisi", "Not Recorded"],
       ["Berlaku Seumur Hidup", "Berlaku seumur hidup"],
     ],
   },

@@ -67,7 +67,7 @@ export function DashboardOverview({
   const series = [
     ...statuses.map((s) => ({ ...s, value: buckets[s.name] || 0 })),
     {
-      name: "Tanggal belum diisi",
+      name: "Not Recorded",
       color: "#94a3b8",
       value: buckets["Tanggal Belum Diisi"] || 0,
     },

@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import type { DataRow } from "@/features/master-data/server";
-import { todayWita,remainingDays,validityLabel,validDate } from "@/lib/domain/validity";
+import { todayWita,remainingDays,validityLabel,validDate,validityDisplayLabel } from "@/lib/domain/validity";
 export function addClientSheet(book: ExcelJS.Workbook, rows: DataRow[], today = todayWita()) {
   const sheet=book.addWorksheet("Sertifikat Klien");
   const columns:[string,string,number][]=[
@@ -22,7 +22,7 @@ export function addClientSheet(book: ExcelJS.Workbook, rows: DataRow[], today = 
       if(typeof row[key]==="string" && validDate(String(row[key])))values[key]=new Date(String(row[key])+"T00:00:00Z");
     const expiry=typeof row.expiry_date === "string" ? row.expiry_date : "";
     values.days_remaining=remainingDays(expiry,today) ?? "";
-    values.validity_status=validityLabel(expiry || null,true,false,today);
+    values.validity_status=validityDisplayLabel(validityLabel(expiry || null,true,false,today));
     values.previous_order_value=row.previous_order_value==null?"":Number(row.previous_order_value);
     values.pic_is_test=row.pic_is_test?"Ya — penerima internal":"Tidak";
     sheet.addRow(values);

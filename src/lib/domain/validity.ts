@@ -14,8 +14,13 @@ export const VALIDITY_DESCRIPTIONS: Record<string, string> = {
   Pantau: "H-61 hingga H-90 · sisa 61–90 hari",
   Aman: "Lebih dari 90 hari menuju tanggal berakhir",
   "Tanggal Belum Diisi": "Tanggal berakhir belum tersedia",
+  "Not Recorded": "Tanggal berakhir tidak tercatat atau tertulis N/A",
   "Berlaku Seumur Hidup": "Tanpa batas tanggal berakhir",
 };
+/** Keep database/filter keys compatible while using one public label in UI and exports. */
+export function validityDisplayLabel(value: string) {
+  return /^(tanggal belum diisi|tanpa tanggal)$/i.test(value.trim()) ? "Not Recorded" : value;
+}
 export function todayWita(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Makassar",

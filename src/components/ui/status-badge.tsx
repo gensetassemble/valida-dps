@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { validityDisplayLabel } from "@/lib/domain/validity";
 const statuses: Record<
   string,
   { label: string; style: string; color?: string }
@@ -82,11 +83,11 @@ export function StatusBadge({ value }: { value: string | boolean }) {
     label: String(value),
     style: "bg-slate-100 text-slate-700 border-slate-200",
   };
-  const label = String(value) === "Tanggal Belum Diisi" ? "Tanpa tanggal" : status.label;
+  const label = validityDisplayLabel(status.label);
   return (
     <span
-      title={typeof value === "string" ? value : status.label}
-      aria-label={typeof value === "string" ? value : status.label}
+      title={label}
+      aria-label={label}
       className={cn(
         "inline-flex max-w-full items-center gap-1 whitespace-normal break-words border px-1 py-1 text-[11px] font-semibold leading-4",
         label.length > 18 ? "rounded-md" : "rounded-full",

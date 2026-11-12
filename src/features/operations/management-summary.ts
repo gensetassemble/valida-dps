@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import type { DataRow } from "@/features/master-data/server";
-import { operationalValidity, todayWita } from "@/lib/domain/validity";
+import { operationalValidity, todayWita, validityDisplayLabel } from "@/lib/domain/validity";
 import { longExportDate } from "./export-context";
 
 export type SummaryEntity = "sertifikat-klien" | "kompetensi-personil" | "kalibrasi-alat";
@@ -10,7 +10,7 @@ const statuses = [
   ["Perhatian", "Sisa 31–60 hari", "CA8A04", "FEF3C7"],
   ["Pantau", "Sisa 61–90 hari", "0891B2", "CFFAFE"],
   ["Aman", "Sisa lebih dari 90 hari", "059669", "DCFCE7"],
-  ["Tanggal Belum Diisi", "Tanggal berakhir belum tersedia", "64748B", "F1F5F9"],
+  ["Not Recorded", "Tanggal berakhir tidak tercatat atau tertulis N/A", "64748B", "F1F5F9"],
   ["Berlaku Seumur Hidup", "Tidak memiliki batas masa berlaku", "7C3AED", "EDE9FE"],
 ] as const;
 const titles: Record<SummaryEntity, string> = {
@@ -44,7 +44,7 @@ export function managementSummary(rows: DataRow[], entity: SummaryEntity, today 
       : row.expiry_date;
     const status = operationalValidity(typeof date === "string" ? date : null,
       entity === "kompetensi-personil" && row.validity_kind === "lifetime", today);
-    const index = statuses.findIndex(([label]) => label === status);
+    const index = statuses.findIndex(([label]) => label === validityDisplayLabel(status));
     counts[index]++;
   }
   const total = counts.reduce((sum, count) => sum + count, 0);
@@ -136,7 +136,7 @@ export async function withManagementSummary(bytes: Uint8Array, options: {
   merged("B22:D24", "Kritis: 0–30 hari\nPerhatian: 31–60 hari\nPantau: 61–90 hari\nAman: lebih dari 90 hari", 4);
   const unit = options.entity === "kalibrasi-alat" ? "Satu alat dihitung sekali, terlepas dari jumlah parameter/faktor koreksi." : "Jumlah dihitung per rekaman sertifikat yang diekspor, bukan per pemilik/pelanggan.";
   merged("B26:L27", `Cakupan sesuai filter ekspor dan hak akses akun. ${unit}${options.entity === "kompetensi-personil" ? options.includeInactive ? " Termasuk personil nonaktif yang dipilih dalam ekspor." : " Personil nonaktif dikecualikan." : ""}`, 4);
-  merged("B28:L29", "Grafik adalah snapshot pada tanggal ekspor. Tanggal belum diisi dan seumur hidup ditampilkan terpisah agar jumlah dapat direkonsiliasi. Pengajuan/perpanjangan tidak otomatis mengubah masa berlaku.", 4);
+  merged("B28:L29", "Grafik adalah snapshot pada tanggal ekspor. Not Recorded berarti tanggal berakhir tidak tercatat atau tertulis N/A; terpisah dari status Expired dan seumur hidup. Pengajuan/perpanjangan tidak otomatis mengubah masa berlaku.", 4);
   let lastRow = 29;
   if (portfolios) {
     merged("B32:L32", "STATUS ALAT PER PORTOFOLIO", 3);
@@ -150,7 +150,7 @@ export async function withManagementSummary(bytes: Uint8Array, options: {
         else cell(`${col}${row}`, values[index], style);
       });
     }
-    portfolioRow(35, ["Portofolio", "Total alat", "Expired", "Kritis", "Perhatian", "Pantau", "Aman", "Tanggal Belum Diisi"], true);
+    portfolioRow(35, ["Portofolio", "Total alat", "Expired", "Kritis", "Perhatian", "Pantau", "Aman", "Not Recorded"], true);
     portfolios.forEach((p, i) => portfolioRow(36 + i, [p.portfolio, p.total, ...p.buckets.slice(0, 6).map(b => b.count)]));
     const totalRow = 36 + portfolios.length;
     portfolioRow(totalRow, ["TOTAL", data.total, ...data.buckets.slice(0, 6).map(b => b.count)], true);

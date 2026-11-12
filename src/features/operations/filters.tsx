@@ -5,6 +5,7 @@ import { masterClient, type QueryParams } from "@/features/master-data/server";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import { CompactOperationalFilters } from "./compact-filters";
 import { equipmentOptions } from "./equipment-options";
+import { validityDisplayLabel } from "@/lib/domain/validity";
 export async function OperationalFilters({
   entity,
   branch,
@@ -140,7 +141,7 @@ export async function OperationalFilters({
                 "Tanggal Belum Diisi",
                 "Belum Ada Kalibrasi",
               ].map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>{validityDisplayLabel(s)}</option>
               ))}
             </select>
           </label>
@@ -163,7 +164,7 @@ export async function OperationalFilters({
                 "Tanggal Belum Diisi",
                 ...(entity === "dashboard-all" ? ["Berlaku Seumur Hidup"] : []),
               ].map((x) => (
-                <option key={x}>{x}</option>
+                <option key={x} value={x}>{validityDisplayLabel(x)}</option>
               ))}
             </select>
           </label>

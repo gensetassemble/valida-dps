@@ -11,7 +11,7 @@ it("puts colored status and days first, keeps numeric days and source identifier
  expect(sheet.getCell("A2").value).toBe("Expired");expect(sheet.getCell("B2").value).toBe(-1);
  expect(sheet.getCell("A3").value).toBe("Kritis");expect(sheet.getCell("B3").value).toBe(26);
  expect(sheet.getCell("A2").fill).toMatchObject({fgColor:{argb:"FFFEE2E2"}});expect(sheet.getCell("B3").fill).toMatchObject({fgColor:{argb:"FFFFEDD5"}});
- expect(sheet.getCell("B4").value || "").toBe("");expect(sheet.getCell("A4").value).toBe("Tanggal Belum Diisi");
+ expect(sheet.getCell("B4").value || "").toBe("");expect(sheet.getCell("A4").value).toBe("Not Recorded");
  expect(sheet.getRow(2).values).toContain("00001/A");expect(sheet.getRow(2).values).toContain("000019");
  expect(sheet.views[0]).toMatchObject({xSplit:4,ySplit:1});expect(sheet.getCell("D2").alignment.wrapText).toBe(true);
 });
