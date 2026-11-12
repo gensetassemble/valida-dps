@@ -35,6 +35,7 @@ import { EquipmentExportMenu } from "./equipment-export-menu";
 import { MeasurementSummary } from "./measurement-summary";
 import { calibrationExpiryReview } from "./calibration-expiry";
 import { EquipmentArchiveAction, EquipmentPermanentDelete } from "./equipment-archive-action";
+import { EquipmentImportButton } from "@/features/equipment-sync/import-button";
 async function EquipmentExportAction({branch}:{branch:string}) {
   const options = await equipmentOptions(branch);
   return <EquipmentExportMenu key={branch} branch={branch} portfolios={options.portfolios} unavailable={options.unavailable}/>;
@@ -57,6 +58,7 @@ export async function OperationList({
           <p className="mt-1 text-xs text-muted-foreground">{entity === "kalibrasi-alat" ? "Monitoring alat internal per portofolio." : entity === "sertifikat-klien" ? "Arsip bertahap · PIC [UJI] untuk pengujian internal." : "Pantau masa berlaku dan tindak lanjut sertifikat."}</p>
         </header>}
       <div className={compact ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
+        {entity === "kalibrasi-alat" && c.canWrite && <EquipmentImportButton branch={c.branch}/>}
         {entity === "kalibrasi-alat" && params.active !== "false" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",
