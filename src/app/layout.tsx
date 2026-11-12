@@ -14,10 +14,11 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const training = isTrainingEnvironment();
   return (
     <html lang="id">
-      <body>
-        {isTrainingEnvironment() && <aside className="sticky top-0 z-[100] border-b border-amber-300 bg-amber-100 px-4 py-2 text-center text-xs font-semibold text-amber-950" role="status">SANDBOX LATIHAN · Data terpisah dari VALIDA produksi · Perubahan hanya berlaku di sandbox · Email otomatis dinonaktifkan</aside>}
+      <body className={training ? "pb-12" : undefined}>
+        {training && <aside className="fixed inset-x-0 bottom-0 z-[100] border-t border-amber-300 bg-amber-100 px-4 py-2 text-center text-xs font-semibold text-amber-950" role="status">SANDBOX LATIHAN · Data terpisah dari VALIDA produksi · Perubahan hanya berlaku di sandbox · Email otomatis dinonaktifkan</aside>}
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
