@@ -5,6 +5,20 @@ import { parseUma,umaDate,UmaImportError } from "@/features/equipment-sync/parse
 import { monitoringXlsx } from "@/features/operations/monitoring-xlsx";
 import { readFile } from 'node:fs/promises';
 describe('UMA monitoring import',()=>{
+  it('recognizes active revision sheets, title portfolios, flexible columns and a blank native notes header',async()=>{
+    const b=new ExcelJS.Workbook(),s=b.addWorksheet('Rev. 03 (2) update 240826');
+    s.getCell('A3').value='Unit Kerja : Cabang Denpasar -- LAB';
+    s.getCell('B6').value='Nama\nPeralatan';s.getCell('C6').value='Tag Number';
+    s.getCell('S6').value='Faktor\nKoreksi';s.getCell('U6').value='Signifikan Tidak';
+    s.getCell('B7').value='Isokinetic Sampler';s.getCell('C7').value='LAB-001';
+    s.getCell('S7').value='-';s.getCell('U7').value='√';s.getCell('V7').value='Masih konfirmasi ke cabang';
+    const r=await parseUma('source.xlsx',Buffer.from(await b.xlsx.writeBuffer()));
+    expect(r.rows).toHaveLength(1);expect(r.rows[0].portfolio).toBe('LAB');
+    expect(r.rows[0].asset.notes).toBe('Masih konfirmasi ke cabang');expect(r.ignored).toEqual([]);
+    const min=b.addWorksheet('Mineral Inspeksi');min.addRow(['No Seri','Kode Alat','Nama Peralatan','Tanggal berakhir sertifikat']);min.addRow(['S2','MIN-2','Probe','N/A']);
+    const multi=await parseUma('source.xlsx',Buffer.from(await b.xlsx.writeBuffer()));
+    expect(multi.rows[1]).toMatchObject({portfolio:'MIN',tag:'MIN-2',serial:'S2'});
+  });
   if(process.env.UMA_SOURCE_PATH)it('inspects the supplied PTK workbook without changing any data',async()=>{
     const data=await readFile(process.env.UMA_SOURCE_PATH!);
     try{const result=await parseUma('source.xlsx',data);console.log(JSON.stringify({tools:result.rows.length,notes:result.rows.filter(r=>r.asset.notes).length,ignored:result.ignored}));}

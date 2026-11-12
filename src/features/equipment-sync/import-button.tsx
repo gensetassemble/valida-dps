@@ -5,9 +5,10 @@ import { Upload, CheckCircle2, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-type Outcome={sheet:string;row:number;name:string;tag:string;equipment_id:string;equipment:string;calibration:string};
+type Outcome={sheet:string;row:number;name:string;tag:string;equipment_id:string;equipment:string;calibration:string;match?:string};
 type Result={error?:string;issues?:string[];rows?:Outcome[];ignored?:string[]};
 const actions:Record<string,string>={added:'Ditambahkan',updated:'Diperbarui',unchanged:'Tetap',none:'Tidak ada peristiwa'};
+const matches:Record<string,string>={new:'Alat baru',tag_serial:'Tag + nomor seri',tag_name:'Tag + nama',tag_name_missing_serial:'Tag + nama; lengkapi nomor seri'};
 export function EquipmentImportButton({branch}:{branch:string}){
   const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[result,setResult]=useState<Result|null>(null);
   const router=useRouter();
@@ -27,9 +28,10 @@ export function EquipmentImportButton({branch}:{branch:string}){
           <label className="space-y-2 text-sm font-semibold">Portofolio jika tidak tercantum dalam file<select name="portfolio" disabled={busy} className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"><option value="">Otomatis dari kolom / nama sheet</option>{['IND','PIK','SERCO','KSP','HMPM','AEBT','LAB','MIN','BBR','LSI'].map(p=><option key={p}>{p}</option>)}</select><span className="block text-xs font-normal text-muted-foreground">Satu workbook dapat berisi beberapa sheet portofolio.</span></label>
         </div>
         <div className="rounded-xl border border-border bg-muted/40 p-4 text-xs leading-6">
-          <p className="font-semibold">Gunakan kolom laporan FOR/SCI-UMA/198 yang sama dengan hasil ekspor.</p>
+          <p className="font-semibold">Laporan UMA/198 dari PTK atau hasil ekspor VALIDA dapat langsung dibaca.</p>
           <p>Nama Barang dan Tag-Number wajib diisi. Cell kosong mempertahankan data yang ada; tulis [KOSONGKAN] pada keterangan bila ingin menghapusnya. Sertifikat baru wajib memiliki tanggal terbit.</p>
-          <p>Alat dicocokkan dengan portofolio, tag, nama, dan nomor seri. Sertifikat baru ditambahkan ke riwayat; sertifikat yang sama diperbarui. Tidak mengarsipkan alat yang absen dari file.</p>
+          <p>Susunan kolom, spasi, baris header, dan nama sheet revisi dapat berbeda. Pencocokan memakai portofolio, tag, dan nomor seri; variasi ejaan nama tidak membuat alat ganda. Tag yang dipakai beberapa alat dibedakan dengan nomor seri masing-masing.</p>
+          <p>Alat baru ditambahkan otomatis. Sertifikat baru ditambahkan ke riwayat; sertifikat yang sama diperbarui. Alat yang tidak ada dalam file tetap disimpan.</p>
           <p>Jika ada data ambigu atau tidak valid, seluruh impor dibatalkan dan letak kesalahannya ditampilkan. Tidak perlu menyetujui setiap baris.</p>
         </div>
         <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" asChild><a href={`/api/operations/export?entity=kalibrasi-alat&branch=${encodeURIComponent(branch)}`}>Unduh format UMA saat ini</a></Button><Button type="submit" disabled={busy}>{busy?<LoaderCircle className="animate-spin"/>:<Upload/>}{busy?'Memproses file…':'Impor & Perbarui'}</Button></div>
@@ -38,7 +40,7 @@ export function EquipmentImportButton({branch}:{branch:string}){
         {result.error?<div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900"><p className="font-semibold">{result.error}</p><ul className="mt-2 max-h-60 list-disc overflow-y-auto pl-5 text-xs leading-6">{result.issues?.map((issue,i)=><li key={i}>{issue}</li>)}</ul></div>:<>
           <p className="flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"><CheckCircle2/>{new Set(result.rows?.map(r=>r.equipment_id)).size} alat · {result.rows?.length} baris diproses · {changed} berubah · {(result.rows?.length||0)-changed} tetap</p>
           {!!result.ignored?.length&&<p className="mt-2 text-xs text-muted-foreground">Sheet diabaikan (ringkasan/arsip/bukan tabel UMA): {result.ignored.join(', ')}.</p>}
-          <div className="mt-3 max-h-72 overflow-auto rounded-lg border border-border"><table className="w-full text-left text-xs"><thead className="sticky top-0 bg-muted"><tr>{['Alat / Tag','Sheet / Baris','Data alat','Peristiwa kalibrasi'].map(h=><th key={h} className="p-3">{h}</th>)}</tr></thead><tbody>{result.rows?.map((r,i)=><tr key={i} className="border-t border-border"><td className="p-3 font-medium">{r.name}<span className="block text-muted-foreground">{r.tag}</span></td><td className="p-3">{r.sheet} / {r.row}</td><td className="p-3">{actions[r.equipment]}</td><td className="p-3">{actions[r.calibration]}</td></tr>)}</tbody></table></div>
+          <div className="mt-3 max-h-72 overflow-auto rounded-lg border border-border"><table className="w-full text-left text-xs"><thead className="sticky top-0 bg-muted"><tr>{['Alat / Tag','Sheet / Baris','Padanan','Data alat','Peristiwa kalibrasi'].map(h=><th key={h} className="p-3">{h}</th>)}</tr></thead><tbody>{result.rows?.map((r,i)=><tr key={i} className="border-t border-border"><td className="p-3 font-medium">{r.name}<span className="block text-muted-foreground">{r.tag}</span></td><td className="p-3">{r.sheet} / {r.row}</td><td className="p-3">{matches[r.match||'']||'Identitas alat'}</td><td className="p-3">{actions[r.equipment]}</td><td className="p-3">{actions[r.calibration]}</td></tr>)}</tbody></table></div>
         </>}
       </div>}
     </Modal></>;

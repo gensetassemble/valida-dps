@@ -28,7 +28,23 @@ const aliases:Record<string,string[]> = {
   notes:["Keterangan","Catatan"],portfolio:["Portofolio","Portfolio"],location:["Lokasi"],result:["Hasil Kalibrasi"],
   calibration_kind:["Jenis Kalibrasi"],significant:["Signifikan"],
 };
-function key(value:string) {return Object.keys(aliases).find(k=>aliases[k].some(a=>label(a)===label(value)));}
+function key(value:string) {
+  const normalized=label(value).replace(/perizinan/g,'perijinan');
+  const exact=Object.keys(aliases).find(k=>aliases[k].some(a=>label(a).replace(/perizinan/g,'perijinan')===normalized));
+  if(exact)return exact;
+  // Match meaningful header words, independently of punctuation, line breaks and spelling.
+  if(/^(tag|nomor(inventaris|aset)|kode(inventaris|alat))/.test(normalized))return 'tag';
+  if(/^(nama)(barang|alat|peralatan)/.test(normalized))return 'name';
+  if(/^(serial|nomorseri|noseri)/.test(normalized))return 'serial';
+  if(/^(no|nomor)sertifikat/.test(normalized))return 'certificate_number';
+  if(/^(tgl|tanggal).*(akhir|berlaku)/.test(normalized))return 'due_date';
+  if(/^(tgl|tanggal).*(kalibrasi|terbit)/.test(normalized))return 'issue_date';
+  if(/^interval/.test(normalized))return 'interval_months';
+  if(/^(lembaga|laboratorium).*(kalibrasi|perijinan)/.test(normalized))return 'laboratory';
+  if(/^subunit.*(pemilik|kerja)/.test(normalized))return 'unit';
+  if(/^(range|rentang).*(kapasitas|ukur)/.test(normalized))return 'measurement_range';
+  if(/^faktorkoreksi/.test(normalized))return 'correction_factor';
+}
 export function umaDate(value:string):string|null {
   if (/^(n\/?a|not recorded|-)$/i.test(value)) return null;
   if(validDate(value)) return value;
@@ -57,6 +73,7 @@ function portfolio(value:string) {
   const s=value.trim().toUpperCase();
   if(codes.includes(s))return s;
   if(s==='SCE')return 'SERCO';
+  if(/^(MINERAL\s*INSPEKSI|INSPEKSI\s*MINERAL)$/.test(s))return 'MIN';
   if(/^(BTB|BATUBARA)/.test(s))return 'BBR';
   return '';
 }
@@ -64,7 +81,7 @@ function normalizeRow(v:Values,sheet:string,row:number,fallback:string):SyncRow 
   const name=text(v.name),tag=text(v.tag),p=portfolio(v.portfolio||'')||portfolio(sheet)||portfolio(fallback);
   if(!p)throw Error("Portofolio tidak terbaca. Pilih portofolio file atau isi kolom Portofolio.");
   if(!name||!tag)throw Error("Nama Barang dan Tag-Number wajib diisi untuk pencocokan alat.");
-  if(v.correction_factor&&!v.measurement_range)throw Error("Isi Range / Kapasitas untuk menentukan pasangan Faktor Koreksi.");
+  if(v.correction_factor&&!/^(n\/?a|-)$/i.test(v.correction_factor)&&!v.measurement_range)throw Error("Isi Range / Kapasitas untuk menentukan pasangan Faktor Koreksi.");
   const asset:Record<string,unknown>={},calibration:Record<string,unknown>={};
   for(const k of ['serial','brand','color','specification_size','item_condition','item_status','unit','location','notes'])if(v[k])asset[k]=v[k]==='[KOSONGKAN]'?null:v[k];
   if(v.brand)asset.model=null; // UMA stores Merk/Type in one column; do not append the old model twice.
@@ -105,20 +122,31 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
   }else if(/\.xlsx$/i.test(name)){
     checkZip(bytes);const book=new ExcelJS.Workbook();await book.xlsx.load(bytes as unknown as Parameters<typeof book.xlsx.load>[0]);
     for(const sheet of book.worksheets){
-      if(sheet.state!=='visible'||/ringkasan|summary|^rev[ ._-]|arsip|riwayat/i.test(sheet.name)){ignored.push(sheet.name);continue;}
+      if(sheet.state!=='visible'||/ringkasan|summary|arsip|riwayat/i.test(sheet.name)){ignored.push(sheet.name);continue;}
       if(sheet.rowCount>20000||sheet.columnCount>100)throw new UmaImportError([`${sheet.name}: maksimum 20.000 baris fisik dan 100 kolom.`]);
       let start=0,cols:Record<string,number>={};
-      for(let n=1;n<=Math.min(25,sheet.rowCount);n++){
+      for(let n=1;n<=Math.min(100,sheet.rowCount);n++){
         const found:Record<string,number>={};sheet.getRow(n).eachCell((c,i)=>{const k=key(cellText(c));if(k)found[k]=i;});
         if(found.name&&found.tag){start=n;cols=found;break;}
       }
       if(!start){ignored.push(sheet.name);continue;}
+      const titleCodes=new Set<string>();
+      for(let n=1;n<start;n++)sheet.getRow(n).eachCell(c=>{
+        const title=text(cellText(c)).toUpperCase();
+        if(!/UNIT\s*KERJA|CABANG|PORTOFOLIO|PORTFOLIO/.test(title))return;
+        for(const code of title.match(/\b(?:IND|PIK|SERCO|SCE|KSP|HMPM|AEBT|LAB|MIN|BBR|LSI)\b/g)||[])titleCodes.add(portfolio(code));
+        if(/MINERAL\s*INSPEKSI|INSPEKSI\s*MINERAL/.test(title))titleCodes.add('MIN');
+      });
+      const inferredPortfolio=portfolio(sheet.name)||(titleCodes.size===1?[...titleCodes][0]:'');
       let end=start;
       for(const m of sheet.model.merges||[]){const parts=m.match(/^[A-Z]+(\d+):[A-Z]+(\d+)$/);if(parts&&Number(parts[1])<=start&&Number(parts[2])<=start+4)end=Math.max(end,Number(parts[2]));}
       // Leaf labels in multi-level UMA headers supersede section labels.
       cols={};for(let n=start;n<=end;n++)sheet.getRow(n).eachCell((c,i)=>{const k=key(cellText(c));if(k)cols[k]=i;});
       if(cols.calibration_internal||cols.calibration_external)delete cols.calibration_kind;
       if(cols.significant_yes||cols.significant_no)delete cols.significant;
+      // Original UMA/198 sheets sometimes leave V's header blank but contain notes below it.
+      // Recognize that native layout by its actual column identities, never by sheet name.
+      if(!cols.notes&&cols.name===2&&cols.tag===3&&cols.correction_factor===19&&cols.significant_no===21)cols.notes=22;
       let current:{v:Values;row:number;master:string;groups:Map<string,{measurement_range:string;factors:string[]}>}|undefined;
       const flush=()=>{if(!current)return;const before=rows.length;add(current.v,sheet.name,current.row);if(rows.length>before&&current.groups.size){const groups=[...current.groups.values()].map(g=>({measurement_range:g.measurement_range,correction_factor:g.factors.join('\n')}));const out=rows.at(-1)!;out.asset.measurement_ranges=groups.map(g=>g.measurement_range);out.asset.measurement_range=groups.map(g=>g.measurement_range).join('\n');out.calibration.monitoring_measurements=groups;out.calibration.correction_factor=groups.map(g=>g.correction_factor).join('\n');}current=undefined;};
       for(let n=end+1;n<=sheet.rowCount;n++){
@@ -127,6 +155,7 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
         const nameCell=r.getCell(cols.name),nameValue=text(cellText(nameCell));
         if(!nameValue){if(current&&r.values.toString().replace(/,/g,'').trim()==='')flush();continue;}
         if(!current||current.master!==nameCell.master.address){flush();const v:Values={};for(const [k,i]of Object.entries(cols)){const c=r.getCell(i);const raw=c.value;if(raw&&typeof raw==='object'&&'formula'in raw&&raw.result===undefined){issues.push(`${sheet.name} baris ${n}: formula tanpa hasil tersimpan.`);}v[k]=raw instanceof Date?raw.toISOString().slice(0,10):text(cellText(c));}
+          if(!v.portfolio&&inferredPortfolio)v.portfolio=inferredPortfolio;
           current={v,row:n,master:nameCell.master.address,groups:new Map()};
         }
         if(cols.measurement_range){const range=r.getCell(cols.measurement_range);const rv=text(cellText(range));if(rv){const id=range.master.address;let g=current.groups.get(id);if(!g){g={measurement_range:rv,factors:[]};current.groups.set(id,g);}if(cols.correction_factor){const f=r.getCell(cols.correction_factor);if(f.master.address===f.address&&text(cellText(f)))g.factors.push(text(cellText(f)));}}}

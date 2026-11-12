@@ -41,6 +41,13 @@ select pg_temp.uma_assert(not exists(select 1 from public.equipment where branch
 select pg_temp.uma_assert(not exists(select 1 from public.equipment_sync_runs where branch_code='UMAQA' and source_name='atomic.csv'),'failed run rolled back');
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','serial.csv',repeat('e',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","serial":"DIFFERENT","asset":{},"calibration":{}}]')$q$);
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','stale.csv',repeat('e',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","asset":{},"calibration":{"certificate_number":"C-1"}}]')$q$);
+-- Names may vary; strong tag/serial evidence selects the existing instrument.
+select pg_temp.uma_assert((public.sync_equipment_uma('UMAQA','spelling.csv',repeat('c',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"Pump spelling changed","tag":"TEST 001","serial":"S001","asset":{},"calibration":{}}]')->'rows'->0->>'match')='tag_serial','tag+serial match independent of display spelling');
+-- Two distinct serials in the same source explicitly demonstrate a reused tag.
+select public.sync_equipment_uma('UMAQA','new-shared-tag.csv',repeat('c',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","serial":"S-001","asset":{"serial":"S-001"},"calibration":{}},{"sheet":"CSV","row":3,"portfolio":"PIK","name":"[UJI] New Pump","tag":"TEST-001","serial":"S-002","asset":{"serial":"S-002"},"calibration":{}}]');
+select pg_temp.uma_assert((select count(*)=2 from public.equipment where branch_code='UMAQA'),'reused tag creates separate serial, not overwrite');
+select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','ambiguous.csv',repeat('c',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"Unknown pump","tag":"TEST-001","asset":{},"calibration":{}}]')$q$);
+select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','inconsistent.csv',repeat('c',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","serial":"S-001","asset":{"serial":"WRONG"},"calibration":{}}]')$q$);
 select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000003',true);
 select public.sync_equipment_uma('UMAQA','coordinator.csv',repeat('f',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","asset":{"item_status":"Terpakai"},"calibration":{}}]');
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','scope.csv',repeat('f',64),'[{"sheet":"CSV","row":2,"portfolio":"LAB","name":"[UJI] Outside Scope","tag":"OTHER","asset":{},"calibration":{}}]')$q$);

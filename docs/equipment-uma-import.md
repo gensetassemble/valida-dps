@@ -4,13 +4,13 @@ Di halaman **Kalibrasi Alat**, Admin, PTK, dan Koordinator yang memiliki hak uba
 
 1. Gunakan laporan monitoring **FOR/SCI-UMA/198**, termasuk file XLSX hasil ekspor VALIDA. Kolom tetap mengikuti UMA; tidak perlu menambah ID internal.
 2. Unggah XLSX atau CSV UTF-8 (koma atau titik koma), maksimum 4 MiB dan 250 baris alat/peristiwa. XLS lama perlu disimpan sebagai XLSX. File lebih besar dibagi per portofolio.
-3. Portofolio dibaca dari kolom Portofolio, nama sheet, atau pilihan portofolio file jika tidak tercantum. Workbook multi-portofolio didukung. Sheet ringkasan, revisi/arsip, tersembunyi, dan sheet bukan UMA diabaikan dan disebutkan pada hasil.
+3. Portofolio dibaca dari kolom Portofolio, nama sheet, judul Unit Kerja, atau pilihan portofolio file jika tidak tercantum. Workbook multi-portofolio didukung. Sheet revisi seperti “Rev. 03” tetap dibaca jika berisi tabel aktif. Sheet ringkasan, arsip, tersembunyi, dan sheet bukan UMA diabaikan dan disebutkan pada hasil. Header dicari dalam 100 baris pertama, dengan toleransi pemenggalan baris, tanda baca, variasi nama kolom, dan urutan kolom.
 4. Klik **Impor & Perbarui**. Tidak ada persetujuan per baris. Jika seluruh baris valid, perubahan langsung diterapkan. Bila ada kesalahan, transaksi seluruh file dibatalkan dan letak masalah ditampilkan (maksimum 100).
 5. Periksa ringkasan alat baru, alat diperbarui, peristiwa baru, dan data tetap. Halaman monitoring diperbarui setelah impor berhasil.
 
 ## Kolom dan aturan
 
-Nama Barang, Tag-Number, dan portofolio wajib untuk pencocokan. Nomor seri memperjelas identitas. Tag berulang tidak dipakai sendirian untuk mencocokkan alat. Alat ambigu, nomor seri berbeda, dan alat arsip ditahan untuk koreksi; impor tidak memulihkan arsip atau menghapus alat yang tidak ada dalam file.
+Nama Barang, Tag-Number, dan portofolio diperlukan untuk pencocokan. Padanan diprioritaskan berdasarkan tag + nomor seri tanpa bergantung pada ejaan nama. Jika nomor seri belum tersedia, tag + nama digunakan; satu tag unik dapat menyelesaikan perbedaan ejaan. Tidak ada pencocokan samar berdasarkan kemiripan nama saja. Alat baru ditambahkan otomatis. Tag berulang dengan seri berbeda diizinkan hanya bila file juga memuat identitas alat lama dengan serinya sendiri, sehingga kedua alat terbukti terpisah. Nomor seri N/A/strip tidak menghapus seri lama yang diketahui. Alat ambigu, nomor seri bertentangan, dan alat arsip ditahan untuk koreksi; impor tidak memulihkan arsip atau menghapus alat yang tidak ada dalam file. Hasil impor menjelaskan dasar padanan setiap baris.
 
 Kolom spesifikasi, kondisi, status barang, subunit pemilik, lembaga kalibrasi, keterangan, tanggal, interval, jenis kalibrasi, signifikan, rentang ukur, dan faktor koreksi dibaca sesuai UMA. Lokasi dan hasil kalibrasi dapat ditambahkan sebagai kolom opsional. Interval dibaca dalam bulan atau tahun; angka tanpa satuan berarti bulan. Tanggal memakai tanggal Excel, ISO, dd/mm/yyyy, atau nama bulan Indonesia/Inggris. N/A/strip pada tanggal berarti tidak tercatat. Cell kosong mempertahankan nilai sebelumnya, bukan menghapusnya. Untuk menghapus catatan, isi `[KOSONGKAN]` pada Keterangan.
 
