@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import type { DataRow } from "@/features/master-data/server";
 import { todayWita,remainingDays,validityLabel,validDate } from "@/lib/domain/validity";
-export function addClientSheet(book: ExcelJS.Workbook, rows: DataRow[]) {
+export function addClientSheet(book: ExcelJS.Workbook, rows: DataRow[], today = todayWita()) {
   const sheet=book.addWorksheet("Sertifikat Klien");
   const columns:[string,string,number][]=[
     ["validity_status","Status Masa Berlaku",24],["days_remaining","Sisa Hari",18],
@@ -21,8 +21,8 @@ export function addClientSheet(book: ExcelJS.Workbook, rows: DataRow[]) {
     for(const key of ["issue_date","expiry_date"])
       if(typeof row[key]==="string" && validDate(String(row[key])))values[key]=new Date(String(row[key])+"T00:00:00Z");
     const expiry=typeof row.expiry_date === "string" ? row.expiry_date : "";
-    values.days_remaining=remainingDays(expiry) ?? "";
-    values.validity_status=validityLabel(expiry || null,true);
+    values.days_remaining=remainingDays(expiry,today) ?? "";
+    values.validity_status=validityLabel(expiry || null,true,false,today);
     values.previous_order_value=row.previous_order_value==null?"":Number(row.previous_order_value);
     values.pic_is_test=row.pic_is_test?"Ya — penerima internal":"Tidak";
     sheet.addRow(values);
@@ -47,5 +47,5 @@ export function addClientSheet(book: ExcelJS.Workbook, rows: DataRow[]) {
   sheet.views=[{state:"frozen",xSplit:4,ySplit:1,showGridLines:false}];
   sheet.pageSetup={orientation:"landscape",paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0};
   sheet.autoFilter={from:"A1",to:{row:1,column:columns.length}};
-  return `Arsip Sertifikat Klien - Cabang Denpasar ${todayWita()}.xlsx`;
+  return `Arsip Sertifikat Klien - Cabang Denpasar ${today}.xlsx`;
 }

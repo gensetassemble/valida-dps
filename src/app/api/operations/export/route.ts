@@ -9,6 +9,8 @@ import { personnelExportData } from "@/features/operations/personnel-export-data
 import { monitoringExportData } from "@/features/operations/monitoring-export-data";
 import { personnelFilename } from "@/features/operations/export-context";
 import { addClientSheet } from "@/features/operations/client-export";
+import { withManagementSummary } from "@/features/operations/management-summary";
+import { todayWita } from "@/lib/domain/validity";
 import { readableXlsx } from "@/lib/xlsx-readability";
 import { exportContinuationRows } from "@/lib/export-continuation";
 import { normalizeEquipmentExport } from "@/features/operations/equipment-export-scope";
@@ -76,6 +78,8 @@ export async function GET(request: NextRequest) {
   }
   const book = new ExcelJS.Workbook();
   book.creator = "VALIDA";
+  const today = todayWita();
+  let summaryRows = rows;
   let filename = c.entity.key + "-sesuai-akses.xlsx";
   if (c.entity.key === "kalibrasi-alat") {
     let context;
@@ -92,8 +96,10 @@ export async function GET(request: NextRequest) {
         { status: 503 },
       );
     }
-    const bytes = await monitoringXlsx(rows, c.branch, undefined, context);
-    const filename = monitoringFilename(rows, undefined, search.get("portfolio_selection") === "all");
+    const bytes = await withManagementSummary(await monitoringXlsx(rows, c.branch, today, context), {
+      entity: "kalibrasi-alat", rows, branch: c.branch, today,
+    });
+    const filename = monitoringFilename(rows, today, search.get("portfolio_selection") === "all");
     return new NextResponse(new Uint8Array(bytes), {
       headers: {
         "Content-Type":
@@ -111,8 +117,9 @@ export async function GET(request: NextRequest) {
         c.branch,
         request.nextUrl.searchParams.get("include_inactive") === "true",
       );
-      addPersonnelSheet(book, data.rows, data.branchName);
-      filename = personnelFilename(data.branchName);
+      summaryRows = data.rows;
+      addPersonnelSheet(book, data.rows, data.branchName, today);
+      filename = personnelFilename(data.branchName, today);
     } catch {
       return NextResponse.json(
         {
@@ -123,7 +130,7 @@ export async function GET(request: NextRequest) {
       );
     }
   } else if (c.entity.key === "sertifikat-klien") {
-    filename=addClientSheet(book,rows);
+    filename=addClientSheet(book,rows,today);
   } else {
     const sheet = book.addWorksheet("Data sesuai akses");
     sheet.columns = c.entity.columns.map((key) => ({
@@ -153,9 +160,14 @@ export async function GET(request: NextRequest) {
       to: { row: 1, column: c.entity.columns.length },
     };
   }
-  const bytes = await readableXlsx(
+  let bytes = await readableXlsx(
     new Uint8Array(await book.xlsx.writeBuffer()),
   );
+  if (c.entity.key === "kompetensi-personil" || c.entity.key === "sertifikat-klien")
+    bytes = await withManagementSummary(bytes, {
+      entity: c.entity.key, rows: summaryRows, branch: c.branch, today,
+      includeInactive: search.get("include_inactive") === "true",
+    });
   return new NextResponse(new Uint8Array(bytes), {
     headers: {
       "Content-Type":
