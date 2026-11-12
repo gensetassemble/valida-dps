@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { ListLoading } from "@/components/ui/list-loading";
 import Link from "next/link";
 import {
   dashboardFilters,
@@ -30,38 +32,9 @@ const routes: Record<string, string> = {
   personnel: "/kompetensi-personil",
   calibrations: "/kalibrasi-alat",
 };
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<QueryParams & { category?: string; examples?: string }>;
-}) {
-  const requested = await searchParams,
-    c = await requireActiveUser(),
-    branch = activeBranch(c.scopes, c.profile.branch_code, requested.branch),
-    db = await masterClient();
-  const { domains, category } = dashboardScope(
-    c.scopes,
-    branch,
-    requested.category,
-  );
-  const p = dashboardFilters({}, category);
-  const showClients =
-    domains.includes("clients") && ["all", "clients"].includes(category);
-  const showCalibrations =
-    domains.includes("calibrations") &&
-    ["all", "calibrations"].includes(category);
-  const { data, error } = await db.rpc("operational_summary", {
-    b: branch,
-    filters: { ...p },
-  });
-  if (error) {
-    console.error("Dashboard query failed", {
-      code: error.code,
-      message: error.message?.slice(0, 160),
-    });
-    throw Error("Ringkasan belum dapat dimuat dalam cakupan yang diminta.");
-  }
-  const s = data as Summary;
+async function DashboardPriorities({summary,branch}:{summary:Summary;branch:string}) {
+  const s = {...summary, soon: summary.soon.map(item => ({...item}))};
+  const db = await masterClient();
   const equipmentIds = [
     ...new Set(
       (s.soon || [])
@@ -207,6 +180,40 @@ export default async function DashboardPage({
         (e) => e.id === item.responsible_id,
       )?.full_name;
   }
+  return <ExpiringTable items={s.soon} branch={branch} today={todayWita()} />;
+}
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<QueryParams & { category?: string; examples?: string }>;
+}) {
+  const requested = await searchParams,
+    c = await requireActiveUser(),
+    branch = activeBranch(c.scopes, c.profile.branch_code, requested.branch),
+    db = await masterClient();
+  const { domains, category } = dashboardScope(
+    c.scopes,
+    branch,
+    requested.category,
+  );
+  const p = dashboardFilters({}, category);
+  const showClients =
+    domains.includes("clients") && ["all", "clients"].includes(category);
+  const showCalibrations =
+    domains.includes("calibrations") &&
+    ["all", "calibrations"].includes(category);
+  const { data, error } = await db.rpc("operational_summary", {
+    b: branch,
+    filters: { ...p },
+  });
+  if (error) {
+    console.error("Dashboard query failed", {
+      code: error.code,
+      message: error.message?.slice(0, 160),
+    });
+    throw Error("Ringkasan belum dapat dimuat dalam cakupan yang diminta.");
+  }
+  const s = data as Summary;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -330,7 +337,7 @@ export default async function DashboardPage({
           </Link>
         ))}
       </nav>
-      <ExpiringTable items={s.soon} branch={branch} today={todayWita()} />
+      <Suspense fallback={<ListLoading rows={4}/>}><DashboardPriorities summary={s} branch={branch}/></Suspense>
     </div>
   );
 }

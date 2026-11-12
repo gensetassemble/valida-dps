@@ -1,8 +1,8 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useOptimistic } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Popover } from "radix-ui";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LoaderCircle } from "lucide-react";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import { personnelFilterOptions } from "./personnel-filter-options";
 type Choice = { value: string; label: string };
@@ -102,10 +102,12 @@ export function CompactOperationalFilters({
   branch: string;
   options: Group[];
 }) {
-  const params = useSearchParams(),
+  const currentParams = useSearchParams(),
     router = useRouter(),
     path = usePathname();
   const [pending, start] = useTransition();
+  const [optimisticQuery, setOptimisticQuery] = useOptimistic(currentParams.toString());
+  const params = new URLSearchParams(optimisticQuery);
   const groups: Group[] =
     entity === "kompetensi-personil"
       ? personnelFilterOptions.map((g) => ({
@@ -149,23 +151,31 @@ export function CompactOperationalFilters({
           },
         ];
   function change(key: string, value: string) {
+    changeValues({[key]:value});
+  }
+  function changeValues(values: Record<string,string>) {
     const next = new URLSearchParams(params.toString());
     next.delete("page");
-    if (key === "sort") next.delete("dir");
-    if (value) next.set(key, value);
-    else next.delete(key);
-    if (key === "kind") {
+    if (Object.hasOwn(values,"sort")) next.delete("dir");
+    for (const [key,value] of Object.entries(values)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    if (Object.hasOwn(values,"kind")) {
       next.delete("filter");
       next.delete("value");
     }
-    start(() => router.replace(path + "?" + next, { scroll: false }));
+    start(() => {
+      setOptimisticQuery(next.toString());
+      router.replace(path + "?" + next, { scroll: false });
+    });
   }
   return (
     <div
       className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-3 shadow-sm"
       aria-busy={pending}
     >
-      <AutoFilterForm keys={["q"]} className="min-w-44 flex-1">
+      <AutoFilterForm keys={["q"]} onApply={changeValues} className="min-w-44 flex-1">
         <input
           aria-label="Cari rekaman"
           name="q"
@@ -186,7 +196,6 @@ export function CompactOperationalFilters({
               : "")
           }
           onChange={(v) => change(group.key, v)}
-          disabled={pending}
         />
       ))}
       {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
@@ -200,7 +209,6 @@ export function CompactOperationalFilters({
           ]}}
           value={params.get("sort") || ""}
           onChange={(v) => change("sort", v)}
-          disabled={pending}
         />
       )}
       <Popover.Root>
@@ -215,6 +223,7 @@ export function CompactOperationalFilters({
           >
             <AutoFilterForm
               keys={["from", "until"]}
+              onApply={changeValues}
               className="grid gap-3 text-xs"
             >
               <label>
@@ -241,18 +250,20 @@ export function CompactOperationalFilters({
       </Popover.Root>
       <button
         type="button"
-        disabled={pending}
         onClick={() =>
-          start(() =>
-            router.replace(path + "?branch=" + branch, { scroll: false }),
-          )
+          start(() => {
+            const query = new URLSearchParams({branch}).toString();
+            setOptimisticQuery(query);
+            router.replace(path + "?" + query, { scroll: false });
+          })
         }
         className="h-9 px-2 text-xs underline"
       >
         Reset
       </button>
-      <span role="status" className="sr-only">
-        {pending ? "Memfilter data…" : ""}
+      <span role="status" className={pending ? "inline-flex items-center gap-1.5 text-[11px] text-muted-foreground" : "sr-only"}>
+        {pending && <LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin"/>}
+        {pending ? "Memperbarui daftar…" : ""}
       </span>
     </div>
   );

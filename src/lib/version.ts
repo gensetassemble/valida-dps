@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.12-dashboard-status-links.1";
+export const APPLICATION_RELEASE = "2026.11.12-smooth-navigation.1";

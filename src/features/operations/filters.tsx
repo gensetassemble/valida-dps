@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { masterClient, type QueryParams } from "@/features/master-data/server";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import { CompactOperationalFilters } from "./compact-filters";
+import { equipmentOptions } from "./equipment-options";
 export async function OperationalFilters({
   entity,
   branch,
@@ -35,28 +36,15 @@ export async function OperationalFilters({
   const options = await Promise.all(
     keys.map(async ([param, table, label, title]) => {
       if (entity === "kalibrasi-alat" && param === "unit") {
-        const { data, error } = await db.from("equipment_monitoring_records").select("owner_unit")
-          .eq("branch_code", branch).order("owner_unit").limit(10000);
-        if (error) throw Error("Subunit pemilik alat belum dapat dimuat.");
-        const values = [...new Set((data || []).map((row) => row.owner_unit || "__unset__"))];
+        const result = await equipmentOptions(branch);
+        if (result.unavailable) throw Error("Subunit pemilik alat belum dapat dimuat.");
+        const values = result.units;
         return { param, title, label, rows: values.map((unit): Record<string, string> => ({id: unit, unit: unit === "__unset__" ? "Belum diisi" : unit})) };
       }
       if (entity === "kalibrasi-alat" && param === "portfolio") {
-        const { data, error } = await db
-          .from("equipment_monitoring_records")
-          .select("portfolio_id,portfolio_code")
-          .eq("branch_code", branch)
-          .order("portfolio_code")
-          .limit(10000);
-        if (error) throw Error("Portofolio alat belum dapat dimuat.");
-        const unique = new Map<string, Record<string, string>>();
-        for (const row of data || [])
-          if (row.portfolio_id && row.portfolio_code)
-            unique.set(String(row.portfolio_id), {
-              id: String(row.portfolio_id),
-              code: String(row.portfolio_code),
-            });
-        return { param, title, label, rows: [...unique.values()] };
+        const result = await equipmentOptions(branch);
+        if (result.unavailable) throw Error("Portofolio alat belum dapat dimuat.");
+        return { param, title, label, rows: result.filters.map((row): Record<string,string> => ({id:row.id,code:row.code})) };
       }
       if (param === "am") {
         // Derive labels from authorized certificates; reading profiles would

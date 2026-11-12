@@ -303,26 +303,32 @@ export async function listRecords(
       .filter((field) => field.kind === "lookup")
       .map(async (field) => {
         const target = getEntity(field.lookup!,branch);
+        if (!target) return;
+        const source = ({portfolio_id:"portfolio_code",employee_id:"employee_name",client_id:"client_name",certificate_type_id:"certificate_type_name",equipment_id:"equipment_name"} as Record<string,string>)[field.key];
+        const known = Object.fromEntries(rows.filter(row => typeof row[field.key] === "string" && source && row[source]).map(row => [String(row[field.key]),
+          ["pegawai","pengguna","koordinator","marketing"].includes(target.key) ? personnelText(row[source]) : String(row[source])
+        ]));
+        labels[field.key] = known;
         const ids = [
           ...new Set(
             rows
               .map((row) => row[field.key])
-              .filter((value): value is string => typeof value === "string"),
+              .filter((value): value is string => typeof value === "string" && !Object.hasOwn(known,value)),
           ),
         ];
-        if (!target || !ids.length) return;
+        if (!ids.length) return;
         const { data } = await db
           .from(target.table)
           .select(`${target.idKey},${target.labelKey}`)
           .in(target.idKey, ids)
           .limit(1000);
         const visible = (data || []) as unknown as DataRow[];
-        labels[field.key] = Object.fromEntries(
+        labels[field.key] = { ...known, ...Object.fromEntries(
           visible.map((row) => [
             String(row[target.idKey]),
             ["pegawai", "pengguna", "koordinator", "marketing"].includes(target.key) ? personnelText(row[target.labelKey]) : String(row[target.labelKey] || row[target.idKey]),
           ]),
-        );
+        ) };
       }),
   );
   if (entity.key === "pelanggan")

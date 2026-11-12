@@ -1,4 +1,7 @@
 import { AccessDenied } from "@/components/ui/access-denied";
+import { Suspense } from "react";
+import { FilterLoading, ListLoading } from "@/components/ui/list-loading";
+import { equipmentOptions } from "./equipment-options";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -32,6 +35,10 @@ import { EquipmentExportMenu } from "./equipment-export-menu";
 import { MeasurementSummary } from "./measurement-summary";
 import { calibrationExpiryReview } from "./calibration-expiry";
 import { EquipmentArchiveAction, EquipmentPermanentDelete } from "./equipment-archive-action";
+async function EquipmentExportAction({branch}:{branch:string}) {
+  const options = await equipmentOptions(branch);
+  return <EquipmentExportMenu key={branch} branch={branch} portfolios={options.portfolios} unavailable={options.unavailable}/>;
+}
 export async function OperationList({
   entity,
   params,
@@ -41,20 +48,6 @@ export async function OperationList({
 }) {
   const c = await pageEntityContext(entity, params.branch);
   if (!c) return <AccessDenied />;
-  const exportOptions: { id: string; code: string; count: number }[] = [];
-  let exportUnavailable = false;
-  if (entity === "kalibrasi-alat") {
-    const db = await masterClient();
-    const { data, error } = await db.from("equipment_monitoring_records")
-      .select("portfolio_id,portfolio_code").eq("branch_code", c.branch).eq("is_active", true).limit(10000);
-    exportUnavailable = !!error;
-    const grouped = new Map<string, { id: string; code: string; count: number }>();
-    for (const row of data || []) if (row.portfolio_id && row.portfolio_code) {
-      const option = grouped.get(String(row.portfolio_id)) || { id: String(row.portfolio_id), code: String(row.portfolio_code), count: 0 };
-      option.count++; grouped.set(option.id, option);
-    }
-    exportOptions.push(...[...grouped.values()].sort((a,b) => a.code.localeCompare(b.code)));
-  }
   const compact = ["sertifikat-klien", "kompetensi-personil", "kalibrasi-alat"].includes(entity);
   return (
     <>
@@ -83,7 +76,7 @@ export async function OperationList({
             </Link>
           </Button>
         )}
-        {entity === "kalibrasi-alat" ? <EquipmentExportMenu key={c.branch} branch={c.branch} portfolios={exportOptions} unavailable={exportUnavailable}/> : <Button asChild variant="outline">
+        {entity === "kalibrasi-alat" ? <Suspense fallback={<Button disabled variant="outline">Menyiapkan ekspor…</Button>}><EquipmentExportAction branch={c.branch}/></Suspense> : <Button asChild variant="outline">
           <a
             href={
               "/api/operations/export?" +
@@ -124,15 +117,17 @@ export async function OperationList({
         </nav>}
       </div>
       </div>
-      {entity === "kalibrasi-alat" && <WorkflowOverview kind="calibration" branch={c.branch}/>}
+      {entity === "kalibrasi-alat" && <Suspense fallback={null}><WorkflowOverview kind="calibration" branch={c.branch}/></Suspense>}
       {entity === "kompetensi-personil" && (
-        <WorkflowOverview
+        <Suspense fallback={null}><WorkflowOverview
           kind="personnel"
           branch={c.branch}
-        />
+        /></Suspense>
       )}
-      <OperationalFilters entity={entity} branch={c.branch} params={params} />
-      {compact ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
+      <Suspense fallback={<FilterLoading />}><OperationalFilters entity={entity} branch={c.branch} params={params} /></Suspense>
+      <Suspense fallback={<ListLoading />}>
+        {compact ? <MasterTable entity={entity} params={params} /> : <MasterPage entity={entity} params={params} />}
+      </Suspense>
     </>
   );
 }
