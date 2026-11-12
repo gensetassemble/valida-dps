@@ -30,6 +30,7 @@ describe('UMA monitoring import',()=>{
     expect(()=>umaDate('31/02/2026')).toThrow();expect(umaDate('N/A')).toBeNull();expect(umaDate('12-Nov-26')).toBe('2026-11-12');
     await expect(parseUma('x.csv',Buffer.from('Nama Barang,Tag-Number,Internal,Eksternal\nAlat A,A001,√,√'),'PIK')).rejects.toMatchObject({issues:[expect.stringContaining('sama-sama')]});
     await expect(parseUma('x.csv',Buffer.from('Nama Barang,Tag-Number\nAlat A,A001\nAlat A,A001'),'PIK')).rejects.toMatchObject({issues:[expect.stringContaining('berulang')]});
+    await expect(parseUma('x.csv',Buffer.from('Nama Barang,Tag-Number\n'+Array.from({length:251},(_,i)=>`Alat ${i},TAG-${i}`).join('\n')),'PIK')).rejects.toMatchObject({issues:[expect.stringContaining('250')]});
   });
   it('handles multi-portfolio sheets and skips management summaries without inventing a portfolio',async()=>{
     const book=new ExcelJS.Workbook();for(const code of ['LAB','PIK']){const s=book.addWorksheet(code);s.addRow(['Nama Barang','Tag-Number','Keterangan']);s.addRow(['Alat A',code+'001','Siap']);}book.addWorksheet('Ringkasan Manajemen').addRow(['Jumlah',2]);

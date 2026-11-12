@@ -21,7 +21,7 @@ export async function POST(request:NextRequest){
     const {data,error}=await db.rpc('sync_equipment_uma',{
       b:c.branch,filename:file.name.replace(/[^\p{L}\p{N} ._()-]/gu,'_').slice(0,180),filehash:parsed.hash,items:parsed.rows,
     });
-    if(error)return NextResponse.json({error:'Impor dibatalkan seluruhnya; belum ada perubahan yang disimpan.',issues:error.code==='P0001'?error.message.split('\n'):['Periksa kewenangan portofolio, sesi/MFA, serta format data.']},{status:422,headers});
+    if(error)return NextResponse.json({error:'Impor dibatalkan seluruhnya; belum ada perubahan yang disimpan.',issues:error.code==='P0001'?error.message.split('\n'):['57014','55P03'].includes(error.code)?['Impor melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.']:['Periksa kewenangan portofolio, sesi/MFA, serta format data.']},{status:422,headers});
     for(const path of ['/kalibrasi-alat','/dashboard','/master-data/alat'])revalidatePath(path);
     revalidatePath('/kalibrasi-alat/[id]','page');revalidatePath('/peristiwa-kalibrasi/[id]','page');
     return NextResponse.json({...data,ignored:parsed.ignored},{headers});

@@ -97,7 +97,7 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
   const add=(v:Values,s:string,r:number)=>{try{rows.push(normalizeRow(v,s,r,fallback));}catch(e){issues.push(`${s} baris ${r}: ${(e as Error).message}`);}};
   if(/\.csv$/i.test(name)){
     const records=parse(bytes,{bom:true,skip_empty_lines:true,max_record_size:64000,delimiter:bytes.subarray(0,4000).toString().split('\n')[0].includes(';')?';':','}) as string[][];
-    if(records.length>1001)throw new UmaImportError(['Maksimum 1.000 alat per unggahan.']);
+    if(records.length>251)throw new UmaImportError(['Maksimum 250 baris alat/peristiwa per unggahan. Bagi file per portofolio.']);
     const headers=(records.shift()||[]).map(h=>key(h)||'');
     if(!headers.includes('name')||!headers.includes('tag'))throw new UmaImportError(['Header Nama Barang dan Tag-Number tidak ditemukan.']);
     if(new Set(headers.filter(Boolean)).size!==headers.filter(Boolean).length)throw new UmaImportError(['Kolom CSV duplikat; gunakan satu kolom untuk setiap parameter UMA.']);
@@ -152,7 +152,7 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
     else if(!unique.length)issues.push(`${r.sheet} baris ${r.row}: alat berulang dalam file. Satukan data terbarunya.`);
   }
   const result=[...merged.values()];
-  if(result.length>1000)issues.push('Maksimum 1.000 alat per unggahan.');
+  if(result.length>250)issues.push('Maksimum 250 baris alat/peristiwa per unggahan. Bagi file per portofolio.');
   if(!rows.length&&!issues.length)issues.push('Tidak ada tabel UMA yang ditemukan. Gunakan header Nama Barang dan Tag-Number.');
   if(issues.length)throw new UmaImportError(issues.slice(0,100));
   return {rows:result,ignored,hash:createHash('sha256').update(bytes).update(fallback).digest('hex')};

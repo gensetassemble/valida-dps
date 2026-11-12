@@ -23,7 +23,7 @@ export function EquipmentImportButton({branch}:{branch:string}){
       <form onSubmit={submit} className="space-y-4">
         <input type="hidden" name="branch" value={branch}/>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-2 text-sm font-semibold">File laporan monitoring<Input type="file" name="file" accept=".xlsx,.csv" required disabled={busy}/><span className="block text-xs font-normal text-muted-foreground">XLSX / CSV, maksimum 4 MiB. Simpan XLS lama sebagai XLSX.</span></label>
+          <label className="space-y-2 text-sm font-semibold">File laporan monitoring<Input type="file" name="file" accept=".xlsx,.csv" required disabled={busy}/><span className="block text-xs font-normal text-muted-foreground">XLSX / CSV, maksimum 4 MiB dan 250 baris alat/peristiwa. Simpan XLS lama sebagai XLSX.</span></label>
           <label className="space-y-2 text-sm font-semibold">Portofolio jika tidak tercantum dalam file<select name="portfolio" disabled={busy} className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"><option value="">Otomatis dari kolom / nama sheet</option>{['IND','PIK','SERCO','KSP','HMPM','AEBT','LAB','MIN','BBR','LSI'].map(p=><option key={p}>{p}</option>)}</select><span className="block text-xs font-normal text-muted-foreground">Satu workbook dapat berisi beberapa sheet portofolio.</span></label>
         </div>
         <div className="rounded-xl border border-border bg-muted/40 p-4 text-xs leading-6">

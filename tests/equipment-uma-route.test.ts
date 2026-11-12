@@ -25,5 +25,6 @@ describe('UMA authenticated import endpoint',()=>{
     const invalid=await POST(request('Nama Barang,Tag-Number,Tanggal Berakhir\nPump,PIK-001,31/02/2026'));expect(invalid.status).toBe(400);expect(mocks.rpc).not.toHaveBeenCalled();
     mocks.rpc.mockResolvedValue({data:null,error:{code:'P0001',message:'CSV baris 2: ambigu\nCSV baris 3: nomor seri berbeda'}});
     const rejected=await POST(request('Nama Barang,Tag-Number\nPump,PIK-001'));expect(rejected.status).toBe(422);expect((await rejected.json()).issues).toHaveLength(2);expect(mocks.refresh).not.toHaveBeenCalled();
+    mocks.rpc.mockResolvedValue({data:null,error:{code:'57014',message:'timeout'}});const timeout=await POST(request('Nama Barang,Tag-Number\nPump,PIK-001'));expect((await timeout.json()).issues[0]).toContain('batas waktu');
   });
 });
