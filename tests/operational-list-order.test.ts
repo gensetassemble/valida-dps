@@ -20,4 +20,11 @@ describe("Operational list ordering", () => {
     expect(operationalOrder("sertifikat-klien")).toBeNull();
     expect(operationalOrder("kalibrasi-alat", "injected(column)")).toBeNull();
   });
+  it("loads the newest audit events through the audit time index", () => {
+    expect(operationalOrder("audit")).toEqual([
+      { column: "occurred_at", ascending: false },
+      { column: "id", ascending: true },
+    ]);
+    expect(operationalOrder("audit", "table_name")).toBeNull();
+  });
 });

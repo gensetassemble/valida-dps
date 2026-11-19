@@ -1,5 +1,10 @@
 // These are database columns, never raw URL input. Ordering happens before range().
 export function operationalOrder(entity: string, sort?: string, dir?: string) {
+  if (entity === "audit" && !sort)
+    return [
+      { column: "occurred_at", ascending: false },
+      { column: "id", ascending: true },
+    ];
   if (!["kalibrasi-alat", "kompetensi-personil"].includes(entity)) return null;
   const equipment = entity === "kalibrasi-alat";
   const date = equipment ? "latest_due_date" : "expiry_date";

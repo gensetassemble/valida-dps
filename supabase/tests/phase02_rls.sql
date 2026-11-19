@@ -65,6 +65,7 @@ end $$;
 select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='certificate-documents'),'private storage has a row but remains invisible');
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
 select pg_temp.assert_true((select count(*)=2 from public.clients where id in ('50000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000003')),'Admin DPS cannot see other branch');
+select pg_temp.assert_true(exists(select 1 from public.audit_logs where branch_code='DPS') and not exists(select 1 from public.audit_logs where branch_code<>'DPS'),'Super Admin reads only its branch audit trail');
 do $$ begin
  begin insert into public.user_role_assignments(profile_id,role_code,grant_reason) values(auth.uid(),'hrga','[CONTOH] Admin self grant'); raise exception 'FAIL: Admin grants own role'; exception when insufficient_privilege then null; end;
  begin insert into public.clients(name,work_area_id) values('[CONTOH] Cross-branch FK','80000000-0000-4000-8000-000000000001'); raise exception 'FAIL: cross-branch FK'; exception when foreign_key_violation then null; end;
