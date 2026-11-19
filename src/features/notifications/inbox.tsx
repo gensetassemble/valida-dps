@@ -197,7 +197,8 @@ export function NotificationInbox({
           </Button>
         </div>
       </header>
-      {priorities}
+      <div className={filters.folder === 'archive' ? undefined : styles.columns}>
+      <div className={styles.mainColumn}>
       <div className={styles.toolbar}>
         <nav className="flex flex-wrap gap-2 border-b border-border p-3" aria-label="Folder notifikasi">
           <Button size="sm" variant={filters.folder !== "archive" ? "default" : "outline"} onClick={() => navigate({folder:"",state:"all"})}>Inbox</Button>
@@ -389,6 +390,9 @@ export function NotificationInbox({
         Waktu ditampilkan dalam WITA. Status proses tidak mengubah masa berlaku
         sertifikat.
       </p>
+      </div>
+      {filters.folder !== 'archive' && <aside className={styles.priorityColumn} aria-label="Prioritas masa berlaku">{priorities}</aside>}
+      </div>
     </section>
   );
 }

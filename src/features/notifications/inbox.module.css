@@ -4,6 +4,25 @@
   color: #0b2545;
   font-family: var(--font-sans);
 }
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.mainColumn,
+.priorityColumn {
+  min-width: 0;
+}
+@media (min-width: 1100px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  }
+  .priorityColumn {
+    position: sticky;
+    top: 84px;
+  }
+}
 .header {
   display: flex;
   justify-content: space-between;
