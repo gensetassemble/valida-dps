@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Award,
@@ -54,12 +54,14 @@ export function NotificationInbox({
   filters,
   page,
   now,
+  priorities,
 }: {
   feed: Feed;
   counts: Counts;
   filters: Filters;
   page: number;
   now: string;
+  priorities?:ReactNode;
 }) {
   const router = useRouter(),
     params = useSearchParams(),
@@ -195,6 +197,7 @@ export function NotificationInbox({
           </Button>
         </div>
       </header>
+      {priorities}
       <div className={styles.toolbar}>
         <nav className="flex flex-wrap gap-2 border-b border-border p-3" aria-label="Folder notifikasi">
           <Button size="sm" variant={filters.folder !== "archive" ? "default" : "outline"} onClick={() => navigate({folder:"",state:"all"})}>Inbox</Button>

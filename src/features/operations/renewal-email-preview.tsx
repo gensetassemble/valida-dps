@@ -50,7 +50,7 @@ export function RenewalEmailPreview({certificate,branch,compact=false}:{certific
             <p className="font-bold text-brand-navy">{data.context.customer}</p><p>Referensi: {data.context.number || "Belum tersedia"}</p>
             <p>Jenis sertifikat: {data.context.certificateType || "Belum tersedia"}</p><p>AM: {data.accountManager}</p>
           </div>
-          {data.demoMode && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 leading-5"><strong>Mode Demo · Uji Internal</strong><p>PIC uji: {data.demoContact.name}</p><p>Semua pratinjau demo menggunakan alamat uji Adli. PIC dan email pelanggan wajib dilengkapi saat pengiriman resmi diaktifkan.</p></div>}
+          {data.demoMode && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 leading-5"><strong>Mode Demo · Uji Internal</strong><p>PIC uji: {data.demoContact.name}</p><p>Semua pratinjau demo menggunakan alamat uji Nicko. PIC dan email pelanggan wajib dilengkapi saat pengiriman resmi diaktifkan.</p></div>}
           {data.isAdmin && !data.demoMode && <fieldset className="flex gap-4 rounded-lg border border-border p-3"><legend className="px-1">Mode pratinjau</legend>
             {(["official","test"] as const).map(v=><label key={v} className="flex gap-2"><input type="radio" name={"email-mode-"+certificate} checked={mode===v} onChange={()=>{setMode(v);setConfirmed(false);setCopied(false);if(v === "official" && contact?.is_test)setContact(data.contacts.find(c=>!c.is_test)?.id || "");}}/>{v === "test" ? "Uji internal" : "Pelanggan"}</label>)}
           </fieldset>}

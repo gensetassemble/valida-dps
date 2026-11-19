@@ -13,7 +13,7 @@ export async function POST(request:NextRequest){
     const form=await boundedForm(request,4*1024*1024);
     const branch=String(form.get('branch')||'');
     const c=await entityContext('kalibrasi-alat',branch,true);
-    const file=form.get('file');if(!(file instanceof File))throw new UmaImportError(['Pilih file XLSX atau CSV.']);
+    const file=form.get('file');if(!(file instanceof File))throw new UmaImportError(['Pilih file CSV, XLSX, XLS, atau XLSB.']);
     const fallback=String(form.get('portfolio')||'');
     if(fallback&&!/^(IND|PIK|SERCO|KSP|HMPM|AEBT|LAB|MIN|BBR|LSI)$/.test(fallback))throw new UmaImportError(['Portofolio file tidak valid.']);
     const parsed=await parseUma(file.name,Buffer.from(await file.arrayBuffer()),fallback);
@@ -24,7 +24,7 @@ export async function POST(request:NextRequest){
     if(error)return NextResponse.json({error:'Impor dibatalkan seluruhnya; belum ada perubahan yang disimpan.',issues:error.code==='P0001'?error.message.split('\n'):['57014','55P03'].includes(error.code)?['Impor melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.']:['Periksa kewenangan portofolio, sesi/MFA, serta format data.']},{status:422,headers});
     for(const path of ['/kalibrasi-alat','/dashboard','/master-data/alat'])revalidatePath(path);
     revalidatePath('/kalibrasi-alat/[id]','page');revalidatePath('/peristiwa-kalibrasi/[id]','page');
-    return NextResponse.json({...data,ignored:parsed.ignored},{headers});
+    return NextResponse.json({...data,ignored:parsed.ignored,duplicates:parsed.duplicates},{headers});
   }catch(error){
     return NextResponse.json({error:error instanceof UmaImportError?error.message:'Impor belum dapat diproses. Periksa file, ukuran maksimum 4 MiB, dan hak akses.',issues:error instanceof UmaImportError?error.issues:[]},{status:400,headers});
   }

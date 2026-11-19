@@ -1,5 +1,7 @@
 import { NotificationInbox } from "@/features/notifications/inbox";
 import { loadInbox, parseInboxParams } from "@/features/notifications/server";
+import {Suspense} from 'react';
+import {UrgentNotifications} from '@/features/notifications/urgent';
 export default async function NotificationsPage({
   searchParams,
 }: {
@@ -14,6 +16,7 @@ export default async function NotificationsPage({
       filters={filters}
       page={page}
       now={new Date().toISOString()}
+      priorities={<Suspense fallback={<p className="text-xs text-muted-foreground">Memuat pengingat Expired dan Kritis…</p>}><UrgentNotifications filters={filters}/></Suspense>}
     />
   );
 }

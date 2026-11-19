@@ -23,11 +23,11 @@ describe("server-enforced email fallback",()=>{
   for(let i=0;i<2;i++)expect((await requestRenewalEmailSend({certificate,branch,mode:"official"})).error).toContain("Pengiriman belum tersedia");
   expect(mocks.rpc).not.toHaveBeenCalled();
  });
- it("provides the approved Adli demo for AM without an official PIC or a manual service field",async()=>{
+ it("provides the approved Nicko demo for AM without an official PIC or a manual service field",async()=>{
   const {data}=await getRenewalEmailPreview({certificate,branch});
   expect(data?.isAdmin).toBe(false);expect(data?.demoMode).toBe(true);
-  expect(data?.demoContact).toEqual({name:"[UJI] Adli Alfian",email:"adli.alfian@sucofindo.co.id"});
-  expect(data?.testRecipients).toEqual(["adli.alfian@sucofindo.co.id"]);
+  expect(data?.demoContact).toEqual({name:"[UJI] I Kadek Nicko Iswara Sudanta",email:"kadek.nicko@sucofindo.co.id"});
+  expect(data?.testRecipients).toEqual(["kadek.nicko@sucofindo.co.id"]);
   expect(data?.context.serviceName).toBe("Residual Disinsection");expect(mocks.rpc).not.toHaveBeenCalled();
  });
  it("rejects recipient/token injection and refuses test sends for non-admins",async()=>{

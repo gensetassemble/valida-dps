@@ -6,6 +6,7 @@ import { checkZip, MAX_IMPORT_BYTES } from "@/features/imports/parser";
 import { addMonths, validDate } from "@/lib/domain/validity";
 import { normalizeCalibrationLaboratory, calibrationLaboratories } from "@/features/operations/calibration-laboratories";
 import { normalizeEquipmentUnit } from "@/features/operations/equipment-units";
+import { legacyWorkbook } from './legacy-workbook';
 
 type Values = Record<string, string>;
 export type SyncRow = {sheet:string;row:number;portfolio:string;name:string;tag:string;serial?:string;asset:Record<string,unknown>;calibration:Record<string,unknown>;raw:Values};
@@ -122,8 +123,12 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
     if(!headers.includes('name')||!headers.includes('tag'))throw new UmaImportError(['Header Nama Barang dan Tag-Number tidak ditemukan.']);
     if(new Set(headers.filter(Boolean)).size!==headers.filter(Boolean).length)throw new UmaImportError(['Kolom CSV duplikat; gunakan satu kolom untuk setiap parameter UMA.']);
     records.forEach((r,i)=>add(Object.fromEntries(headers.flatMap((h,j)=>h?[[h,text(r[j])]]:[])), 'CSV',i+2));
-  }else if(/\.xlsx$/i.test(name)){
-    checkZip(bytes);const book=new ExcelJS.Workbook();await book.xlsx.load(bytes as unknown as Parameters<typeof book.xlsx.load>[0]);
+  }else if(/\.(xlsx|xlsb|xls)$/i.test(name)){
+    let book:ExcelJS.Workbook;
+    try {
+      if(/\.xlsx$/i.test(name)){checkZip(bytes);book=new ExcelJS.Workbook();await book.xlsx.load(bytes as unknown as Parameters<typeof book.xlsx.load>[0]);}
+      else book=legacyWorkbook(name,bytes);
+    }catch(e){throw new UmaImportError([`Berkas Excel belum dapat dibaca: ${(e as Error).message}`]);}
     for(const sheet of book.worksheets){
       if(sheet.state!=='visible'||/ringkasan|summary|arsip|riwayat/i.test(sheet.name)){ignored.push(sheet.name);continue;}
       if(sheet.rowCount>20000||sheet.columnCount>100)throw new UmaImportError([`${sheet.name}: maksimum 20.000 baris fisik dan 100 kolom.`]);
@@ -167,12 +172,14 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
       }
       flush();
     }
-  }else throw new UmaImportError(['Gunakan XLSX atau CSV. Untuk XLS lama, simpan sebagai XLSX terlebih dahulu.']);
+  }else throw new UmaImportError(['Gunakan CSV, XLSX, XLS, atau XLSB.']);
   const merged=new Map<string,SyncRow>();
+  let duplicates=0;
   for(const r of rows){
     const id=[r.portfolio,label(r.tag),label(r.name),label(r.serial),label(r.calibration.component_label),label(r.calibration.certificate_number),r.calibration.issue_date||''].join('|');const previous=merged.get(id);
     for(const v of Object.values(r.raw))if(v.length>12000)issues.push(`${r.sheet} baris ${r.row}: isi sel terlalu panjang.`);
     if(!previous){merged.set(id,r);continue;}
+    if(JSON.stringify(previous.asset)===JSON.stringify(r.asset)&&JSON.stringify(previous.calibration)===JSON.stringify(r.calibration)){duplicates++;continue;}
     if(r.sheet!==previous.sheet){issues.push(`${r.sheet} baris ${r.row}: alat berulang pada sheet berbeda. Pilih data terbaru saja.`);continue;}
     const groupKeys=['measurement_range','measurement_ranges','monitoring_measurements','correction_factor'];
     let conflict=false;
@@ -189,5 +196,5 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
   if(result.length>250)issues.push('Maksimum 250 baris alat/peristiwa per unggahan. Bagi file per portofolio.');
   if(!rows.length&&!issues.length)issues.push('Tidak ada tabel UMA yang ditemukan. Gunakan header Nama Barang dan Tag-Number.');
   if(issues.length)throw new UmaImportError(issues.slice(0,100));
-  return {rows:result,ignored,hash:createHash('sha256').update(bytes).update(fallback).digest('hex')};
+  return {rows:result,ignored,duplicates,hash:createHash('sha256').update(bytes).update(fallback).digest('hex')};
 }
