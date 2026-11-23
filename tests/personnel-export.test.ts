@@ -6,7 +6,7 @@ import {
 } from "@/features/operations/personnel-export";
 
 describe("personnel monitoring export", () => {
-  it("round-trips the 14 report columns, dates, identifiers, current values and safe links", async () => {
+  it("round-trips the 15 report columns, employee type, dates, identifiers, current values and safe links", async () => {
     const book = new ExcelJS.Workbook();
     const url = "https://drive.google.com/drive/folders/synthetic-folder";
     addPersonnelSheet(
@@ -58,43 +58,47 @@ describe("personnel monitoring export", () => {
     const reopened = new ExcelJS.Workbook();
     await reopened.xlsx.load(saved);
     const sheet = reopened.getWorksheet("Kompetensi Personil")!;
-    expect(sheet.columnCount).toBe(14);
+    expect(sheet.columnCount).toBe(15);
     expect(sheet.getCell("A3").value).toBe("CABANG : DENPASAR");
-    expect(sheet.getCell("G4").value).toBe("MASA BERLAKU");
-    for (let col = 1; col <= 14; col++)
-      expect(sheet.getCell(col >= 7 && col <= 9 ? 5 : 4, col).value).toBe(
+    expect(sheet.getCell("H4").value).toBe("MASA BERLAKU");
+    for (let col = 1; col <= 15; col++)
+      expect(sheet.getCell(col >= 8 && col <= 10 ? 5 : 4, col).value).toBe(
         personnelExportHeaders[col - 1],
       );
     expect(sheet.getCell("B6").value).toBe("00123");
-    expect(sheet.getCell("D6").value).toBe("Inspector 1");
-    expect(sheet.getCell("E6").value).toBe("HMPM / LAB");
-    expect(sheet.getCell("F6").value).toBe("Updated licence");
-    expect(sheet.getCell("G6").value).toEqual(new Date("2025-07-28T00:00:00Z"));
-    expect(sheet.getCell("H6").value).toBe(60);
+    expect(sheet.getCell("C6").value).toBe("NPP");
+    expect(sheet.getCell("E6").value).toBe("Inspector 1");
+    expect(sheet.getCell("F6").value).toBe("HMPM / LAB");
+    expect(sheet.getCell("G6").value).toBe("Updated licence");
+    expect(sheet.getCell("H6").value).toEqual(new Date("2025-07-28T00:00:00Z"));
+    expect(sheet.getCell("I6").value).toBe(60);
     // Preserve an explicit document date; do not replace it with start + interval.
-    expect(sheet.getCell("I6").value).toEqual(new Date("2030-07-29T00:00:00Z"));
-    expect(sheet.getCell("J6").value).toMatchObject({ hyperlink: url });
-    expect(sheet.getCell("K6").value).toBe("000045");
-    expect(sheet.getCell("L6").value).toBe("Updated remarks");
-    expect(sheet.getCell("M8").value).toBe(-1);
-    expect(sheet.getCell("N6").value).toBe("Sedang Diproses");
-    expect(sheet.getCell("N7").value).toBe("Tidak perlu perpanjangan");
-    expect(sheet.getCell("B7").value).toBe("PTT Project");
-    expect(sheet.getCell("I7").value).toBe("Seumur hidup");
-    expect(sheet.getCell("H7").value).toBeNull();
-    expect(sheet.getCell("J7").value).toBeNull();
-    expect(sheet.getCell("B8").value).toBe("Non-NPP");
-    expect(sheet.getCell("B9").value).toBe("LS");
+    expect(sheet.getCell("J6").value).toEqual(new Date("2030-07-29T00:00:00Z"));
+    expect(sheet.getCell("K6").value).toMatchObject({ hyperlink: url });
+    expect(sheet.getCell("L6").value).toBe("000045");
+    expect(sheet.getCell("M6").value).toBe("Updated remarks");
+    expect(sheet.getCell("N8").value).toBe(-1);
+    expect(sheet.getCell("O6").value).toBe("Sedang Diproses");
+    expect(sheet.getCell("O7").value).toBe("Tidak perlu perpanjangan");
+    expect(sheet.getCell("B7").value).toBe("");
+    expect(sheet.getCell("C7").value).toBe("Non-NPP");
+    expect(sheet.getCell("J7").value).toBe("Seumur hidup");
+    expect(sheet.getCell("I7").value).toBeNull();
+    expect(sheet.getCell("K7").value).toBeNull();
+    expect(sheet.getCell("B8").value).toBe("");
+    expect(sheet.getCell("C8").value).toBe("Non-NPP");
+    expect(sheet.getCell("B9").value).toBe("");
+    expect(sheet.getCell("C9").value).toBe("Non-NPP");
     expect(sheet.views[0]).toMatchObject({
       state: "frozen",
-      xSplit: 3,
+      xSplit: 4,
       ySplit: 5,
     });
     expect(sheet.pageSetup.printTitlesRow).toBe("1:5");
-    expect(sheet.getCell("I8").fill).toMatchObject({
+    expect(sheet.getCell("J8").fill).toMatchObject({
       fgColor: { argb: "FFFEE2E2" },
     });
-    expect(sheet.getCell("I9").fill).toMatchObject({
+    expect(sheet.getCell("J9").fill).toMatchObject({
       fgColor: { argb: "FFFEF3C7" },
     });
   });
@@ -114,12 +118,12 @@ describe("personnel monitoring export", () => {
       ],
       "DPS",
     );
-    expect(book.worksheets[0].getCell("C6").type).toBe(
+    expect(book.worksheets[0].getCell("D6").type).toBe(
       ExcelJS.ValueType.String,
     );
-    expect(book.worksheets[0].getCell("L6").type).toBe(
+    expect(book.worksheets[0].getCell("M6").type).toBe(
       ExcelJS.ValueType.String,
     );
-    expect(book.worksheets[0].getCell("G6").value).toBeNull();
+    expect(book.worksheets[0].getCell("H6").value).toBeNull();
   });
 });

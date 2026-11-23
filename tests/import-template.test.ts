@@ -25,8 +25,7 @@ describe("client certificate import template", () => {
       >[0],
     );
     const sheet = book.getWorksheet("Sertifikat_Klien")!;
-    expect(sheet.getCell("A2").text).toContain("Data Archive Sertifikat Klien");
-    expect((sheet.getRow(4).values as unknown[]).slice(1)).toEqual([
+    expect((sheet.getRow(1).values as unknown[]).slice(1)).toEqual([
       "Portfolio",
       "Nama Pelanggan",
       "Jenis Sertifikat",
@@ -43,7 +42,11 @@ describe("client certificate import template", () => {
       "PIC Perusahaan",
       "Email PIC",
     ]);
-    expect(sheet.views[0]).toMatchObject({ state: "frozen", ySplit: 4 });
+    expect(sheet.getCell("A2").value).toBe("");
+    expect(sheet.getCell("A1").value).not.toBe("client_name");
+    expect(sheet.views[0]).toMatchObject({ state: "frozen", ySplit: 1 });
+    expect(sheet.getTable("UpdateTableSertifikatKlien")).toBeDefined();
+    expect(sheet.rowCount).toBe(21);
     expect(sheet.getColumn(12).numFmt).toBe("#,##0");
   });
 });

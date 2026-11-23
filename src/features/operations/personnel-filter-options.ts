@@ -1,5 +1,14 @@
 export const personnelFilterOptions = [
   {
+    key: "employee_type",
+    label: "Tipe pegawai",
+    options: [
+      ["", "Semua pegawai"],
+      ["npp", "Pegawai NPP"],
+      ["non_npp", "Pegawai Non-NPP"],
+    ],
+  },
+  {
     key: "renewal",
     label: "Status perpanjangan",
     options: [

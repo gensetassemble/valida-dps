@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FileSpreadsheet, ScanSearch, ShieldCheck, ListChecks } from "lucide-react";
 import { DOMAIN_LABELS, FIELDS, type ImportDomain } from "./normalize";
 export function ImportUpload({
   branch,
@@ -18,6 +19,7 @@ export function ImportUpload({
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const router = useRouter();
+  const clientImport = lockedDomain && domain === "clients";
   return (
     <form
       className="space-y-4"
@@ -97,7 +99,7 @@ export function ImportUpload({
         </label>
       )}
       <label className="block text-xs font-semibold">
-        CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB
+        {clientImport ? "File pembaruan sertifikat klien" : "CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB"}
         <Input
           name="file"
           type="file"
@@ -106,11 +108,74 @@ export function ImportUpload({
           onChange={() => setHeaders([])}
           className="mt-2"
         />
+        {clientImport && (
+          <span className="mt-2 block font-normal text-muted-foreground">
+            CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB. Sheet tabel dideteksi otomatis.
+          </span>
+        )}
       </label>
-      <label className="block text-xs">
-        Sheet (opsional; master bawaan: PT &amp; PTT Reguler)
-        <Input name="sheet" className="mt-2" />
-      </label>
+      {!clientImport && (
+        <label className="block text-xs">
+          Sheet (opsional; master bawaan: PT &amp; PTT Reguler)
+          <Input name="sheet" className="mt-2" />
+        </label>
+      )}
+      {clientImport && (
+        <section className="overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-br from-teal-50/80 via-white to-sky-50/70">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-teal-100 px-4 py-3">
+            <div>
+              <p className="font-semibold text-brand-navy">Cara kerja impor sertifikat klien</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Gunakan template VALIDA atau tabel lama; susunan kolom akan dicocokkan saat pratinjau.
+              </p>
+            </div>
+            <span className="rounded-full bg-teal-100 px-3 py-1 text-[11px] font-semibold text-teal-800">
+              Pratinjau dahulu
+            </span>
+          </div>
+          <div className="grid gap-3 p-4 text-xs sm:grid-cols-2">
+            {[
+              {
+                title: "Siapkan kolom utama",
+                text: "Isi portofolio, pelanggan, jenis dan nomor sertifikat. Tanggal terbit wajib untuk sertifikat baru.",
+                icon: FileSpreadsheet,
+                tone: "bg-sky-100 text-sky-700",
+              },
+              {
+                title: "Tabel ditemukan otomatis",
+                text: "Tidak perlu memilih nama sheet. Header dan sheet yang berisi data sertifikat akan dideteksi.",
+                icon: ScanSearch,
+                tone: "bg-violet-100 text-violet-700",
+              },
+              {
+                title: "Periksa pemetaan",
+                text: "Tinjau hasil pembacaan dan cocokkan kolom bila nama header pada file berbeda.",
+                icon: ListChecks,
+                tone: "bg-amber-100 text-amber-700",
+              },
+              {
+                title: "Data belum langsung berubah",
+                text: "File masuk ke staging privat. Database baru diperbarui setelah setiap perubahan direview dan dikonfirmasi.",
+                icon: ShieldCheck,
+                tone: "bg-emerald-100 text-emerald-700",
+              },
+            ].map(({ title, text, icon: Icon, tone }) => (
+              <div key={title} className="rounded-xl border border-white bg-white/90 p-3 shadow-sm">
+                <div className="flex items-center gap-2 font-semibold text-brand-navy">
+                  <span className={`grid size-8 place-items-center rounded-lg ${tone}`}>
+                    <Icon className="size-4" />
+                  </span>
+                  {title}
+                </div>
+                <p className="mt-2.5 leading-5 text-muted-foreground">{text}</p>
+              </div>
+            ))}
+          </div>
+          <p className="border-t border-teal-100 px-4 py-3 text-xs font-medium text-teal-800">
+            Baris identik dilewati dan perubahan nomor atau tanggal sertifikat tetap harus diperiksa sebelum diterapkan.
+          </p>
+        </section>
+      )}
       {headers.length > 0 && (
         <details open>
           <summary className="cursor-pointer text-sm font-semibold">

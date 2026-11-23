@@ -68,11 +68,11 @@ describe("inactive employees in personnel exports", () => {
     let inactive = 0;
     out.eachRow((row) => {
       if (
-        String(row.getCell(2).value || "") &&
-        String(row.getCell(12).value || "").includes("PERSONIL NONAKTIF")
+        String(row.getCell(4).value || "") &&
+        String(row.getCell(13).value || "").includes("PERSONIL NONAKTIF")
       ) {
         inactive++;
-        for (let col = 1; col <= 14; col++)
+        for (let col = 1; col <= 15; col++)
           expect(row.getCell(col).fill).toMatchObject({
             type: "pattern",
             fgColor: { argb: "FFFFE4CC" },

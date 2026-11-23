@@ -13,6 +13,7 @@ import {
 export const personnelExportHeaders = [
   "NO.",
   "NPP",
+  "TIPE PEGAWAI",
   "NAMA PEGAWAI",
   "JABATAN",
   "PLOT PORTOFOLIO PEGAWAI",
@@ -26,13 +27,7 @@ export const personnelExportHeaders = [
   "SISA HARI",
   "STATUS PROSES PERPANJANGAN",
 ];
-const widths = [6, 16, 30, 32, 25, 48, 18, 20, 18, 30, 32, 48, 14, 30];
-const categories: Record<string, string> = {
-  PT: "PT",
-  PTT_REGULAR: "PTT Regular",
-  PTT_PROJECT: "PTT Project",
-  LS: "LS",
-};
+const widths = [6, 16, 16, 30, 32, 25, 48, 18, 20, 18, 30, 32, 48, 14, 30];
 function date(value: unknown) {
   return typeof value === "string" && validDate(value)
     ? new Date(value + "T00:00:00Z")
@@ -65,13 +60,13 @@ export function addPersonnelSheet(
   sheet.getRow(2).height = 22;
   sheet.getRow(3).height = 22;
   for (let col = 1; col <= personnelExportHeaders.length; col++) {
-    if (col >= 7 && col <= 9) continue;
+    if (col >= 8 && col <= 10) continue;
     sheet.mergeCells(4, col, 5, col);
     sheet.getCell(4, col).value = personnelExportHeaders[col - 1];
   }
-  sheet.mergeCells("G4:I4");
-  sheet.getCell("G4").value = "MASA BERLAKU";
-  for (let col = 7; col <= 9; col++)
+  sheet.mergeCells("H4:J4");
+  sheet.getCell("H4").value = "MASA BERLAKU";
+  for (let col = 8; col <= 10; col++)
     sheet.getCell(5, col).value = personnelExportHeaders[col - 1];
   for (let r = 4; r <= 5; r++) {
     sheet.getRow(r).height = 24;
@@ -109,9 +104,7 @@ export function addPersonnelSheet(
   );
   sorted.forEach((record, index) => {
     const lifetime = record.validity_kind === "lifetime";
-    const npp = record.npp
-      ? String(record.npp)
-      : categories[String(record.employment_category)] || "Non-NPP";
+    const npp = record.npp ? String(record.npp) : "";
     const url = driveFolder(
       typeof record.source_folder_url === "string"
         ? record.source_folder_url
@@ -124,6 +117,7 @@ export function addPersonnelSheet(
     const values = [
       index + 1,
       npp,
+      npp ? "NPP" : "Non-NPP",
       personnelText(record.employee_name),
       positionText(record.position),
       String(record.portfolio_plot || ""),
@@ -166,26 +160,26 @@ export function addPersonnelSheet(
         const row = sheet.addRow(piece);
         row.font = { name: "Arial", size: 10 };
         row.alignment = { vertical: "middle", wrapText: true };
-        for (const col of [1, 2, 7, 8, 9])
+        for (const col of [1, 2, 3, 8, 9, 10])
           row.getCell(col).alignment = {
             vertical: "middle",
             horizontal: "center",
             wrapText: true,
           };
         row.getCell(2).numFmt = "@";
-        row.getCell(11).numFmt = "@";
-        row.getCell(7).numFmt = "dd mmm yyyy";
-        row.getCell(9).numFmt = "dd mmm yyyy";
-        row.getCell(8).numFmt = "0";
+        row.getCell(12).numFmt = "@";
+        row.getCell(8).numFmt = "dd mmm yyyy";
+        row.getCell(10).numFmt = "dd mmm yyyy";
+        row.getCell(9).numFmt = "0";
         if (url)
-          row.getCell(10).font = {
+          row.getCell(11).font = {
             name: "Arial",
             size: 10,
             color: { argb: "FF0563C1" },
             underline: true,
           };
         if (days !== null)
-          row.getCell(9).fill = {
+          row.getCell(10).fill = {
             type: "pattern",
             pattern: "solid",
             fgColor: {
@@ -194,7 +188,7 @@ export function addPersonnelSheet(
             },
           };
         if (lifetime)
-          row.getCell(9).fill = {
+          row.getCell(10).fill = {
             type: "pattern",
             pattern: "solid",
             fgColor: { argb: "FFDBEAFE" },
@@ -206,13 +200,13 @@ export function addPersonnelSheet(
               pattern: "solid",
               fgColor: { argb: "FFFFE4CC" },
             };
-          row.getCell(3).font = {
+          row.getCell(4).font = {
             name: "Arial",
             size: 10,
             bold: true,
             color: { argb: "FF9A3412" },
           };
-          row.getCell(12).font = {
+          row.getCell(13).font = {
             name: "Arial",
             size: 10,
             bold: true,
@@ -248,12 +242,12 @@ export function addPersonnelSheet(
       };
   if (rows.length)
     sheet.addConditionalFormatting({
-      ref: `I6:I${sheet.rowCount}`,
+      ref: `J6:J${sheet.rowCount}`,
       rules: [
         {
           type: "expression",
           priority: 1,
-          formulae: ["AND(ISNUMBER(I6),I6<TODAY())"],
+          formulae: ["AND(ISNUMBER(J6),J6<TODAY())"],
           style: {
             fill: {
               type: "pattern",
@@ -266,7 +260,7 @@ export function addPersonnelSheet(
         {
           type: "expression",
           priority: 2,
-          formulae: ["AND(ISNUMBER(I6),I6>=TODAY(),I6<=TODAY()+90)"],
+          formulae: ["AND(ISNUMBER(J6),J6>=TODAY(),J6<=TODAY()+90)"],
           style: {
             fill: {
               type: "pattern",
@@ -279,7 +273,7 @@ export function addPersonnelSheet(
         {
           type: "expression",
           priority: 3,
-          formulae: ["AND(ISNUMBER(I6),I6>TODAY()+90)"],
+          formulae: ["AND(ISNUMBER(J6),J6>TODAY()+90)"],
           style: {
             fill: {
               type: "pattern",
@@ -291,7 +285,7 @@ export function addPersonnelSheet(
       ],
     });
   sheet.views = [
-    { state: "frozen", xSplit: 3, ySplit: 5, showGridLines: false },
+    { state: "frozen", xSplit: 4, ySplit: 5, showGridLines: false },
   ];
   // Filter only the data area; the two-level report header stays intact.
   sheet.autoFilter = {
@@ -308,7 +302,7 @@ export function addPersonnelSheet(
     fitToWidth: 1,
     fitToHeight: 0,
     printTitlesRow: "1:5",
-    printArea: `A1:N${Math.max(5, sheet.rowCount)}`,
+    printArea: `A1:O${Math.max(5, sheet.rowCount)}`,
   };
   sheet.headerFooter.oddFooter = "VALIDA · &P / &N";
 }

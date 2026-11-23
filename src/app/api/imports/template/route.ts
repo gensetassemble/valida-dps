@@ -20,11 +20,6 @@ export async function GET(r: NextRequest) {
   book.creator = "VALIDA";
   const isClientTemplate = domain.data === "clients";
   const s = book.addWorksheet(isClientTemplate ? "Sertifikat_Klien" : "Data");
-  s.columns = Object.keys(FIELDS[domain.data]).map((key) => ({
-    header: key === "npp" ? "NPP" : key,
-    key,
-    width: 26,
-  }));
   if (isClientTemplate) {
     const headers = [
       "Portfolio",
@@ -44,40 +39,52 @@ export async function GET(r: NextRequest) {
       "Email PIC",
     ];
     const widths = [14.5, 34, 37.625, 51.625, 48.25, 28.5, 36.875, 13.5, 20.625, 21.625, 23.5, 24.625, 32, 27, 27];
-    s.columns = headers.map((header, index) => ({ key: `column_${index + 1}`, width: widths[index] }));
-    s.getCell("A2").value = "Data Archive Sertifikat Klien dengan Masa Berlaku - Cabang Denpasar";
-    s.getCell("A2").font = { name: "Arial", size: 16, bold: true };
-    s.getRow(4).values = headers;
-    s.getRow(4).height = 36.75;
-    s.getRow(4).eachCell((cell) => {
-      cell.font = { name: "Arial", size: 12, bold: true, color: { argb: "FF0B2545" } };
-      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDCE6F1" } };
-      cell.border = {
-        top: { style: "thin", color: { argb: "FFB7C9DE" } },
-        left: { style: "thin", color: { argb: "FFB7C9DE" } },
-        bottom: { style: "thin", color: { argb: "FFB7C9DE" } },
-        right: { style: "thin", color: { argb: "FFB7C9DE" } },
-      };
-    });
-    s.getRow(5).values = Array(headers.length).fill("");
+    s.columns = headers.map((_, index) => ({ key: `column_${index + 1}`, width: widths[index] }));
     s.addTable({
       name: "UpdateTableSertifikatKlien",
-      ref: "A4",
+      ref: "A1",
       headerRow: true,
       totalsRow: false,
-      style: { theme: "TableStyleLight8", showRowStripes: true },
+      style: { theme: "TableStyleMedium2", showRowStripes: true },
       columns: headers.map((name) => ({ name })),
-      rows: [Array(headers.length).fill("")],
+      rows: Array.from({ length: 20 }, () => Array(headers.length).fill("")),
     });
+    s.getRow(1).height = 36.75;
+    s.getRow(1).eachCell((cell) => {
+      cell.font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0B6B66" } };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFFFFFFF" } },
+        left: { style: "thin", color: { argb: "FFFFFFFF" } },
+        bottom: { style: "thin", color: { argb: "FFFFFFFF" } },
+        right: { style: "thin", color: { argb: "FFFFFFFF" } },
+      };
+    });
+    for (let row = 2; row <= 21; row++) {
+      s.getRow(row).height = 22;
+      s.getRow(row).alignment = { vertical: "middle" };
+    }
     s.getColumn(9).numFmt = "dd mmm yyyy";
     s.getColumn(11).numFmt = "dd mmm yyyy";
     s.getColumn(12).numFmt = "#,##0";
-    s.views = [{ state: "frozen", ySplit: 4, zoomScale: 85 }];
-    s.autoFilter = "A4:O5";
+    s.views = [{ state: "frozen", ySplit: 1, zoomScale: 85, showGridLines: false }];
+    s.pageSetup = {
+      orientation: "landscape",
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      printTitlesRow: "1:1",
+    };
+  } else {
+    s.columns = Object.keys(FIELDS[domain.data]).map((key) => ({
+      header: key === "npp" ? "NPP" : key,
+      key,
+      width: 26,
+    }));
   }
-  const headerRow = isClientTemplate ? 4 : 1;
-  s.getRow(headerRow).font = { bold: true, color: { argb: isClientTemplate ? "FF0B2545" : "FFFFFFFF" } };
+  const headerRow = 1;
+  s.getRow(headerRow).font = { bold: true, color: { argb: "FFFFFFFF" } };
   if (!isClientTemplate) s.getRow(headerRow).fill = {
     type: "pattern",
     pattern: "solid",

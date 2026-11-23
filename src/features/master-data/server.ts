@@ -46,6 +46,7 @@ export type QueryParams = {
   type?: string;
   area?: string;
   employee?: string;
+  employee_type?: string;
   category?: string;
   examples?: string;
   kind?: string;
@@ -238,6 +239,10 @@ export async function listRecords(
   }
   for (const [column, value] of operationalFilterPairs(entity.key, params))
     query = query.eq(column, value);
+  if (entity.key === "kompetensi-personil") {
+    if (params.employee_type === "npp") query = query.not("npp", "is", null);
+    if (params.employee_type === "non_npp") query = query.is("npp", null);
+  }
   if (entity.key === "kalibrasi-alat" && params.portfolios !== undefined)
     query = query.in("portfolio_id", portfolioIds(params.portfolios));
   if (

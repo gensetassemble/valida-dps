@@ -70,44 +70,59 @@ export async function parseSource(
       );
     }
     sheets = book.worksheets.map((s) => s.name);
-    const selected = sheet
-      ? book.getWorksheet(sheet)
-      : domain === "employees"
-        ? book.getWorksheet("PT & PTT Reguler") || book.worksheets[0]
-        : book.getWorksheet("Data") ||
-          (book.worksheets.length === 1 ? book.worksheets[0] : undefined);
-    if (!selected)
-      throw Error(
-        "Pilih nama sheet secara eksplisit untuk workbook multi-sheet.",
-      );
-    let headerRow = 1;
-    if (domain === "clients") {
-      for (let i=1;i<=Math.min(10,selected.rowCount);i++) {
-        const labels: string[]=[];
-        selected.getRow(i).eachCell(c=>labels.push(clean(c.text)));
-        if (labels.includes("Nomor Sertifikat") && labels.includes("Nama Pelanggan")) { headerRow=i;break; }
+    const clientHeaderRow = (worksheet: ExcelJS.Worksheet) => {
+      for (let i = 1; i <= Math.min(10, worksheet.rowCount); i++) {
+        const labels: string[] = [];
+        worksheet.getRow(i).eachCell((cell) => labels.push(clean(cell.text)));
+        const human = labels.includes("Nomor Sertifikat") && labels.includes("Nama Pelanggan");
+        const technical = labels.includes("certificate_number") && labels.includes("client_name");
+        if (human || technical) return i;
       }
+      return null;
+    };
+    let selectedSheets: ExcelJS.Worksheet[];
+    if (sheet) {
+      const selected = book.getWorksheet(sheet);
+      if (!selected) throw Error("Nama sheet yang dipilih tidak ditemukan.");
+      selectedSheets = [selected];
+    } else if (domain === "clients") {
+      selectedSheets = book.worksheets.filter((worksheet) => clientHeaderRow(worksheet) !== null);
+      if (!selectedSheets.length)
+        throw Error("Tabel sertifikat klien tidak ditemukan. Gunakan header Nama Pelanggan dan Nomor Sertifikat.");
+    } else if (domain === "employees") {
+      const selected = book.getWorksheet("PT & PTT Reguler") || book.worksheets[0];
+      if (!selected) throw Error("Workbook tidak memiliki sheet data.");
+      selectedSheets = [selected];
+    } else {
+      selectedSheets = [book.getWorksheet("Data") || (book.worksheets.length === 1 ? book.worksheets[0] : undefined)].filter(
+        (worksheet): worksheet is ExcelJS.Worksheet => !!worksheet,
+      );
+      if (!selectedSheets.length)
+        throw Error("Pilih nama sheet secara eksplisit untuk workbook multi-sheet.");
     }
-    const headers: string[] = [];
-    selected
-      .getRow(headerRow)
-      .eachCell(
-        { includeEmpty: true },
-        (c, i) => (headers[i - 1] = clean(c.text)),
-      );
-    selected.eachRow((row, index) => {
-      if (index <= headerRow) return;
-      const vals: unknown[] = [];
-      row.eachCell(
-        { includeEmpty: true },
-        (c, i) =>
-          (vals[i - 1] =
-            c.value instanceof Date
-              ? c.value.toISOString().slice(0, 10)
-              : c.text),
-      );
-      add(headers, vals, selected.name, index);
-    });
+    for (const selected of selectedSheets) {
+      const headerRow = domain === "clients" ? clientHeaderRow(selected) || 1 : 1;
+      const headers: string[] = [];
+      selected
+        .getRow(headerRow)
+        .eachCell(
+          { includeEmpty: true },
+          (cell, index) => (headers[index - 1] = clean(cell.text)),
+        );
+      selected.eachRow((row, index) => {
+        if (index <= headerRow) return;
+        const vals: unknown[] = [];
+        row.eachCell(
+          { includeEmpty: true },
+          (cell, cellIndex) =>
+            (vals[cellIndex - 1] =
+              cell.value instanceof Date
+                ? cell.value.toISOString().slice(0, 10)
+                : cell.text),
+        );
+        add(headers, vals, selected.name, index);
+      });
+    }
   } else throw Error("Gunakan CSV UTF-8, XLSX, XLS, atau XLSB.");
   if (!source.length) throw Error("Tidak ada baris sumber.");
   const signatures = new Set<string>();

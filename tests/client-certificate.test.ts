@@ -14,6 +14,7 @@ describe("client source workbook",()=>{
   });
   it("reads row-four headers, Indonesian dates, text identifiers and raw money",async()=>{
     const book=new ExcelJS.Workbook(),sheet=book.addWorksheet("Sertifikat_Klien");
+    book.addWorksheet("Petunjuk").addRow(["Panduan pengisian"]);
     sheet.getCell("A2").value="Data Archive";
     sheet.getRow(4).values=["Portfolio","Nama Pelanggan","Jenis Sertifikat","Nomor Sertifikat","Objek Inspeksi","Tanggal Terbit","Interval (bulan)","Tanggal Berakhir","Nilai Kontrak (IDR)","Nomor SPK"];
     sheet.getRow(5).values=["KSP","Perusahaan uji","Residual","CERT-001","Pesawat",new Date("2026-10-21T00:00:00Z"),"56 Hari",new Date("2026-12-16T00:00:00Z"),2250000,"000019"];
@@ -31,6 +32,18 @@ describe("client source workbook",()=>{
       issue_date:"2026-10-21",expiry_date:"2026-12-16",
       change_reason:"new_certificate",
     }).some(i=>i.includes("change_reason"))).toBe(false);
+  });
+  it("detects and combines client tables without requiring a sheet name",async()=>{
+    const book=new ExcelJS.Workbook();
+    book.addWorksheet("Petunjuk").addRow(["Bukan tabel data"]);
+    for(const [name,number] of [["KSP","CERT-001"],["LAB","CERT-002"]]){
+      const sheet=book.addWorksheet(name);
+      sheet.addRow(["Portfolio","Nama Pelanggan","Jenis Sertifikat","Nomor Sertifikat"]);
+      sheet.addRow([name,"Perusahaan uji","Residual",number]);
+    }
+    const parsed=await parseSource("clients.xlsx",Buffer.from(await book.xlsx.writeBuffer()),"clients");
+    expect(parsed.rows.map(row=>row.normalized.certificate_number)).toEqual(["CERT-001","CERT-002"]);
+    expect(parsed.rows.map(row=>row.sheet)).toEqual(["KSP","LAB"]);
   });
   it("exports source column labels, typed dates, text references and test-contact label",()=>{
     const book=new ExcelJS.Workbook();addClientSheet(book,[{client_name:"Perusahaan uji",issue_date:"2026-10-21",interval_label:"56 hari",previous_order_value:"2250000.00",order_reference:"000019",pic_name:"[UJI] Adli",pic_is_test:true}]);
