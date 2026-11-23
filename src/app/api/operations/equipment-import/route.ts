@@ -13,6 +13,13 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 const headers={"Cache-Control":"private, no-store"};
 const reviewValues = new Set(["calibration_event", "data_correction"]);
+function databaseIssues(error:{code?:string;message?:string}) {
+  if(error.code==='P0001')return (error.message||'Data file perlu diperiksa.').split('\n');
+  if(['57014','55P03'].includes(error.code||''))return ['Proses melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.'];
+  if(error.code==='42501')return ['Akun belum mendapat kewenangan impor pada cabang/portofolio ini. Login ulang, selesaikan MFA, lalu pastikan akun memiliki peran Admin, PTK, atau Koordinator terkait.'];
+  if(error.code==='23503')return ['Referensi cabang, portofolio, alat, atau akun pada data sumber tidak ditemukan.'];
+  return ['Pratinjau ditolak oleh validasi database. Muat ulang halaman lalu coba kembali; bila berulang, sampaikan waktu kejadian kepada IT.'];
+}
 export async function POST(request:NextRequest){
   if(request.headers.get('origin')!==request.nextUrl.origin)return NextResponse.json({error:'Permintaan tidak diizinkan.'},{status:403,headers});
   try{
@@ -26,7 +33,7 @@ export async function POST(request:NextRequest){
     const db=await masterClient();
     const input={b:c.branch,filename:file.name.replace(/[^\p{L}\p{N} ._()-]/gu,'_').slice(0,180),filehash:parsed.hash,items:parsed.rows};
     const {data:previewData,error:previewError}=await db.rpc('preview_equipment_uma',input);
-    if(previewError)return NextResponse.json({error:'Pratinjau dibatalkan; belum ada perubahan yang disimpan.',issues:previewError.code==='P0001'?previewError.message.split('\n'):['57014','55P03'].includes(previewError.code)?['Pratinjau melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.']:['Periksa kewenangan portofolio, sesi/MFA, serta format data.']},{status:422,headers});
+    if(previewError){console.error('Equipment import preview failed',{code:previewError.code});return NextResponse.json({error:'Pratinjau dibatalkan; belum ada perubahan yang disimpan.',issues:databaseIssues(previewError)},{status:422,headers});}
     const outcomes=(previewData?.rows||[]) as EquipmentSyncOutcome[];
     const equipmentIds=[...new Set(outcomes.filter(row=>row.equipment!=='added').map(row=>row.equipment_id))];
     let current:CurrentCalibration[]=[];
@@ -49,7 +56,7 @@ export async function POST(request:NextRequest){
     const {data,error}=await db.rpc('apply_equipment_uma_reviewed',{
       b:c.branch,filename:file.name.replace(/[^\p{L}\p{N} ._()-]/gu,'_').slice(0,180),filehash:parsed.hash,items:reviewedRows,
     });
-    if(error)return NextResponse.json({error:'Impor dibatalkan seluruhnya; belum ada perubahan yang disimpan.',issues:error.code==='P0001'?error.message.split('\n'):['57014','55P03'].includes(error.code)?['Impor melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.']:['Periksa kewenangan portofolio, sesi/MFA, serta format data.']},{status:422,headers});
+    if(error){console.error('Equipment import apply failed',{code:error.code});return NextResponse.json({error:'Impor dibatalkan seluruhnya; belum ada perubahan yang disimpan.',issues:databaseIssues(error)},{status:422,headers});}
     for(const path of ['/kalibrasi-alat','/dashboard','/master-data/alat'])revalidatePath(path);
     revalidatePath('/kalibrasi-alat/[id]','page');revalidatePath('/peristiwa-kalibrasi/[id]','page');
     return NextResponse.json({...data,phase:'applied',ignored:parsed.ignored,duplicates:parsed.duplicates},{headers});

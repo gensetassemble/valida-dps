@@ -1,12 +1,12 @@
 import 'server-only';
 import ExcelJS from 'exceljs';
 import {read,utils} from 'xlsx';
-import {checkZip} from '@/features/imports/parser';
+import {checkZip, isOleWorkbook} from '@/features/imports/workbook-security';
 
 /** Convert values and merges only. Macros, links and embedded objects are never executed. */
 export function legacyWorkbook(name:string,bytes:Buffer):ExcelJS.Workbook {
   if(/\.xlsb$/i.test(name)) checkZip(bytes);
-  else if(bytes.subarray(0,8).toString('hex')!=='d0cf11e0a1b11ae1')
+  else if(!isOleWorkbook(bytes))
     throw Error('Format XLS tidak valid. Simpan workbook sebagai XLS atau XLSX asli.');
   const source=read(bytes,{type:'buffer',cellDates:true,cellFormula:true,cellHTML:false,bookVBA:false,sheetRows:20001});
   if(source.SheetNames.length>100)throw Error('Maksimum 100 sheet dalam satu workbook.');

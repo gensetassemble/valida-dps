@@ -31,3 +31,10 @@ export function normalizeCalibrationLaboratory(value: string) {
   return calibrationLaboratoryAliases[key] ||
     calibrationLaboratories.find((name) => name.toLocaleLowerCase("id") === key) || clean;
 }
+
+export function isInternalCalibrationLaboratory(value: unknown) {
+  return (
+    typeof value === "string" &&
+    normalizeCalibrationLaboratory(value) === calibrationLaboratories[0]
+  );
+}

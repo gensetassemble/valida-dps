@@ -17,14 +17,17 @@ export async function GET(r: NextRequest) {
     .safeParse(r.nextUrl.searchParams.get("domain"));
   if (!domain.success) return new NextResponse(null, { status: 400 });
   const book = new ExcelJS.Workbook();
-  const s = book.addWorksheet("Data");
+  book.creator = "VALIDA";
+  const isClientTemplate = domain.data === "clients";
+  const s = book.addWorksheet(isClientTemplate ? "Sertifikat_Klien" : "Data");
   s.columns = Object.keys(FIELDS[domain.data]).map((key) => ({
     header: key === "npp" ? "NPP" : key,
     key,
     width: 26,
   }));
-  if (domain.data === "clients")
-    s.columns = [
+  if (isClientTemplate) {
+    const headers = [
+      "Portfolio",
       "Nama Pelanggan",
       "Jenis Sertifikat",
       "Nomor Sertifikat",
@@ -36,17 +39,51 @@ export async function GET(r: NextRequest) {
       "Interval (bulan)",
       "Tanggal Berakhir",
       "Nilai Kontrak (IDR)",
-      "Account Manager (AM)",
       "Nomor SPK",
-      "Cabang Operasional",
-    ].map((header) => ({ header, width: 27 }));
-  s.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-  s.getRow(1).fill = {
+      "PIC Perusahaan",
+      "Email PIC",
+    ];
+    const widths = [14.5, 34, 37.625, 51.625, 48.25, 28.5, 36.875, 13.5, 20.625, 21.625, 23.5, 24.625, 32, 27, 27];
+    s.columns = headers.map((header, index) => ({ key: `column_${index + 1}`, width: widths[index] }));
+    s.getCell("A2").value = "Data Archive Sertifikat Klien dengan Masa Berlaku - Cabang Denpasar";
+    s.getCell("A2").font = { name: "Arial", size: 16, bold: true };
+    s.getRow(4).values = headers;
+    s.getRow(4).height = 36.75;
+    s.getRow(4).eachCell((cell) => {
+      cell.font = { name: "Arial", size: 12, bold: true, color: { argb: "FF0B2545" } };
+      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDCE6F1" } };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFB7C9DE" } },
+        left: { style: "thin", color: { argb: "FFB7C9DE" } },
+        bottom: { style: "thin", color: { argb: "FFB7C9DE" } },
+        right: { style: "thin", color: { argb: "FFB7C9DE" } },
+      };
+    });
+    s.getRow(5).values = Array(headers.length).fill("");
+    s.addTable({
+      name: "UpdateTableSertifikatKlien",
+      ref: "A4",
+      headerRow: true,
+      totalsRow: false,
+      style: { theme: "TableStyleLight8", showRowStripes: true },
+      columns: headers.map((name) => ({ name })),
+      rows: [Array(headers.length).fill("")],
+    });
+    s.getColumn(9).numFmt = "dd mmm yyyy";
+    s.getColumn(11).numFmt = "dd mmm yyyy";
+    s.getColumn(12).numFmt = "#,##0";
+    s.views = [{ state: "frozen", ySplit: 4, zoomScale: 85 }];
+    s.autoFilter = "A4:O5";
+  }
+  const headerRow = isClientTemplate ? 4 : 1;
+  s.getRow(headerRow).font = { bold: true, color: { argb: isClientTemplate ? "FF0B2545" : "FFFFFFFF" } };
+  if (!isClientTemplate) s.getRow(headerRow).fill = {
     type: "pattern",
     pattern: "solid",
     fgColor: { argb: "FF0B2545" },
   };
-  s.views = [{ state: "frozen", ySplit: 1 }];
+  if (!isClientTemplate) s.views = [{ state: "frozen", ySplit: 1 }];
   const help = book.addWorksheet("Petunjuk");
   help.columns = [
     { header: "Kolom", width: 32 },
@@ -65,14 +102,15 @@ export async function GET(r: NextRequest) {
     "Pemetaan referensi",
     "Nama pelanggan/jenis sertifikat pada template klien dipetakan ke master yang sudah ada saat review. AM dan wilayah mengikuti pelanggan; tidak dibuat otomatis dari nama. Gunakan tanggal ISO YYYY-MM-DD atau sel tanggal Excel.",
   ]);
-  s.getColumn(1).numFmt = "@";
+  if (!isClientTemplate) s.getColumn(1).numFmt = "@";
   const b = await readableXlsx(new Uint8Array(await book.xlsx.writeBuffer()));
   return new NextResponse(new Uint8Array(b), {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition":
-        'attachment; filename="template-' + domain.data + '.xlsx"',
+      "Content-Disposition": isClientTemplate
+        ? 'attachment; filename="Update Table Sertifikat Klien.xlsx"'
+        : 'attachment; filename="template-' + domain.data + '.xlsx"',
       "Cache-Control": "private, no-store",
     },
   });

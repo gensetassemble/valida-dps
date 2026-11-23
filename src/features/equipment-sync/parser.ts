@@ -2,9 +2,10 @@ import "server-only";
 import ExcelJS from "exceljs";
 import { parse } from "csv-parse/sync";
 import { createHash } from "node:crypto";
-import { checkZip, MAX_IMPORT_BYTES } from "@/features/imports/parser";
+import { MAX_IMPORT_BYTES } from "@/features/imports/parser";
+import { checkZip, isOleWorkbook } from "@/features/imports/workbook-security";
 import { addMonths, validDate } from "@/lib/domain/validity";
-import { normalizeCalibrationLaboratory, calibrationLaboratories } from "@/features/operations/calibration-laboratories";
+import { normalizeCalibrationLaboratory, calibrationLaboratories, isInternalCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 import { normalizeEquipmentUnit } from "@/features/operations/equipment-units";
 import { legacyWorkbook } from './legacy-workbook';
 
@@ -105,6 +106,13 @@ function normalizeRow(v:Values,sheet:string,row:number,fallback:string):SyncRow 
   if(v.significant){calibration.significant_yes=mark(v.significant);calibration.significant_no=calibration.significant_yes==='√'?'-':'√';}
   // A source laboratory is evidence; retain it even for historical internal entries.
   if(typeof calibration.laboratory==='string')calibration.laboratory=normalizeCalibrationLaboratory(calibration.laboratory);
+  // Cibitung is SUCOFINDO's internal laboratory. The source laboratory is
+  // authoritative even when the legacy Internal/Eksternal cells are blank or
+  // inconsistent.
+  if(isInternalCalibrationLaboratory(calibration.laboratory)){
+    calibration.calibration_internal='√';
+    calibration.calibration_external='-';
+  }
   if(calibration.calibration_internal==='√'&&!calibration.laboratory)calibration.laboratory=calibrationLaboratories[0];
   if(v.result){if(!/^(layak|tidak layak|tidak_layak)$/i.test(v.result))throw Error("Hasil kalibrasi harus Layak atau Tidak layak.");calibration.result=v.result.toLowerCase().replace(' ','_');}
   if(calibration.issue_date&&calibration.interval_months&&!v.due_date)calibration.due_date=addMonths(String(calibration.issue_date),Number(calibration.interval_months));
@@ -126,7 +134,10 @@ export async function parseUma(name:string,bytes:Buffer,fallback='') {
   }else if(/\.(xlsx|xlsb|xls)$/i.test(name)){
     let book:ExcelJS.Workbook;
     try {
-      if(/\.xlsx$/i.test(name)){checkZip(bytes);book=new ExcelJS.Workbook();await book.xlsx.load(bytes as unknown as Parameters<typeof book.xlsx.load>[0]);}
+      // Some operational workbooks are legacy BIFF/XLS files saved with an
+      // .xlsx filename. Detect the container from bytes, not just the label.
+      if(isOleWorkbook(bytes))book=legacyWorkbook(name,bytes);
+      else if(/\.xlsx$/i.test(name)){checkZip(bytes);book=new ExcelJS.Workbook();await book.xlsx.load(bytes as unknown as Parameters<typeof book.xlsx.load>[0]);}
       else book=legacyWorkbook(name,bytes);
     }catch(e){throw new UmaImportError([`Berkas Excel belum dapat dibaca: ${(e as Error).message}`]);}
     for(const sheet of book.worksheets){

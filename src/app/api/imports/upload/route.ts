@@ -56,18 +56,23 @@ export async function POST(request: NextRequest) {
         ". SIAP_TINJAU bukan persetujuan dokumen.",
     });
     if (error || !data) throw Error("Staging belum dapat disimpan.");
+    const extension = name.toLowerCase().match(/\.(csv|xlsx|xlsb|xls)$/)?.[0];
+    if (!extension) throw Error("Gunakan CSV UTF-8, XLSX, XLS, atau XLSB.");
     const path =
       c.branch +
       "/" +
       String(data) +
-      "/source" +
-      (name.toLowerCase().endsWith(".xlsx") ? ".xlsx" : ".csv");
+      "/source" + extension;
+    const contentTypes: Record<string, string> = {
+      ".csv": "text/csv; charset=utf-8",
+      ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ".xls": "application/vnd.ms-excel",
+      ".xlsb": "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+    };
     const { error: upload } = await c.db.storage
       .from("import-sources")
       .upload(path, bytes, {
-        contentType: name.endsWith(".xlsx")
-          ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          : "text/csv",
+        contentType: contentTypes[extension],
         upsert: false,
       });
     if (

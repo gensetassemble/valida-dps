@@ -3,37 +3,11 @@ import { createHash } from "node:crypto";
 import ExcelJS from "exceljs";
 import { parse } from "csv-parse/sync";
 import { clean, normalize, type ImportDomain } from "./normalize";
+import { legacyWorkbook } from "@/features/equipment-sync/legacy-workbook";
+import { checkZip, isOleWorkbook } from "./workbook-security";
+export { checkZip } from "./workbook-security";
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024,
   MAX_ROWS = 2500;
-export function checkZip(bytes: Buffer) {
-  // Read central-directory declared sizes before ExcelJS allocates decompressed XML.
-  const end = bytes.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
-  if (end < 0 || end + 22 > bytes.length)
-    throw Error("Arsip XLSX tidak valid.");
-  const count = bytes.readUInt16LE(end + 10);
-  let offset = bytes.readUInt32LE(end + 16),
-    size = 0;
-  if (count > 1000 || count === 65535) throw Error("XLSX terlalu kompleks.");
-  for (let i = 0; i < count; i++) {
-    if (offset + 46 > bytes.length || bytes.readUInt32LE(offset) !== 0x02014b50)
-      throw Error("Direktori XLSX tidak valid.");
-    const expanded = bytes.readUInt32LE(offset + 24),
-      len = bytes.readUInt16LE(offset + 28),
-      extra = bytes.readUInt16LE(offset + 30),
-      comment = bytes.readUInt16LE(offset + 32);
-    size += expanded;
-    if (
-      size > 20 * 1024 * 1024 ||
-      expanded === 0xffffffff ||
-      bytes.readUInt16LE(offset + 8) & 1
-    )
-      throw Error("XLSX terkompresi berlebihan atau terenkripsi.");
-    const name = bytes.subarray(offset + 46, offset + 46 + len).toString();
-    if (/vbaProject|\.\./i.test(name))
-      throw Error("Makro atau path XLSX ditolak.");
-    offset += 46 + len + extra + comment;
-  }
-}
 export async function parseSource(
   name: string,
   bytes: Buffer,
@@ -84,12 +58,17 @@ export async function parseSource(
     if (!headers?.length) throw Error("Header CSV tidak ditemukan.");
     for (const rec of records) add(headers, rec.record, "CSV", rec.info.lines);
     sheets = ["CSV"];
-  } else if (name.toLowerCase().endsWith(".xlsx")) {
-    checkZip(bytes);
-    const book = new ExcelJS.Workbook();
-    await book.xlsx.load(
-      bytes as unknown as Parameters<typeof book.xlsx.load>[0],
-    );
+  } else if (/\.(xlsx|xls|xlsb)$/i.test(name)) {
+    let book: ExcelJS.Workbook;
+    if (isOleWorkbook(bytes) || /\.xlsb$/i.test(name)) {
+      book = legacyWorkbook(name, bytes);
+    } else {
+      checkZip(bytes);
+      book = new ExcelJS.Workbook();
+      await book.xlsx.load(
+        bytes as unknown as Parameters<typeof book.xlsx.load>[0],
+      );
+    }
     sheets = book.worksheets.map((s) => s.name);
     const selected = sheet
       ? book.getWorksheet(sheet)
@@ -129,7 +108,7 @@ export async function parseSource(
       );
       add(headers, vals, selected.name, index);
     });
-  } else throw Error("Gunakan CSV UTF-8 atau XLSX; XLS/makro tidak diterima.");
+  } else throw Error("Gunakan CSV UTF-8, XLSX, XLS, atau XLSB.");
   if (!source.length) throw Error("Tidak ada baris sumber.");
   const signatures = new Set<string>();
   const rows = source.map((r) => {

@@ -97,11 +97,11 @@ export function ImportUpload({
         </label>
       )}
       <label className="block text-xs font-semibold">
-        CSV UTF-8 / XLSX, maksimum 5 MiB
+        CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB
         <Input
           name="file"
           type="file"
-          accept=".csv,.xlsx"
+          accept=".csv,.xlsx,.xls,.xlsb"
           required
           onChange={() => setHeaders([])}
           className="mt-2"

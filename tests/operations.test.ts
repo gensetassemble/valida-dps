@@ -13,6 +13,7 @@ import {
 import { normalize, validateNormalized } from "@/features/imports/normalize";
 import { parseSource, checkZip } from "@/features/imports/parser";
 import { boundedForm } from "@/lib/http/bounded-form";
+import { utils, write } from "xlsx";
 describe("WITA validity and lifetime", () => {
   it.each([
     [-1, "Expired"],
@@ -205,6 +206,20 @@ describe("Source normalization and private imports", () => {
     const central = mutated.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]));
     mutated.writeUInt32LE(30 * 1024 * 1024, central + 24);
     expect(() => checkZip(mutated)).toThrow();
+  });
+  it.each(["xls", "xlsb"] as const)("reads staged import rows from %s", async (format) => {
+    const workbook = utils.book_new();
+    utils.book_append_sheet(
+      workbook,
+      utils.aoa_to_sheet([
+        ["NRK", "NamaPegawai", "EMPCAT"],
+        ["00007", "[CONTOH] Format lama", "PT"],
+      ]),
+      "Data",
+    );
+    const bytes = Buffer.from(write(workbook, { type: "buffer", bookType: format }));
+    const parsed = await parseSource(`test.${format}`, bytes, "employees");
+    expect(parsed.rows[0].normalized.npp).toBe("00007");
   });
   it("blocks canonical import without mapped identity and catalog", () => {
     const errors = validateNormalized("personnel", {

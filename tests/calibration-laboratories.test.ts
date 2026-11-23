@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {normalizeCalibrationLaboratory as normalize} from "@/features/operations/calibration-laboratories";
+import {isInternalCalibrationLaboratory, normalizeCalibrationLaboratory as normalize} from "@/features/operations/calibration-laboratories";
 import {monitoringValue} from "@/features/operations/monitoring";
 
 describe("Calibration laboratory names", () => {
@@ -17,5 +17,10 @@ describe("Calibration laboratory names", () => {
   });
   it("uses the same labels for monitoring table and export", () => {
     expect(monitoringValue({monitoring_laboratory:"PT. KALIMAN"},"monitoring_laboratory")).toBe("PT Kaliman");
+  });
+  it("classifies every recognized Cibitung spelling as internal", () => {
+    for (const name of ["LAB CIBITUNG", "Laboratorium Cibitung", "PT SUCOFINDO Laboratorium Cibitung"])
+      expect(isInternalCalibrationLaboratory(name)).toBe(true);
+    expect(isInternalCalibrationLaboratory("PT Caltesys Indonesia")).toBe(false);
   });
 });

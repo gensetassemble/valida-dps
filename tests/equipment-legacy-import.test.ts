@@ -22,3 +22,15 @@ it('skips exact repeated rows across sheets, but refuses conflicting updates',as
  await expect(parseUma('file.csv',Buffer.from('Nama Barang,Tag-Number,Keterangan\nPump,LAB-1,Patah\nPump,LAB-1,Baik'),'LAB')).rejects.toMatchObject({issues:expect.arrayContaining([expect.stringContaining('berbeda')])});
  await expect(parseUma('fake.xls',Buffer.from('not an Excel file'),'LAB')).rejects.toMatchObject({issues:[expect.stringContaining('Format XLS')]});
 });
+it('detects a legacy XLS container even when the filename says XLSX',async()=>{
+ const b=utils.book_new();utils.book_append_sheet(b,utils.aoa_to_sheet([
+  ['Nama Barang','Tag-Number','Lembaga Kalibrasi','Internal','Eksternal'],
+  ['Pump','LAB-009','Laboratorium Cibitung','-','√'],
+ ]),'LAB');
+ const bytes=Buffer.from(write(b,{type:'buffer',bookType:'xls'}));
+ const parsed=await parseUma('laporan-yang-salah-ekstensi.xlsx',bytes,'LAB');
+ expect(parsed.rows).toHaveLength(1);
+ expect(parsed.rows[0].calibration).toMatchObject({
+  laboratory:'PT SUCOFINDO Laboratorium Cibitung',calibration_internal:'√',calibration_external:'-',
+ });
+});
