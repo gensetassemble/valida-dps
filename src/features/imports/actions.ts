@@ -77,16 +77,31 @@ export async function reviewRow(form: FormData) {
 export async function commitBatch(form: FormData) {
   const c = await importContext(String(form.get("branch") || ""));
   const batch = z.uuid().safeParse(form.get("batch"));
-  if (!batch.success || form.get("confirmation") !== "IMPOR DPS DEVELOPMENT")
-    return { error: "Ketik IMPOR DPS DEVELOPMENT sebagai konfirmasi." };
-  if (isProductionEnvironment())
+  if (!batch.success) return { error: "Batch impor tidak valid." };
+  const { data: batchRow } = await c.db
+    .from("import_batches")
+    .select("id,domain,status")
+    .eq("id", batch.data)
+    .eq("branch_code", c.branch)
+    .maybeSingle();
+  if (!batchRow) return { error: "Batch impor tidak dapat diakses." };
+  const clientImport = batchRow.domain === "clients";
+  const confirmation = clientImport
+    ? "IMPOR SERTIFIKAT KLIEN"
+    : "IMPOR DPS DEVELOPMENT";
+  if (form.get("confirmation") !== confirmation)
+    return { error: `Ketik ${confirmation} sebagai konfirmasi.` };
+  if (isProductionEnvironment() && !clientImport)
     return {
       error:
         "Target bukan development yang disetujui. Impor kanonis dihentikan.",
     };
-  const { data, error } = await c.db.rpc("commit_import", {
+  const { data, error } = await c.db.rpc(
+    clientImport ? "commit_client_certificate_import" : "commit_import",
+    {
     batch: batch.data,
-  });
+    },
+  );
   if (error)
     return {
       error:
@@ -94,10 +109,17 @@ export async function commitBatch(form: FormData) {
     };
   revalidatePath("/impor-data/" + batch.data);
   revalidatePath("/dashboard");
+  if (clientImport) {
+    revalidatePath("/sertifikat-klien");
+    revalidatePath("/pipeline-perpanjangan");
+  }
   return {
     ok: true,
     message:
-      String(data) + " baris tersimpan; verifikasi dokumen tetap terpisah.",
+      String(data) +
+      (clientImport
+        ? " sertifikat diterapkan sesuai hasil screening; verifikasi dokumen tetap terpisah."
+        : " baris tersimpan; verifikasi dokumen tetap terpisah."),
   };
 }
 
@@ -113,9 +135,17 @@ export async function importAuthorizedClientWorkbook(form: FormData) {
   if (batchError || !batch || !approvedClientWorkbook(batch))
     return { error: "Batch ini tidak termasuk sumber operasional yang disetujui." };
   const { data: rows, error } = await c.db.from("import_rows").select("id,normalized_values,review_status,decision").eq("batch_id", id).order("source_row");
-  if (error || rows?.length !== 19 || rows.some(row => !["pending", "approved", "committed"].includes(row.decision) || row.review_status !== "ready" || validateNormalized("clients", row.normalized_values).length))
+  const preparedRows = rows?.map((row) => ({
+    ...row,
+    normalized_values: {
+      ...row.normalized_values,
+      change_reason:
+        row.normalized_values.change_reason || "new_certificate",
+    },
+  }));
+  if (error || preparedRows?.length !== 19 || preparedRows.some(row => !["pending", "approved", "committed"].includes(row.decision) || row.review_status !== "ready" || validateNormalized("clients", row.normalized_values).length))
     return { error: "Seluruh 19 baris harus valid dan siap ditinjau. Periksa staging terlebih dahulu." };
-  for (const row of rows.filter(row => row.decision === "pending")) {
+  for (const row of preparedRows.filter(row => row.decision === "pending")) {
     const { error: reviewError } = await c.db.rpc("review_import", {
       r: row.id, n: row.normalized_values, approve: true,
       reason: "Admin memeriksa dan menyetujui pemetaan workbook klien, 19 baris, melalui sesi aplikasi; bukan verifikasi PDF.",

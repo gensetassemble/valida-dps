@@ -5,7 +5,7 @@ const disabled = (): MailResult => ({
   ok: false,
   state: "Gagal",
   code: "INTEGRATION_DISABLED",
-  message: "Pengiriman email dinonaktifkan pada tahap persiapan infrastruktur.",
+  message: "Pengiriman tanpa antrean audit ditolak. Gunakan alur email tervalidasi VALIDA.",
 });
 export const microsoftMail: EmailProvider = {
   async connectMailbox() {

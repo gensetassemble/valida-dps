@@ -27,6 +27,7 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
     npp: "NPP hasil pemetaan sumber",
     issuer: "Penerbit",
     certificate_number: "Nomor sertifikat",
+    existing_certificate_number: "Nomor sertifikat lama (untuk koreksi)",
     issue_date: "Tanggal terbit ISO",
     expiry_date: "Tanggal akhir ISO",
     interval_months: "Interval bulan",
@@ -70,6 +71,7 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
     portfolio_id: "Portofolio terpetakan",
     certificate_work_area_id: "Wilayah terpetakan",
     previous_order_value: "Nilai kontrak IDR",
+    change_reason: "Alasan perubahan sertifikat",
   },
 };
 export const clean = (v: unknown) =>
@@ -261,6 +263,13 @@ export function validateNormalized(
     req("due_date");
   }
   if (domain === "clients") {
+    if (
+      "change_reason" in n &&
+      !["new_certificate", "data_correction"].includes(n.change_reason)
+    )
+      errors.push(
+        "change_reason: pilih sertifikat baru/perpanjangan atau koreksi data.",
+      );
     if (n.interval_days && (!/^[1-9]\d{0,4}$/.test(n.interval_days) || Number(n.interval_days)>36500))
       errors.push("interval_days: gunakan 1–36500.");
     if (n.interval_days && n.interval_months) errors.push("Pilih interval hari atau bulan.");

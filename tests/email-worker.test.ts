@@ -1,0 +1,20 @@
+import {beforeEach,afterEach,describe,it,expect,vi} from "vitest";
+vi.mock("server-only",()=>({}));
+const mocks=vi.hoisted(()=>({config:vi.fn(),rpc:vi.fn(),from:vi.fn(),deliver:vi.fn()}));
+vi.mock("@/lib/microsoft/delivery-config",()=>({getMailDeliveryConfig:mocks.config}));
+vi.mock("@/lib/supabase/auth-admin",()=>({getAuthAdminClient:()=>({rpc:mocks.rpc,from:mocks.from})}));
+vi.mock("@/lib/microsoft/delivery",()=>({deliverMicrosoftEmail:mocks.deliver}));
+import {runEmailWorker} from "@/lib/microsoft/email-worker";
+const job={id:"ad920000-0000-4000-8000-000000000099",mode:"test",kind:"renewal",branch_code:"DPS",claim_token:"ad920000-0000-4000-8000-000000000098",subject:"Uji",body:"Synthetic email body",recipient:"adli.alfian@sucofindo.co.id"};
+beforeEach(()=>{vi.resetAllMocks();mocks.config.mockReturnValue({mode:"test"});vi.stubEnv("ENABLE_EMAIL_REMINDERS","false");mocks.deliver.mockResolvedValue({state:"accepted",code:"GRAPH_ACCEPTED"});
+ mocks.from.mockImplementation((table:string)=>{const chain={select:()=>chain,eq:()=>chain,in:()=>chain,or:()=>chain,lte:()=>chain,order:()=>chain,limit:()=>chain,maybeSingle:async()=>({data:{enabled:true},error:null}),then:(resolve:(v:unknown)=>unknown)=>Promise.resolve({data:table==="email_outbox"?[job]:[],error:null}).then(resolve)};return chain;});
+ mocks.rpc.mockImplementation(async(name:string,args:Record<string,unknown>)=>({data:name==="claim_email_deliveries"?(args.only_job==="00000000-0000-4000-8000-000000000000"?[]:[job]):name==="finish_email_delivery"?true:0,error:null}));
+});
+afterEach(()=>vi.unstubAllEnvs());
+describe("durable email worker",()=>{
+ it("reconciles old claims and records provider acceptance under the exact claim token",async()=>{expect(await runEmailWorker({branch:"DPS",job:job.id})).toMatchObject({processed:1});expect(mocks.rpc).toHaveBeenCalledWith("finish_email_delivery",expect.objectContaining({job:job.id,claim:job.claim_token,result_state:"accepted"}));expect(mocks.deliver).toHaveBeenCalledTimes(1);});
+ it("does not send again after Graph accepted but persistence failed",async()=>{mocks.rpc.mockImplementation(async(name:string,args:Record<string,unknown>)=>name==="finish_email_delivery"?{data:null,error:{code:"offline"}}:{data:args.only_job===job.id?[job]:[],error:null});await expect(runEmailWorker()).rejects.toThrow("Jangan kirim ulang");expect(mocks.deliver).toHaveBeenCalledTimes(1);});
+ it("preserves uncertain results instead of converting them into success",async()=>{mocks.deliver.mockResolvedValue({state:"uncertain",code:"GRAPH_RESPONSE_UNKNOWN"});await runEmailWorker();expect(mocks.rpc).toHaveBeenCalledWith("finish_email_delivery",expect.objectContaining({result_state:"uncertain",result:"GRAPH_RESPONSE_UNKNOWN"}));expect(mocks.deliver).toHaveBeenCalledTimes(1);});
+ it("can process an administrator test job even while deployment mode is live",async()=>{mocks.config.mockReturnValue({mode:"live"});await runEmailWorker();expect(mocks.rpc).toHaveBeenCalledWith("claim_email_deliveries",expect.objectContaining({only_job:job.id,delivery_mode:"test"}));expect(mocks.deliver).toHaveBeenCalledWith(expect.objectContaining({test:true}));});
+ it("does nothing before configuration is enabled",async()=>{mocks.config.mockReturnValue(null);expect(await runEmailWorker({schedule:true})).toMatchObject({disabled:true,processed:0});expect(mocks.deliver).not.toHaveBeenCalled();expect(mocks.rpc).not.toHaveBeenCalled();});
+});

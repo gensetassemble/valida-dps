@@ -3,11 +3,17 @@ import { requireActiveUser } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { changeOwnPasswordSchema } from "@/lib/auth/schemas";
 import { signOutCurrentDevice } from "@/lib/auth/logout";
+import {
+  isPasswordManagedAccount,
+  MANAGED_PASSWORD_MESSAGE,
+} from "@/lib/auth/password-policy";
 
 export async function changeOwnPassword(
   input: unknown,
 ): Promise<{ ok?: true; error?: string }> {
   const context=await requireActiveUser();
+  if (isPasswordManagedAccount(context.user.email))
+    return { error: MANAGED_PASSWORD_MESSAGE };
   const parsed = changeOwnPasswordSchema.safeParse(input);
   if (!parsed.success)
     return {

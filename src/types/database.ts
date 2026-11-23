@@ -14,6 +14,189 @@ export type Database = {
   };
   public: {
     Tables: {
+      email_outbox: {
+        Row: {
+          last_action_reason: string | null;
+          attempt_count: number
+          body: string
+          branch_code: string
+          claim_token: string | null
+          claimed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          dedupe_key: string
+          domain: string
+          id: string
+          kind: string
+          mode: string
+          next_attempt_at: string
+          provider_request_id: string | null
+          recipient: string
+          recipient_profile_id: string | null
+          record_id: string
+          result_code: string | null
+          source_revision: string
+          state: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          last_action_reason?: string | null;
+          attempt_count?: number
+          body: string
+          branch_code: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          dedupe_key: string
+          domain: string
+          id?: string
+          kind: string
+          mode: string
+          next_attempt_at?: string
+          provider_request_id?: string | null
+          recipient: string
+          recipient_profile_id?: string | null
+          record_id: string
+          result_code?: string | null
+          source_revision: string
+          state?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          last_action_reason?: string | null;
+          attempt_count?: number
+          body?: string
+          branch_code?: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          dedupe_key?: string
+          domain?: string
+          id?: string
+          kind?: string
+          mode?: string
+          next_attempt_at?: string
+          provider_request_id?: string | null
+          recipient?: string
+          recipient_profile_id?: string | null
+          record_id?: string
+          result_code?: string | null
+          source_revision?: string
+          state?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_outbox_branch_code_fkey"
+            columns: ["branch_code"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "email_outbox_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "client_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_outbox_recipient_profile_id_fkey"
+            columns: ["recipient_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_identity_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_outbox_recipient_profile_id_fkey"
+            columns: ["recipient_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_delivery_events: {
+        Row: {
+          reason: string | null;
+          actor_id: string | null
+          code: string | null
+          id: number
+          occurred_at: string
+          outbox_id: string
+          state: string
+        }
+        Insert: {
+          reason?: string | null;
+          actor_id?: string | null
+          code?: string | null
+          id?: never
+          occurred_at?: string
+          outbox_id: string
+          state: string
+        }
+        Update: {
+          reason?: string | null;
+          actor_id?: string | null
+          code?: string | null
+          id?: never
+          occurred_at?: string
+          outbox_id?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_delivery_events_outbox_id_fkey"
+            columns: ["outbox_id"]
+            isOneToOne: false
+            referencedRelation: "email_outbox"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_reminder_settings: {
+        Row: {
+          branch_code: string
+          days: number[]
+          enabled: boolean
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          branch_code: string
+          days?: number[]
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          branch_code?: string
+          days?: number[]
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_reminder_settings_branch_code_fkey"
+            columns: ["branch_code"]
+            isOneToOne: true
+            referencedRelation: "branches"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string;
@@ -1973,6 +2156,7 @@ export type Database = {
           notes: string | null;
           original_holder_name: string | null;
           original_title: string | null;
+          portfolio_id: string | null;
           source_folder_url: string | null;
           source_import_row_id: string | null;
           source_provider: string | null;
@@ -2000,6 +2184,7 @@ export type Database = {
           notes?: string | null;
           original_holder_name?: string | null;
           original_title?: string | null;
+          portfolio_id?: string | null;
           source_folder_url?: string | null;
           source_import_row_id?: string | null;
           source_provider?: string | null;
@@ -2027,6 +2212,7 @@ export type Database = {
           notes?: string | null;
           original_holder_name?: string | null;
           original_title?: string | null;
+          portfolio_id?: string | null;
           source_folder_url?: string | null;
           source_import_row_id?: string | null;
           source_provider?: string | null;
@@ -4229,6 +4415,7 @@ export type Database = {
           original_holder_name: string | null;
           original_title: string | null;
           portfolio_ids: string[] | null;
+          portfolio_id: string | null;
           previous_certificate_id: string | null;
           renewal_status: string | null;
           source_folder_url: string | null;
@@ -4832,6 +5019,77 @@ export type Database = {
       };
     };
     Functions: {
+      manage_email_delivery: {
+        Args: { b: string; job: string; operation: string; reason: string };
+        Returns: undefined;
+      };
+      configure_email_reminders: {
+        Args: { active: boolean; b: string; thresholds: number[] }
+        Returns: undefined
+      }
+      enqueue_client_renewal_email: {
+        Args: {
+          actor_id: string;
+          expected_revision: string;
+          template_version: number;
+          b: string
+          certificate: string
+          delivery_mode: string
+          email_body: string
+          email_subject: string
+          pic: string
+        }
+        Returns: string
+      }
+      enqueue_due_email_reminders: {
+        Args: { delivery_mode: string }
+        Returns: number
+      }
+      claim_email_deliveries: {
+        Args: { batch_size: number; delivery_mode: string; only_job?: string }
+        Returns: {
+          attempt_count: number
+          body: string
+          branch_code: string
+          claim_token: string | null
+          claimed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          dedupe_key: string
+          domain: string
+          id: string
+          kind: string
+          mode: string
+          next_attempt_at: string
+          provider_request_id: string | null
+          recipient: string
+          recipient_profile_id: string | null
+          record_id: string
+          result_code: string | null
+          source_revision: string
+          state: string
+          subject: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "email_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      finish_email_delivery: {
+        Args: {
+          claim: string
+          job: string
+          provider_request: string
+          result: string
+          result_state: string
+          retry_seconds?: number
+        }
+        Returns: boolean
+      }
       calibration_request_form_identity: {
         Args: { r: string };
         Returns: {

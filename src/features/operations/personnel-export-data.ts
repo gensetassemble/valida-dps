@@ -89,7 +89,7 @@ export async function personnelExportData(
             employee.employment_status === "inactive" || !!employee.archived_at,
           portfolio_plot: [...new Set(codes)]
             .sort((a, b) => a.localeCompare(b, "id"))
-            .join(" / "),
+            .join(" / ") || "Belum dipetakan",
         };
       })
       .filter((r) => includeInactive || !r.employee_inactive),

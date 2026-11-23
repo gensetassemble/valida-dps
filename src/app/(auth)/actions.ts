@@ -6,6 +6,12 @@ import { getAppConfig } from "@/lib/env/server";
 import { loginSchema, resetSchema, passwordSchema } from "@/lib/auth/schemas";
 import { signOutCurrentDevice } from "@/lib/auth/logout";
 import { hasRecoverySession } from "@/lib/auth/security";
+import {
+  isPasswordManagedAccount,
+  MANAGED_PASSWORD_MESSAGE,
+} from "@/lib/auth/password-policy";
+const PASSWORD_RESET_REQUESTED_MESSAGE =
+  "Jika akun memenuhi syarat, petunjuk pemulihan akan dikirim ke alamat tersebut.";
 export async function login(input: unknown) {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return { error: "Periksa alamat email dan kata sandi." };
@@ -27,6 +33,8 @@ export async function logout() {
 export async function resetPassword(input: unknown) {
   const parsed = resetSchema.safeParse(input);
   if (!parsed.success) return { error: "Alamat email tidak valid." };
+  if (isPasswordManagedAccount(parsed.data.email))
+    return { message: PASSWORD_RESET_REQUESTED_MESSAGE };
   if (!getSupabaseConfig())
     return { error: "Layanan autentikasi belum dikonfigurasi." };
   const supabase = await createClient();
@@ -41,8 +49,7 @@ export async function resetPassword(input: unknown) {
       error: "Permintaan belum dapat diproses. Silakan coba kembali nanti.",
     };
   return {
-    message:
-      "Jika akun memenuhi syarat, petunjuk pemulihan akan dikirim ke alamat tersebut.",
+    message: PASSWORD_RESET_REQUESTED_MESSAGE,
   };
 }
 export async function updatePassword(input: unknown) {
@@ -52,6 +59,12 @@ export async function updatePassword(input: unknown) {
   const supabase = await createClient();
   if (!(await hasRecoverySession(supabase)))
     return { error: "Tautan pemulihan tidak valid atau telah expired." };
+  const { data: recoveryUser, error: recoveryUserError } =
+    await supabase.auth.getUser();
+  if (recoveryUserError || !recoveryUser.user)
+    return { error: "Tautan pemulihan tidak valid atau telah expired." };
+  if (isPasswordManagedAccount(recoveryUser.user.email))
+    return { error: MANAGED_PASSWORD_MESSAGE };
   const { error } = await supabase.auth.updateUser(parsed.data);
   if (error) return { error: "Kata sandi belum dapat diperbarui." };
   await supabase.auth.signOut({ scope: "global" });

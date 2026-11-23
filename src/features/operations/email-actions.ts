@@ -1,5 +1,6 @@
 "use server";
 import { z } from "zod";
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { entityContext, masterClient } from "@/features/master-data/server";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -8,6 +9,9 @@ import { renewalEmailProviderStatus } from "./email-provider-status";
 import { validateEmailTemplate,renderRenewalEmail } from "./renewal-email";
 import { RENEWAL_EMAIL_DEMO_CONTACT } from "./email-demo";
 import {recordRenewalFollowup} from "./actions";
+import { emailFingerprint } from "./email-fingerprint";
+import { runEmailWorker } from "@/lib/microsoft/email-worker";
+import { getAuthAdminClient } from "@/lib/supabase/auth-admin";
 const scope = z.object({certificate:z.uuid(),branch:z.string().regex(/^[A-Z0-9]{2,8}$/)}).strict();
 export async function getRenewalEmailPreview(input:unknown) {
   const p=scope.safeParse(input);
@@ -15,7 +19,7 @@ export async function getRenewalEmailPreview(input:unknown) {
   const c=await entityContext("sertifikat-klien",p.data.branch,true);
   const db=await masterClient();
   const {data:cert,error}=await db.from("client_certificate_display_records")
-    .select("id,client_id,client_name,certificate_number,certificate_type_name,object_type,object_serial,installation_location,expiry_date,account_manager_name,is_example,is_active")
+    .select("id,client_id,client_name,certificate_number,certificate_type_name,object_type,object_serial,installation_location,expiry_date,scope_portfolio_id,account_manager_name,is_example,is_active")
     .eq("id",p.data.certificate).eq("branch_code",c.branch).maybeSingle();
   if(error || !cert || !cert.is_active || cert.is_example) return {error:"Sertifikat aktif tidak ditemukan atau tidak dapat diakses."};
   const [{data:contacts,error:contactError},template,{data:opportunity,error:stageError}]=await Promise.all([
@@ -27,13 +31,13 @@ export async function getRenewalEmailPreview(input:unknown) {
   if(contactError) return {error:"Kontak pelanggan belum dapat dimuat."};
   if(stageError) return {error:"Status tindak lanjut belum dapat dimuat."};
   const provider=renewalEmailProviderStatus();
-  const demoMode=!provider.enabled;
+  const demoMode=provider.mode !== "live";
   return {data:{
     context:{customer:cert.client_name || "",number:cert.certificate_number || "",certificateType:cert.certificate_type_name || "",
       object:cert.object_type || "",serial:cert.object_serial || "",location:cert.installation_location || "",expiryDate:cert.expiry_date || "",pic:"",serviceName:cert.certificate_type_name || ""},
-    contacts:contacts || [],clientId:cert.client_id,accountManager:cert.account_manager_name || "Belum ditugaskan",template,stage:String(opportunity?.stage || "uncontacted"),
+    contacts:contacts || [],clientId:cert.client_id,sourceRevision:createHash("md5").update([cert.id,cert.expiry_date,cert.certificate_number,cert.client_id,cert.client_name,cert.certificate_type_name,cert.object_type,cert.object_serial,cert.installation_location,cert.scope_portfolio_id].filter(v=>v!==null && v!==undefined).join("|")).digest("hex"),accountManager:cert.account_manager_name || "Belum ditugaskan",template,stage:String(opportunity?.stage || "uncontacted"),
     isAdmin:hasPermission(c.scopes,c.branch,["admin"]),provider,demoMode,demoContact:RENEWAL_EMAIL_DEMO_CONTACT,
-    testRecipients:demoMode ? [RENEWAL_EMAIL_DEMO_CONTACT.email] : hasPermission(c.scopes,c.branch,["admin"]) ? (process.env.VALIDA_EMAIL_TEST_RECIPIENTS || "").split(",").map(v=>v.trim().toLowerCase()).filter(v=>z.email().safeParse(v).success && v.endsWith("@sucofindo.co.id")) : [],
+    testRecipients:demoMode || hasPermission(c.scopes,c.branch,["admin"]) ? [RENEWAL_EMAIL_DEMO_CONTACT.email] : [],
   }};
 }
 export async function recordClientContact(input:unknown):Promise<{ok?:boolean;error?:string}> {
@@ -70,14 +74,36 @@ export async function saveRenewalEmailTemplate(input:unknown) {
   revalidatePath("/pengaturan/template-email");
   return {version:Number(data)};
 }
-// No live sender exists yet. Even a manipulated request cannot supply recipients,
-// provider tokens, success statuses or renewal transitions to this action.
+// Recipients and message content are reloaded from the database; caller supplies
+// only the selected PIC and a hash of the preview they explicitly confirmed.
 export async function requestRenewalEmailSend(input:unknown) {
-  const p=z.object({certificate:z.uuid(),branch:z.string().regex(/^[A-Z0-9]{2,8}$/),mode:z.enum(["test","official"])}).strict().safeParse(input);
+  const p=scope.extend({mode:z.enum(["test","official"]),contact:z.uuid().optional(),confirmed:z.boolean().optional(),fingerprint:z.string().regex(/^[a-f0-9]{64}$/).optional()}).strict().safeParse(input);
   if(!p.success) return {error:"Permintaan pengiriman tidak valid."};
   const preview=await getRenewalEmailPreview({certificate:p.data.certificate,branch:p.data.branch});
   if(!preview.data) return {error:preview.error || "Sertifikat tidak dapat diakses."};
   if(p.data.mode === "test" && !preview.data.isAdmin) return {error:"Pengiriman uji hanya untuk Admin."};
-  return {error:preview.data.provider.reason,code:"INTEGRATION_DISABLED" as const};
+  const d=preview.data;
+  if(!d.provider.enabled) return {error:d.provider.reason,code:"INTEGRATION_DISABLED" as const};
+  if(p.data.mode === "official" && (d.demoMode || process.env.ENABLE_OUTLOOK_COMMERCIAL !== "true")) return {error:"Pengiriman resmi belum diaktifkan. Gunakan mode uji internal."};
+  if(!p.data.confirmed || !p.data.fingerprint) return {error:"Periksa pratinjau lalu konfirmasikan pengiriman."};
+  const contact=d.contacts.find(v=>v.id===p.data.contact);
+  if(p.data.mode === "official" && (!contact || contact.is_test || !contact.is_primary || contact.verification_status !== "verified" || !z.email().safeParse(contact.email).success))
+    return {error:"Pilih PIC utama resmi dengan email terverifikasi."};
+  const recipient=p.data.mode === "test" ? d.demoContact.email : contact!.email!;
+  const email=renderRenewalEmail({...d.context,pic:p.data.mode === "test" ? d.demoContact.name : contact!.name},d.template,p.data.mode);
+  if(email.missing.length) return {error:email.missing.join(" · ")};
+  const fingerprint=await emailFingerprint({certificate:p.data.certificate,branch:p.data.branch,recipient,subject:email.subject,body:email.body,mode:p.data.mode});
+  if(fingerprint!==p.data.fingerprint) return {error:"Data atau template telah berubah. Buka ulang pratinjau sebelum mengirim."};
+  const queueClient=getAuthAdminClient();
+  if(!queueClient) return {error:"Worker email belum dikonfigurasi. Hubungi IT Officer."};
+  const actor=await entityContext("sertifikat-klien",p.data.branch,true);
+  const db=await masterClient();
+  const {data:job,error}=await queueClient.rpc("enqueue_client_renewal_email",{b:p.data.branch,certificate:p.data.certificate,pic:contact?.id || "00000000-0000-4000-8000-000000000000",delivery_mode:p.data.mode === "test" ? "test" : "live",email_subject:email.subject,email_body:email.body,actor_id:actor.user.id,expected_revision:d.sourceRevision,template_version:d.template.version});
+  if(error || !job) return {error:"Email belum masuk antrean. Periksa akses dan data PIC."};
+  try { await runEmailWorker({branch:p.data.branch,job}); }
+  catch { /* Leave the durable job for reconciliation; never repeat the Graph POST here. */ }
+  const {data:status}=await db.from("email_outbox").select("id,state,result_code").eq("id",job).single();
+  revalidatePath("/pengaturan/email");
+  return {ok:true,job,state:status?.state || "pending",message:status?.state === "accepted" ? "Microsoft 365 menerima email untuk dikirim. Ini belum merupakan konfirmasi email tiba di tujuan." : status?.state === "uncertain" ? "Hasil pengiriman belum pasti. Minta IT Officer memeriksa Sent Items sebelum mencoba lagi." : status?.state === "failed" ? "Pengiriman ditolak. IT Officer dapat memeriksa kode kegagalan pada Riwayat Pengiriman." : "Permintaan tercatat. Lihat status pada Riwayat Pengiriman; jangan mengulangi pengiriman."};
 }
 export type EmailPreviewData = NonNullable<Awaited<ReturnType<typeof getRenewalEmailPreview>>["data"]>;

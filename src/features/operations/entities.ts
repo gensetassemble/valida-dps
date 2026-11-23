@@ -144,6 +144,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
     fields: [
       ref("employee_id", "Pegawai", "pegawai", true, true),
       ref("certificate_type_id", "Jenis kompetensi", "jenis-sertifikat"),
+      { ...ref("portfolio_id", "Portofolio penanggung jawab sertifikat", "portofolio"), hint: "Pilih portofolio untuk lisensi ini, bukan seluruh penempatan pegawai. Contoh: Draught Survey → BBR; Liquid Cargo → HMPM." },
       text("original_title", "Judul lisensi asli", true),
       text("original_holder_name", "Nama pemegang pada dokumen"),
       text("issuer", "Penerbit"),
@@ -163,6 +164,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       "original_title",
       "employee_name",
       "npp",
+      "portfolio_id",
       "certificate_number",
       "expiry_date",
       "validity_status",

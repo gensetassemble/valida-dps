@@ -26,6 +26,8 @@ Detail dan form terbuka dalam dialog besar pada navigasi aplikasi; tautan langsu
 
 [Pembaruan UI terbaru](docs/ui-update-20261029.md) · [Panduan deployment Vercel](docs/deployment-vercel.md)
 
+Pembaruan development 10 November 2026: [email langsung dan reminder Microsoft 365](docs/microsoft365-email-reminders.md) sudah diimplementasikan dengan antrean, audit, konfirmasi, dan pilot internal ke Adli. Pengiriman tetap nonaktif; mailbox organisasi serta izin Entra/Exchange masih menunggu. Belum dirilis ke produksi. Validasi terbaru: 270 tes aplikasi, typecheck, lint perubahan, build Webpack, pengujian database development dengan rollback, dan uji browser desktop/ponsel.
+
 ## Menjalankan aplikasi
 
 ```powershell
@@ -105,7 +107,7 @@ src/lib/domain/            Tanggal WITA, lifetime dan kelayakan
 src/lib/http/              Batas request streaming sebelum parsing
 src/lib/auth/              Guard dan permission cabang
 src/lib/supabase/          Client SSR/browser dan Storage tertutup
-src/lib/microsoft/         Kontrak Microsoft 365 belum aktif
+src/lib/microsoft/         Pengiriman Microsoft Graph dan worker antrean; default nonaktif
 src/types/database.ts      Tipe hasil generasi database aktual
 supabase/migrations/       Skema, katalog, RLS, constraint, trigger, indeks
 supabase/tests/            Suite SQL transaksi/rollback
@@ -119,7 +121,7 @@ Salin nama variabel dari .env.example; .env.local tidak boleh masuk Git. APP_URL
 
 Bucket certificate-documents privat, PDF maksimum 10 MiB, akses mengikuti parent/RLS dan signed URL 60 detik. Dokumen yatim/tidak sah ditolak. Belum ada PDF bisnis nyata yang diberikan; uji positif SQL hanya metadata sintetis dan browser menguji penolakan berkas tidak valid. Bucket import-sources privat, 5 MiB/2.500 baris per CSV/XLSX. Tidak ada kunci privileged pada aplikasi.
 
-[Microsoft 365](docs/microsoft-365.md) menunggu Entra tenant/app, consent organisasi, mailbox dan penyimpanan token. [GitHub/Vercel](docs/deployment.md) menunggu hak publikasi serta hosting perusahaan yang sesuai. Tidak ada email dikirim atau cron diaktifkan. Menu tahap berikutnya berlabel “Nanti”.
+[Microsoft 365 terbaru](docs/microsoft365-email-reminders.md) memakai application identity dan mailbox organisasi dengan scope Exchange RBAC. Tidak menyimpan refresh token pengguna. Pengiriman serta reminder belum diaktifkan; konfigurasi dan UAT mailbox diperlukan sebelum rilis. [Dokumen fase awal](docs/microsoft-365.md) adalah konteks historis, bukan prosedur aktivasi fitur terbaru.
 
 ## Pengujian dan database lokal
 

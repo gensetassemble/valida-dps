@@ -13,6 +13,7 @@ vi.mock("@/lib/auth/logout", () => ({ signOutCurrentDevice: mocks.logout }));
 import { changeOwnPassword } from "@/app/(dashboard)/profil/actions";
 import { changeOwnPasswordSchema } from "@/lib/auth/schemas";
 import { ALL_ROLES } from "@/lib/auth/permissions";
+import { MANAGED_PASSWORD_MESSAGE } from "@/lib/auth/password-policy";
 const input = {
   currentPassword: "SyntheticOld123!",
   password: "SyntheticNew456!",
@@ -21,13 +22,15 @@ const input = {
 describe("change own password", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    mocks.guard.mockResolvedValue({ user: { id: "current-user" } });
+    mocks.guard.mockResolvedValue({
+      user: { id: "current-user", email: "person@example.com" },
+    });
     mocks.update.mockResolvedValue({ error: null });
   });
   for (const role of ALL_ROLES)
     it(`allows ${role} to update only its session's password`, async () => {
       mocks.guard.mockResolvedValue({
-        user: { id: "current-user" },
+        user: { id: "current-user", email: `${role}@example.com` },
         scopes: [{ branch_code: "DPS", role_code: role }],
       });
       expect(await changeOwnPassword(input)).toEqual({ ok: true });
@@ -40,6 +43,18 @@ describe("change own password", () => {
         mocks.logout.mock.invocationCallOrder[0],
       );
     });
+  it("blocks password changes for the shared tester account", async () => {
+    mocks.guard.mockResolvedValue({
+      user: { id: "tester-user", email: " Tester@Tester.com " },
+      scopes: [{ branch_code: "DPS", role_code: "tester" }],
+      isSimulation: false,
+    });
+    expect(await changeOwnPassword(input)).toEqual({
+      error: MANAGED_PASSWORD_MESSAGE,
+    });
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.logout).not.toHaveBeenCalled();
+  });
   it("rejects unauthenticated or inactive callers before Auth mutation", async () => {
     mocks.guard.mockRejectedValue(new Error("login redirect"));
     await expect(changeOwnPassword(input)).rejects.toThrow("login redirect");

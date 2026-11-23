@@ -1,10 +1,11 @@
 import "server-only";
-import { getConnectionStatus } from "@/lib/microsoft/mail-service";
+import { mailDeliveryStatus } from "@/lib/microsoft/delivery-config";
 export function renewalEmailProviderStatus() {
+  const status = mailDeliveryStatus();
   return {
     provider:"Microsoft Graph",
-    enabled:false as const,
-    state:getConnectionStatus().state,
-    reason:"Pengiriman belum tersedia. Pratinjau dan salin email dapat digunakan. Administrator perlu menghubungkan mailbox resmi Microsoft 365 terlebih dahulu.",
+    ...status,
+    commercialEnabled: status.mode === "live" && process.env.ENABLE_OUTLOOK_COMMERCIAL === "true",
+    state:status.enabled ? "Dikonfigurasi" : "Belum Dikonfigurasi",
   };
 }

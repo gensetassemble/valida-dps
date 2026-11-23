@@ -4,8 +4,16 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DOMAIN_LABELS, FIELDS, type ImportDomain } from "./normalize";
-export function ImportUpload({ branch }: { branch: string }) {
-  const [domain, setDomain] = useState<ImportDomain>("employees"),
+export function ImportUpload({
+  branch,
+  initialDomain = "employees",
+  lockedDomain = false,
+}: {
+  branch: string;
+  initialDomain?: ImportDomain;
+  lockedDomain?: boolean;
+}) {
+  const [domain, setDomain] = useState<ImportDomain>(initialDomain),
     [headers, setHeaders] = useState<string[]>([]),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
@@ -60,24 +68,34 @@ export function ImportUpload({ branch }: { branch: string }) {
         }
       }}
     >
-      <label className="block text-xs font-semibold">
-        Jenis sumber
-        <select
-          name="domain"
-          value={domain}
-          onChange={(e) => {
-            setDomain(e.target.value as ImportDomain);
-            setHeaders([]);
-          }}
-          className="mt-2 h-10 w-full rounded-lg border border-input px-3"
-        >
-          {Object.entries(DOMAIN_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
-        </select>
-      </label>
+      {lockedDomain ? (
+        <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-xs">
+          <input type="hidden" name="domain" value={domain} />
+          <span className="text-muted-foreground">Jenis data</span>
+          <strong className="mt-1 block text-sm text-brand-navy">
+            {DOMAIN_LABELS[domain]}
+          </strong>
+        </div>
+      ) : (
+        <label className="block text-xs font-semibold">
+          Jenis sumber
+          <select
+            name="domain"
+            value={domain}
+            onChange={(e) => {
+              setDomain(e.target.value as ImportDomain);
+              setHeaders([]);
+            }}
+            className="mt-2 h-10 w-full rounded-lg border border-input px-3"
+          >
+            {Object.entries(DOMAIN_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="block text-xs font-semibold">
         CSV UTF-8 / XLSX, maksimum 5 MiB
         <Input

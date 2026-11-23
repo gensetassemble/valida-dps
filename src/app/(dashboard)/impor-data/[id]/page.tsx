@@ -40,6 +40,10 @@ const choiceFields: Record<string, [string, string][]> = {
     ["PTT_PROJECT", "PTT Project"],
     ["LS", "LS"],
   ],
+  change_reason: [
+    ["new_certificate", "Sertifikat baru / perpanjangan"],
+    ["data_correction", "Koreksi data, bukan sertifikat baru"],
+  ],
 };
 export default async function Page({
   params,
@@ -98,6 +102,33 @@ export default async function Page({
     ),
   ]);
   if (error) throw Error("Baris staging belum dapat dimuat.");
+  const clientIds =
+    domain === "clients"
+      ? [
+          ...new Set(
+            (rows || [])
+              .map(
+                (row) =>
+                  (row.normalized_values as Record<string, string>).client_id,
+              )
+              .filter(Boolean),
+          ),
+        ]
+      : [];
+  const { data: currentClientCertificates } = clientIds.length
+    ? await c.db
+        .from("client_certificates")
+        .select(
+          "id,client_id,certificate_type_id,certificate_number,issue_date,expiry_date",
+        )
+        .eq("branch_code", c.branch)
+        .in("client_id", clientIds)
+        .limit(500)
+    : { data: [] };
+  const identity = (value: unknown) =>
+    String(value || "")
+      .toLocaleLowerCase("id")
+      .replace(/[^a-z0-9]/g, "");
   const stat = Object.fromEntries(counts);
   const refs: Record<string, [string, string]> = {
     employee_id: ["kompetensi-personil", "employee_id"],
@@ -173,7 +204,7 @@ export default async function Page({
         </div>}
         {!approvedClientWorkbook(batch) && <><h2 className="mb-3 text-sm font-bold">Impor Baris yang Disetujui</h2>
         <p className="mb-3 text-xs leading-6">
-          Target: development · {c.branch}. Hanya {stat.approved} baris yang
+          Target: {domain === "clients" ? "data sertifikat klien" : "development"} · {c.branch}. Hanya {stat.approved} baris yang
           telah disetujui. Transaksi batal seluruhnya bila ada konflik;
           dokumen/hasil kalibrasi tetap menunggu verifikasi resmi. Tidak
           mengaktifkan akun pegawai.
@@ -182,7 +213,7 @@ export default async function Page({
           <input type="hidden" name="batch" value={id} />
           <input type="hidden" name="branch" value={c.branch} />
           <label className="block text-xs">
-            Ketik IMPOR DPS DEVELOPMENT
+            Ketik {domain === "clients" ? "IMPOR SERTIFIKAT KLIEN" : "IMPOR DPS DEVELOPMENT"}
             <Input name="confirmation" required className="mt-1 max-w-sm" />
           </label>
           <Button disabled={!stat.approved}>Impor Baris yang Disetujui</Button>
@@ -230,6 +261,15 @@ export default async function Page({
       <div className="space-y-4">
         {rows?.map((row) => {
           const n = row.normalized_values as Record<string, string>;
+          const oldCertificateNumber =
+            n.existing_certificate_number || n.certificate_number;
+          const currentClientCertificate = currentClientCertificates?.find(
+            (certificate) =>
+              certificate.client_id === n.client_id &&
+              certificate.certificate_type_id === n.certificate_type_id &&
+              identity(certificate.certificate_number) ===
+                identity(oldCertificateNumber),
+          );
           return (
             <Card key={String(row.id)} className="p-5">
               <h2 className="text-sm font-bold">
@@ -272,6 +312,45 @@ export default async function Page({
                   <input type="hidden" name="batch" value={id} />
                   <input type="hidden" name="branch" value={c.branch} />
                   <input type="hidden" name="domain" value={domain} />
+                  {domain === "clients" && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs">
+                      <p className="font-semibold text-amber-950">
+                        Screening nomor dan tanggal
+                      </p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                        {[
+                          [
+                            "Nomor sertifikat",
+                            currentClientCertificate?.certificate_number,
+                            n.certificate_number,
+                          ],
+                          [
+                            "Tanggal terbit",
+                            currentClientCertificate?.issue_date,
+                            n.issue_date,
+                          ],
+                          [
+                            "Tanggal berakhir",
+                            currentClientCertificate?.expiry_date,
+                            n.expiry_date,
+                          ],
+                        ].map(([label, before, after]) => (
+                          <div key={String(label)}>
+                            <span className="font-semibold">{label}</span>
+                            <span className="mt-1 block text-amber-900">
+                              {String(before || "Belum tercatat")} →{" "}
+                              {String(after || "Dikosongkan")}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-amber-900">
+                        Pilih apakah perubahan ini merupakan sertifikat baru /
+                        perpanjangan atau hanya koreksi data sebelum menyetujui
+                        baris.
+                      </p>
+                    </div>
+                  )}
                   <div className="grid gap-4 md:grid-cols-2">
                     {Object.entries(FIELDS[domain]).map(([key, label]) =>
                       refs[key] ? (

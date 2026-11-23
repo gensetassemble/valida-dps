@@ -150,6 +150,7 @@ const groups: { label: string; items: Item[] }[] = [
     label: "Sistem",
     items: [
       { label:"Template Email",href:"/pengaturan/template-email",icon:Mail,roles:["admin"] },
+      { label:"Email & Reminder",href:"/pengaturan/email",icon:Mail,roles:["admin"] },
       {
         label: "Pengaturan",
         href: "/pengaturan",

@@ -2,7 +2,7 @@ import { describe,expect,it,vi } from "vitest";
 vi.mock("server-only",()=>({}));
 import ExcelJS from "exceljs";
 import { clientExpiry } from "@/features/operations/client-certificate";
-import { normalize } from "@/features/imports/normalize";
+import { normalize, validateNormalized } from "@/features/imports/normalize";
 import { parseSource } from "@/features/imports/parser";
 import { addClientSheet } from "@/features/operations/client-export";
 describe("client source workbook",()=>{
@@ -23,6 +23,14 @@ describe("client source workbook",()=>{
     const row=normalize("clients",{"Tanggal Terbit":"11 Des 2025","Tanggal Berakhir":"11 Des 2028","Nilai Kontrak (IDR)":"13333333.333333334"});
     expect(row.normalized).toMatchObject({issue_date:"2025-12-11",expiry_date:"2028-12-11",previous_order_value:"13333333.33"});
     expect(row.issues.some(i=>i.includes("client_id"))).toBe(true);
+    expect(row.issues.some(i=>i.includes("change_reason"))).toBe(true);
+    expect(validateNormalized("clients",{
+      client_id:"11111111-1111-4111-8111-111111111111",
+      certificate_type_id:"22222222-2222-4222-8222-222222222222",
+      certificate_number:"CERT-001",object_type:"Pesawat",
+      issue_date:"2026-10-21",expiry_date:"2026-12-16",
+      change_reason:"new_certificate",
+    }).some(i=>i.includes("change_reason"))).toBe(false);
   });
   it("exports source column labels, typed dates, text references and test-contact label",()=>{
     const book=new ExcelJS.Workbook();addClientSheet(book,[{client_name:"Perusahaan uji",issue_date:"2026-10-21",interval_label:"56 hari",previous_order_value:"2250000.00",order_reference:"000019",pic_name:"[UJI] Adli",pic_is_test:true}]);
