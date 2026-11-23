@@ -22,7 +22,7 @@ export async function processEmailBatch(input: unknown) {
   const c=await entityContext("sertifikat-klien",parsed.data.branch);
   if(!hasPermission(c.scopes,c.branch,["super_admin"]))return {error:"Pemrosesan antrean hanya untuk Super Admin."};
   try { const result=await runEmailWorker({branch:c.branch});revalidatePath("/pengaturan/email");return result.disabled ? {error:"Mailbox dan pengiriman belum diaktifkan."} : {ok:true,processed:result.processed}; }
-  catch {return {error:"Batch belum selesai. Periksa status antrean sebelum mencoba kembali."};}
+  catch {return {error:"Proses pengiriman belum selesai. Periksa status antrean sebelum mencoba kembali."};}
 }
 export async function manageEmailDelivery(input:unknown) {
   const p=z.object({branch:branchSchema,job:z.uuid(),operation:z.enum(["cancel","retry"]),reason:z.string().trim().min(8).max(1000)}).strict().safeParse(input);

@@ -21,7 +21,7 @@ export function mailDeliveryStatus() {
   return { enabled: !!config, mode: config?.mode || "disabled",
     sender: config?.sender || null,
     reason: config ? config.mode === "test"
-      ? `Mode uji: seluruh email diarahkan ke ${MAIL_TEST_RECIPIENT}; maksimal tiga email per batch otomatis.`
+      ? `Mode uji: seluruh email diarahkan ke ${MAIL_TEST_RECIPIENT}; maksimal tiga email per proses otomatis.`
       : "Konfigurasi mailbox organisasi tersedia. Pastikan izin telah dibuktikan melalui email uji sebelum mengirim kepada pelanggan."
       : "Pengiriman belum tersedia. Mailbox organisasi, izin Microsoft 365, dan konfigurasi pengiriman perlu dilengkapi. Draf Outlook tetap tersedia." };
 }

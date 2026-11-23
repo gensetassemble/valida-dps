@@ -51,11 +51,11 @@ export async function POST(request: NextRequest) {
       sz: bytes.length,
       items: parsed.rows,
       note:
-        "Unggah melalui aplikasi; pemetaan kolom " +
+        "File diunggah melalui aplikasi; kecocokan kolom " +
         JSON.stringify(mapping) +
-        ". SIAP_TINJAU bukan persetujuan dokumen.",
+        ". Hasil pemeriksaan belum menerapkan perubahan.",
     });
-    if (error || !data) throw Error("Staging belum dapat disimpan.");
+    if (error || !data) throw Error("Hasil pembacaan file belum dapat disiapkan.");
     const extension = name.toLowerCase().match(/\.(csv|xlsx|xlsb|xls)$/)?.[0];
     if (!extension) throw Error("Gunakan CSV UTF-8, XLSX, XLS, atau XLSB.");
     const path =
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         {
           batch: data,
           warning:
-            "Baris staging tersimpan, tetapi salinan berkas privat belum terunggah. Simpan sumber asli dan ulangi unggah untuk melengkapi.",
+            "Hasil pemeriksaan sudah disiapkan, tetapi salinan file belum tersimpan. Simpan file asli lalu ulangi unggahan.",
         },
         { headers: { "Cache-Control": "private, no-store" } },
       );
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
           /^[A-Za-zÀ-ž0-9 .,–—()/:;-]{1,180}$/.test(known) &&
           !known.includes("SQL")
             ? known
-            : "Berkas/pemetaan ditolak. Periksa format, ukuran, sheet dan kewenangan.",
+            : "File belum dapat diproses. Periksa format, ukuran, nama lembar, dan kewenangan akun.",
       },
       { status: 400 },
     );

@@ -18,28 +18,27 @@ export default async function Page({
     .eq("branch_code", c.branch)
     .order("created_at", { ascending: false })
     .limit(50);
-  if (error) throw Error("Batch impor belum dapat dimuat.");
+  if (error) throw Error("Riwayat impor belum dapat dimuat.");
   return (
     <>
       <PageHeader
         title="Impor Data"
-        description="Staging privat, pemetaan, validasi dan persetujuan manusia sebelum penulisan data operasional."
+        description="Unggah file, periksa perubahan, lalu terapkan pembaruan setelah datanya sesuai."
       />
       <div className="grid gap-5 xl:grid-cols-2">
         <Card className="p-5">
           <h2 className="mb-4 text-sm font-bold">
-            Unggah sumber untuk ditinjau
+            Unggah file untuk diperiksa
           </h2>
           <ImportUpload branch={c.branch} />
           <p className="mt-4 text-xs leading-6 text-muted-foreground">
-            Urutan: master pegawai → kompetensi → kalibrasi. SIAP_TINJAU tidak
-            berarti terverifikasi. Tidak ada akun login atau pelanggan yang
-            dibuat otomatis.
+            Data website tidak langsung berubah. Anda akan melihat hasil
+            pemeriksaan terlebih dahulu sebelum pembaruan diterapkan.
           </p>
         </Card>
         <Card className="p-5">
           <h2 className="mb-4 text-sm font-bold">
-            Batch terakhir · cabang {c.branch}
+            Riwayat impor terbaru · cabang {c.branch}
           </h2>
           {data?.length ? (
             data.map((b) => (
@@ -51,13 +50,13 @@ export default async function Page({
                 <strong className="text-xs">{String(b.filename)}</strong>
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   {DOMAIN_LABELS[b.domain as ImportDomain]} ·{" "}
-                  {String(b.source_count)} baris sumber
+                  {String(b.source_count)} baris dari file
                 </p>
               </Link>
             ))
           ) : (
             <p className="text-sm text-muted-foreground">
-              Belum ada data staging.
+              Belum ada riwayat impor.
             </p>
           )}
         </Card>

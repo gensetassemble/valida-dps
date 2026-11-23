@@ -24,7 +24,7 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
     certificate_type_id: "Jenis kompetensi terpetakan",
     original_title: "Judul lisensi asli",
     original_holder_name: "Nama pada sumber",
-    npp: "NPP hasil pemetaan sumber",
+    npp: "NPP pada file",
     issuer: "Penerbit",
     certificate_number: "Nomor sertifikat",
     existing_certificate_number: "Nomor sertifikat lama (untuk koreksi)",

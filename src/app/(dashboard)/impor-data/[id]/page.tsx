@@ -17,17 +17,17 @@ import {
   type ImportDomain,
 } from "@/features/imports/normalize";
 const reviewLabels: Record<string, string> = {
-  ready: "Siap Ditinjau",
-  needs_review: "Perlu Verifikasi",
-  invalid: "Tidak Valid",
-  duplicate: "Duplikat",
-  conflict: "Konflik",
+  ready: "Siap diterapkan",
+  needs_review: "Perlu diperiksa",
+  invalid: "Perlu diperbaiki",
+  duplicate: "Dilewati (data ganda)",
+  conflict: "Ada data yang berbeda",
 };
 const decisionLabels: Record<string, string> = {
-  pending: "Menunggu",
-  approved: "Disetujui",
-  rejected: "Ditolak",
-  committed: "Diimpor",
+  pending: "Belum diperiksa",
+  approved: "Akan diterapkan",
+  rejected: "Diabaikan",
+  committed: "Sudah diterapkan",
 };
 const choiceFields: Record<string, [string, string][]> = {
   validity_kind: [
@@ -101,7 +101,7 @@ export default async function Page({
       }),
     ),
   ]);
-  if (error) throw Error("Baris staging belum dapat dimuat.");
+  if (error) throw Error("Hasil pemeriksaan file belum dapat dimuat.");
   const clientIds =
     domain === "clients"
       ? [
@@ -155,22 +155,22 @@ export default async function Page({
         className="text-xs underline"
         href={"/impor-data?branch=" + c.branch}
       >
-        ← Daftar batch
+        ← Riwayat impor
       </Link>
       <PageHeader
         title={String(batch.filename)}
         description={
-          DOMAIN_LABELS[domain] + " · Staging privat cabang " + c.branch
+          DOMAIN_LABELS[domain] + " · Hasil pemeriksaan sementara · Cabang " + c.branch
         }
       />
       <Card className="mb-4 p-5">
         <div className="grid gap-3 text-xs sm:grid-cols-5">
           {[
-            ["Sumber", batch.source_count],
-            ["Menunggu", stat.pending],
-            ["Disetujui", stat.approved],
-            ["Ditolak", stat.rejected],
-            ["Diimpor", stat.committed],
+            ["Baris file", batch.source_count],
+            ["Belum diperiksa", stat.pending],
+            ["Akan diterapkan", stat.approved],
+            ["Diabaikan", stat.rejected],
+            ["Sudah diterapkan", stat.committed],
           ].map(([label, n]) => (
             <div key={String(label)}>
               <p className="text-muted-foreground">{label}</p>
@@ -180,64 +180,58 @@ export default async function Page({
             </div>
           ))}
         </div>
-        <p className="mt-4 break-all text-[11px] text-muted-foreground">
-          SHA-256: {String(batch.file_hash)}. {String(batch.source_note || "")}
-        </p>
         <a
           className="mt-3 inline-block text-xs underline"
           href={"/api/imports/errors?batch=" + id + "&branch=" + c.branch}
         >
-          Ekspor hasil review XLSX
+          Unduh hasil pemeriksaan
         </a>
       </Card>
       <Card className="mb-5 p-5">
         {approvedClientWorkbook(batch) && <div className="mb-5 rounded-lg border border-border p-4">
-          <h2 className="text-sm font-bold">Impor workbook sertifikat klien DPS</h2>
-          <p className="my-3 text-xs leading-6">19 sertifikat untuk 11 perusahaan, portofolio IND, PIK, dan KSP. Periksa seluruh pemetaan di bawah. PIC [UJI] Adli Alfian adalah penerima internal pengujian. Persetujuan dan impor dicatat atas akun Admin yang sedang login; MFA tetap diperlukan.</p>
+          <h2 className="text-sm font-bold">Pembaruan sertifikat klien</h2>
+          <p className="my-3 text-xs leading-6">19 sertifikat untuk 11 perusahaan, portofolio IND, PIK, dan KSP. Pastikan seluruh data di bawah sudah sesuai. PIC [UJI] Adli Alfian adalah penerima internal pengujian. Penerapan perubahan dicatat atas akun Admin yang sedang masuk; MFA tetap diperlukan.</p>
           <ReviewForm action={importAuthorizedClientWorkbook}>
             <input type="hidden" name="batch" value={id} />
             <input type="hidden" name="branch" value={c.branch} />
-            <label className="block text-xs"><input type="checkbox" name="confirmed" required /> Saya telah memeriksa 19 baris dan menyetujui pemetaan sumber.</label>
-            <label className="block text-xs">Ketik IMPOR 19 SERTIFIKAT KLIEN DPS<Input name="confirmation" required className="mt-1 max-w-md" /></label>
-            <Button disabled={stat.committed === 19}>Setujui dan impor 19 sertifikat</Button>
+            <label className="block text-xs"><input type="checkbox" name="confirmed" required /> Saya telah memeriksa 19 baris dan memastikan datanya sesuai.</label>
+            <label className="block text-xs">Ketik TERAPKAN 19 SERTIFIKAT KLIEN<Input name="confirmation" required className="mt-1 max-w-md" /></label>
+            <Button disabled={stat.committed === 19}>Terapkan 19 sertifikat</Button>
           </ReviewForm>
         </div>}
-        {!approvedClientWorkbook(batch) && <><h2 className="mb-3 text-sm font-bold">Impor Baris yang Disetujui</h2>
+        {!approvedClientWorkbook(batch) && <><h2 className="mb-3 text-sm font-bold">Terapkan Pembaruan</h2>
         <p className="mb-3 text-xs leading-6">
-          Target: {domain === "clients" ? "data sertifikat klien" : "development"} · {c.branch}. Hanya {stat.approved} baris yang
-          telah disetujui. Transaksi batal seluruhnya bila ada konflik;
-          dokumen/hasil kalibrasi tetap menunggu verifikasi resmi. Tidak
-          mengaktifkan akun pegawai.
+          {stat.approved} baris siap diterapkan ke {domain === "clients" ? "data sertifikat klien" : "data uji"} cabang {c.branch}. Jika ada data yang bertentangan, tidak ada perubahan yang disimpan. Dokumen resmi tetap diperiksa melalui proses terpisah dan akun pegawai tidak diaktifkan otomatis.
         </p>
         <ReviewForm action={commitBatch}>
           <input type="hidden" name="batch" value={id} />
           <input type="hidden" name="branch" value={c.branch} />
           <label className="block text-xs">
-            Ketik {domain === "clients" ? "IMPOR SERTIFIKAT KLIEN" : "IMPOR DPS DEVELOPMENT"}
+            Ketik TERAPKAN PEMBARUAN
             <Input name="confirmation" required className="mt-1 max-w-sm" />
           </label>
-          <Button disabled={!stat.approved}>Impor Baris yang Disetujui</Button>
+          <Button disabled={!stat.approved}>Terapkan pembaruan</Button>
         </ReviewForm>
         </>}
       </Card>
       <AutoFilterForm className="mb-5 flex flex-wrap gap-3">
         <input type="hidden" name="branch" value={c.branch} />
         <label className="text-xs">
-          Keputusan
+          Status penerapan
           <select
             name="decision"
             defaultValue={p.decision || ""}
             className="ml-2 h-9 rounded border border-input"
           >
             <option value="">Semua</option>
-            <option value="pending">Menunggu</option>
-            <option value="approved">Disetujui</option>
-            <option value="rejected">Ditolak</option>
-            <option value="committed">Diimpor</option>
+            <option value="pending">Belum diperiksa</option>
+            <option value="approved">Akan diterapkan</option>
+            <option value="rejected">Diabaikan</option>
+            <option value="committed">Sudah diterapkan</option>
           </select>
         </label>
         <label className="text-xs">
-          Hasil validasi
+          Hasil pemeriksaan
           <select
             name="status"
             defaultValue={p.status || ""}
@@ -245,11 +239,11 @@ export default async function Page({
           >
             <option value="">Semua</option>
             {[
-              ["ready", "Siap Ditinjau"],
-              ["needs_review", "Perlu Verifikasi"],
-              ["invalid", "Tidak Valid"],
-              ["duplicate", "Duplikat"],
-              ["conflict", "Konflik"],
+              ["ready", "Siap diterapkan"],
+              ["needs_review", "Perlu diperiksa"],
+              ["invalid", "Perlu diperbaiki"],
+              ["duplicate", "Dilewati (data ganda)"],
+              ["conflict", "Ada data yang berbeda"],
             ].map(([k, v]) => (
               <option key={k} value={k}>
                 {v}
@@ -276,7 +270,7 @@ export default async function Page({
                 {String(row.source_sheet)} · baris {String(row.source_row)}
               </h2>
               <p className="my-2 text-xs">
-                {reviewLabels[String(row.review_status)]} · keputusan{" "}
+                {reviewLabels[String(row.review_status)]} · status{" "}
                 {decisionLabels[String(row.decision)]}
               </p>
               <ul className="mb-3 list-disc pl-5 text-xs text-amber-900">
@@ -286,7 +280,7 @@ export default async function Page({
               </ul>
               <details className="mb-4">
                 <summary className="cursor-pointer text-xs font-semibold">
-                  Nilai sumber asli
+                  Data dari file
                 </summary>
                 <dl className="mt-3 grid max-h-72 gap-2 overflow-auto text-[11px] sm:grid-cols-2">
                   {Object.entries(row.raw_values as Record<string, string>).map(
@@ -303,8 +297,7 @@ export default async function Page({
               </details>
               {row.decision === "committed" ? (
                 <p className="text-xs text-emerald-800">
-                  Sudah diimpor; ID {String(row.committed_record_id)}. Sumber
-                  tetap tersimpan.
+                  Sudah diterapkan; nomor pencatatan {String(row.committed_record_id)}.
                 </p>
               ) : (
                 <ReviewForm action={reviewRow}>
@@ -315,7 +308,7 @@ export default async function Page({
                   {domain === "clients" && (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs">
                       <p className="font-semibold text-amber-950">
-                        Screening nomor dan tanggal
+                        Perubahan nomor dan tanggal
                       </p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-3">
                         {[
@@ -345,9 +338,7 @@ export default async function Page({
                         ))}
                       </div>
                       <p className="mt-3 text-amber-900">
-                        Pilih apakah perubahan ini merupakan sertifikat baru /
-                        perpanjangan atau hanya koreksi data sebelum menyetujui
-                        baris.
+                        Tentukan apakah perubahan ini merupakan sertifikat baru / perpanjangan atau hanya koreksi data.
                       </p>
                     </div>
                   )}
@@ -392,7 +383,7 @@ export default async function Page({
                     )}
                   </div>
                   <label className="block text-xs">
-                    Alasan keputusan
+                    Catatan pemeriksaan
                     <Input
                       className="mt-1"
                       name="reason"
@@ -403,15 +394,14 @@ export default async function Page({
                     />
                   </label>
                   <label className="block text-xs">
-                    <input type="checkbox" name="confirmed" /> Saya telah
-                    memeriksa identitas, referensi dan koreksi baris ini.
+                    <input type="checkbox" name="confirmed" /> Saya telah memeriksa baris ini dan datanya sudah sesuai.
                   </label>
                   <div className="flex gap-3">
                     <Button name="decision" value="approve">
-                      Setujui baris
+                      Sertakan perubahan
                     </Button>
                     <Button name="decision" value="reject" variant="outline">
-                      Tolak baris
+                      Abaikan perubahan
                     </Button>
                   </div>
                 </ReviewForm>

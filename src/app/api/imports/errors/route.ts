@@ -8,7 +8,7 @@ export async function GET(r: NextRequest) {
   );
   if (!c)
     return NextResponse.json(
-      { error: "Akses review ditolak." },
+      { error: "Akses hasil pemeriksaan ditolak." },
       { status: 403 },
     );
   const batch = z.uuid().safeParse(r.nextUrl.searchParams.get("batch"));
@@ -21,15 +21,28 @@ export async function GET(r: NextRequest) {
     .maybeSingle();
   if (!info) return new NextResponse(null, { status: 404 });
   const book = new ExcelJS.Workbook();
-  const s = book.addWorksheet("Review");
+  const s = book.addWorksheet("Hasil Pemeriksaan");
   s.addRow([
-    "Sheet",
+    "Lembar",
     "Baris",
-    "Status",
-    "Keputusan",
+    "Hasil Pemeriksaan",
+    "Status Penerapan",
     "Masalah",
-    "Koreksi reviewer",
+    "Catatan Pemeriksaan",
   ]);
+  const reviewLabels: Record<string, string> = {
+    ready: "Siap diterapkan",
+    needs_review: "Perlu diperiksa",
+    invalid: "Perlu diperbaiki",
+    duplicate: "Dilewati (data ganda)",
+    conflict: "Ada data yang berbeda",
+  };
+  const decisionLabels: Record<string, string> = {
+    pending: "Belum diperiksa",
+    approved: "Akan diterapkan",
+    rejected: "Diabaikan",
+    committed: "Sudah diterapkan",
+  };
   for (let page = 0; page < 3; page++) {
     const { data, error } = await c.db
       .from("import_rows")
@@ -45,8 +58,8 @@ export async function GET(r: NextRequest) {
       s.addRow([
         row.source_sheet,
         row.source_row,
-        row.review_status,
-        row.decision,
+        reviewLabels[row.review_status] || row.review_status,
+        decisionLabels[row.decision] || row.decision,
         JSON.stringify(row.issues),
         row.review_note,
       ]);
@@ -59,7 +72,7 @@ export async function GET(r: NextRequest) {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": 'attachment; filename="hasil-review-impor.xlsx"',
+      "Content-Disposition": 'attachment; filename="Hasil Pemeriksaan Impor.xlsx"',
       "Cache-Control": "private, no-store",
     },
   });

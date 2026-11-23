@@ -42,11 +42,16 @@ describe("client certificate import template", () => {
       "PIC Perusahaan",
       "Email PIC",
     ]);
-    expect(sheet.getCell("A2").value).toBe("");
+    expect(book.worksheets.map((worksheet) => worksheet.name)).toEqual([
+      "Sertifikat_Klien",
+    ]);
+    expect(sheet.getCell("B2").text).toContain("[CONTOH - TIDAK DIIMPOR]");
+    expect(sheet.getCell("A3").value).toBe("");
     expect(sheet.getCell("A1").value).not.toBe("client_name");
     expect(sheet.views[0]).toMatchObject({ state: "frozen", ySplit: 1 });
     expect(sheet.getTable("UpdateTableSertifikatKlien")).toBeDefined();
     expect(sheet.rowCount).toBe(21);
     expect(sheet.getColumn(12).numFmt).toBe("#,##0");
+    expect(sheet.getRow(2).font.italic).toBe(true);
   });
 });

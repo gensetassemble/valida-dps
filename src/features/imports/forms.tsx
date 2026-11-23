@@ -55,11 +55,11 @@ export function ImportUpload({
               data.rows +
                 " baris terbaca. " +
                 data.ready +
-                " baris siap ditinjau; belum ada data kanonis yang ditulis.",
+                " baris siap diperiksa. Data website belum berubah.",
             );
           } else {
             setMessage(
-              data.warning || "Seluruh baris tersimpan di staging privat.",
+              data.warning || "Hasil pembacaan file sudah disiapkan. Lanjutkan untuk memeriksa perubahan.",
             );
             router.push("/impor-data/" + data.batch + "?branch=" + branch);
           }
@@ -110,13 +110,13 @@ export function ImportUpload({
         />
         {clientImport && (
           <span className="mt-2 block font-normal text-muted-foreground">
-            CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB. Sheet tabel dideteksi otomatis.
+            CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB. Lembar yang berisi tabel akan ditemukan otomatis.
           </span>
         )}
       </label>
       {!clientImport && (
         <label className="block text-xs">
-          Sheet (opsional; master bawaan: PT &amp; PTT Reguler)
+          Nama lembar (opsional; pilihan awal: PT &amp; PTT Reguler)
           <Input name="sheet" className="mt-2" />
         </label>
       )}
@@ -126,11 +126,11 @@ export function ImportUpload({
             <div>
               <p className="font-semibold text-brand-navy">Cara kerja impor sertifikat klien</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Gunakan template VALIDA atau tabel lama; susunan kolom akan dicocokkan saat pratinjau.
+                Gunakan template VALIDA atau tabel lama; susunan kolom akan dicocokkan saat file diperiksa.
               </p>
             </div>
             <span className="rounded-full bg-teal-100 px-3 py-1 text-[11px] font-semibold text-teal-800">
-              Pratinjau dahulu
+              Periksa dahulu
             </span>
           </div>
           <div className="grid gap-3 p-4 text-xs sm:grid-cols-2">
@@ -143,19 +143,19 @@ export function ImportUpload({
               },
               {
                 title: "Tabel ditemukan otomatis",
-                text: "Tidak perlu memilih nama sheet. Header dan sheet yang berisi data sertifikat akan dideteksi.",
+                text: "Tidak perlu memilih nama lembar. Judul kolom dan lembar yang berisi data sertifikat akan ditemukan otomatis.",
                 icon: ScanSearch,
                 tone: "bg-violet-100 text-violet-700",
               },
               {
-                title: "Periksa pemetaan",
-                text: "Tinjau hasil pembacaan dan cocokkan kolom bila nama header pada file berbeda.",
+                title: "Periksa kecocokan data",
+                text: "Lihat hasil pembacaan dan cocokkan kolom bila nama judul pada file berbeda.",
                 icon: ListChecks,
                 tone: "bg-amber-100 text-amber-700",
               },
               {
                 title: "Data belum langsung berubah",
-                text: "File masuk ke staging privat. Database baru diperbarui setelah setiap perubahan direview dan dikonfirmasi.",
+                text: "File hanya disiapkan untuk pemeriksaan. Data website baru diperbarui setelah Anda menekan Terapkan pembaruan.",
                 icon: ShieldCheck,
                 tone: "bg-emerald-100 text-emerald-700",
               },
@@ -179,7 +179,7 @@ export function ImportUpload({
       {headers.length > 0 && (
         <details open>
           <summary className="cursor-pointer text-sm font-semibold">
-            Pemetaan kolom sumber
+            Cocokkan kolom file
           </summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {Object.entries(FIELDS[domain]).map(([k, label]) => (
@@ -190,7 +190,7 @@ export function ImportUpload({
                   defaultValue={headers.includes(k) ? k : ""}
                   className="mt-1 h-9 w-full rounded border border-input px-2"
                 >
-                  <option value="">Deteksi header yang dikenal</option>
+                  <option value="">Cari nama kolom otomatis</option>
                   {headers.map((h) => (
                     <option key={h}>{h}</option>
                   ))}
@@ -210,14 +210,14 @@ export function ImportUpload({
           disabled={busy}
           variant="outline"
         >
-          Pratinjau &amp; periksa kolom
+          Periksa file
         </Button>
         <Button
           name="operation"
           value="stage"
           disabled={busy || !headers.length}
         >
-          Simpan ke staging privat
+          Lanjut periksa perubahan
         </Button>
         <a
           className="py-2 text-xs underline"
@@ -297,7 +297,7 @@ export function ImportReference({
           defaultValue={value}
           className="mt-1 h-10 w-full rounded-lg border border-input px-2"
         >
-          <option value="">Belum dipetakan</option>
+          <option value="">Belum ditemukan pasangannya</option>
           {value && !options.some((o) => o.value === value) && (
             <option value={value}>{value}</option>
           )}
@@ -342,7 +342,7 @@ export function ImportReference({
       </div>
       <p className="mt-1 text-[11px] text-muted-foreground">
         {error ||
-          "Pilih identitas/referensi yang telah diperiksa; maksimum 20 hasil."}
+          "Cari lalu pilih data yang sesuai; maksimum 20 hasil."}
       </p>
     </div>
   );

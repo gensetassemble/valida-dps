@@ -18,7 +18,7 @@ function databaseIssues(error:{code?:string;message?:string}) {
   if(['57014','55P03'].includes(error.code||''))return ['Proses melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.'];
   if(error.code==='42501')return ['Akun belum mendapat kewenangan impor pada cabang/portofolio ini. Login ulang, selesaikan MFA, lalu pastikan akun memiliki peran Admin, PTK, atau Koordinator terkait.'];
   if(error.code==='23503')return ['Referensi cabang, portofolio, alat, atau akun pada data sumber tidak ditemukan.'];
-  return ['Pratinjau ditolak oleh validasi database. Muat ulang halaman lalu coba kembali; bila berulang, sampaikan waktu kejadian kepada IT.'];
+  return ['File belum dapat diperiksa oleh sistem. Muat ulang halaman lalu coba kembali; bila berulang, sampaikan waktu kejadian kepada IT.'];
 }
 export async function POST(request:NextRequest){
   if(request.headers.get('origin')!==request.nextUrl.origin)return NextResponse.json({error:'Permintaan tidak diizinkan.'},{status:403,headers});
@@ -46,7 +46,7 @@ export async function POST(request:NextRequest){
     if(String(form.get('operation')||'preview')!=='apply')return NextResponse.json({phase:'preview',fileHash:parsed.hash,rows:preview,ignored:parsed.ignored,duplicates:parsed.duplicates},{headers});
     if(String(form.get('fileHash')||'')!==parsed.hash)return NextResponse.json({error:'File berubah setelah pratinjau. Periksa ulang file terbaru.'},{status:409,headers});
     let reviews:Record<string,string>={};
-    try{reviews=JSON.parse(String(form.get('reviews')||'{}'));}catch{return NextResponse.json({error:'Hasil screening tidak valid. Periksa ulang file.'},{status:400,headers});}
+    try{reviews=JSON.parse(String(form.get('reviews')||'{}'));}catch{return NextResponse.json({error:'Hasil pemeriksaan tidak dapat digunakan. Periksa ulang file.'},{status:400,headers});}
     const missing=preview.filter(row=>row.requiresReview&&!reviewValues.has(reviews[row.reviewKey]));
     if(missing.length)return NextResponse.json({error:'Pilih alasan perubahan nomor sertifikat/tanggal sebelum menerapkan impor.',issues:missing.slice(0,20).map(row=>`${row.sheet} baris ${row.row}: ${row.name} (${row.tag})`)},{status:422,headers});
     const reviewedRows=parsed.rows.map((row,index)=>{

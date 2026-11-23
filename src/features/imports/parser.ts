@@ -5,6 +5,7 @@ import { parse } from "csv-parse/sync";
 import { clean, normalize, type ImportDomain } from "./normalize";
 import { legacyWorkbook } from "@/features/equipment-sync/legacy-workbook";
 import { checkZip, isOleWorkbook } from "./workbook-security";
+import { CLIENT_TEMPLATE_EXAMPLE_MARKER } from "./client-template";
 export { checkZip } from "./workbook-security";
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024,
   MAX_ROWS = 2500;
@@ -28,12 +29,17 @@ export async function parseSource(
   ) => {
     if (!values.some((v) => clean(v))) return;
     if (
+      domain === "clients" &&
+      values.some((value) => clean(value).includes(CLIENT_TEMPLATE_EXAMPLE_MARKER))
+    )
+      return;
+    if (
       headers.some((h) =>
         ["__proto__", "prototype", "constructor"].includes(h),
       ) ||
       new Set(headers.filter(Boolean)).size !== headers.filter(Boolean).length
     )
-      throw Error("Header kosong/duplikat/terlarang perlu diperbaiki.");
+      throw Error("Nama kolom kosong, berulang, atau tidak diperbolehkan. Perbaiki judul kolom pada file.");
     const raw = Object.fromEntries(
       headers.flatMap((h, i) => (h ? [[h, String(values[i] ?? "")]] : [])),
     );
@@ -55,7 +61,7 @@ export async function parseSource(
       info: true,
     }) as unknown as { record: string[]; info: { lines: number } }[];
     const headers = records.shift()?.record.map(clean);
-    if (!headers?.length) throw Error("Header CSV tidak ditemukan.");
+    if (!headers?.length) throw Error("Nama kolom pada file CSV tidak ditemukan.");
     for (const rec of records) add(headers, rec.record, "CSV", rec.info.lines);
     sheets = ["CSV"];
   } else if (/\.(xlsx|xls|xlsb)$/i.test(name)) {
@@ -83,22 +89,22 @@ export async function parseSource(
     let selectedSheets: ExcelJS.Worksheet[];
     if (sheet) {
       const selected = book.getWorksheet(sheet);
-      if (!selected) throw Error("Nama sheet yang dipilih tidak ditemukan.");
+      if (!selected) throw Error("Nama lembar yang dipilih tidak ditemukan.");
       selectedSheets = [selected];
     } else if (domain === "clients") {
       selectedSheets = book.worksheets.filter((worksheet) => clientHeaderRow(worksheet) !== null);
       if (!selectedSheets.length)
-        throw Error("Tabel sertifikat klien tidak ditemukan. Gunakan header Nama Pelanggan dan Nomor Sertifikat.");
+        throw Error("Tabel sertifikat klien tidak ditemukan. Gunakan judul kolom Nama Pelanggan dan Nomor Sertifikat.");
     } else if (domain === "employees") {
       const selected = book.getWorksheet("PT & PTT Reguler") || book.worksheets[0];
-      if (!selected) throw Error("Workbook tidak memiliki sheet data.");
+      if (!selected) throw Error("File tidak memiliki lembar data.");
       selectedSheets = [selected];
     } else {
       selectedSheets = [book.getWorksheet("Data") || (book.worksheets.length === 1 ? book.worksheets[0] : undefined)].filter(
         (worksheet): worksheet is ExcelJS.Worksheet => !!worksheet,
       );
       if (!selectedSheets.length)
-        throw Error("Pilih nama sheet secara eksplisit untuk workbook multi-sheet.");
+        throw Error("File memiliki beberapa lembar. Isi nama lembar yang ingin digunakan.");
     }
     for (const selected of selectedSheets) {
       const headerRow = domain === "clients" ? clientHeaderRow(selected) || 1 : 1;
@@ -124,7 +130,12 @@ export async function parseSource(
       });
     }
   } else throw Error("Gunakan CSV UTF-8, XLSX, XLS, atau XLSB.");
-  if (!source.length) throw Error("Tidak ada baris sumber.");
+  if (!source.length)
+    throw Error(
+      domain === "clients"
+        ? "Belum ada data yang dapat diimpor. Isi setidaknya satu baris di bawah baris contoh."
+        : "Tidak ada baris data yang dapat diimpor.",
+    );
   const signatures = new Set<string>();
   const rows = source.map((r) => {
     const norm = normalize(domain, r.raw, mapping);

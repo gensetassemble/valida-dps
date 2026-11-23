@@ -289,11 +289,11 @@ test.describe("Phase 03+04 development operations", () => {
       buffer: content,
     });
     await page
-      .getByRole("button", { name: "Pratinjau & periksa kolom", exact: true })
+      .getByRole("button", { name: "Periksa file", exact: true })
       .click();
     await expect(page.getByRole("status")).toContainText("1 baris terbaca");
     await page
-      .getByRole("button", { name: "Simpan ke staging privat", exact: true })
+      .getByRole("button", { name: "Lanjut periksa perubahan", exact: true })
       .click();
     await expect(page).toHaveURL(/\/impor-data\/[0-9a-f-]+/);
     const batch = page.url();
@@ -301,31 +301,31 @@ test.describe("Phase 03+04 development operations", () => {
       .locator("input[name=reason]")
       .fill("[CONTOH] Persetujuan fixture sintetis untuk uji browser.");
     await page
-      .getByRole("button", { name: "Setujui baris", exact: true })
+      .getByRole("button", { name: "Sertakan perubahan", exact: true })
       .click();
     await expect(
       page.getByText(
-        "Konfirmasikan pemeriksaan baris dan pemetaan terlebih dahulu.",
+        "Centang konfirmasi setelah memastikan data baris ini sudah sesuai.",
       ),
     ).toBeVisible();
     await page.locator("input[name=confirmed]").check();
     await page
-      .getByRole("button", { name: "Setujui baris", exact: true })
+      .getByRole("button", { name: "Sertakan perubahan", exact: true })
       .click();
     await expect(
       page.getByRole("button", {
-        name: "Impor Baris yang Disetujui",
+        name: "Terapkan pembaruan",
         exact: true,
       }),
     ).toBeEnabled();
     await page
       .locator("input[name=confirmation]")
-      .fill("IMPOR DPS DEVELOPMENT");
+      .fill("TERAPKAN PEMBARUAN");
     await page
-      .getByRole("button", { name: "Impor Baris yang Disetujui", exact: true })
+      .getByRole("button", { name: "Terapkan pembaruan", exact: true })
       .click();
     await expect(
-      page.getByText("Sudah diimpor; ID", { exact: false }),
+      page.getByText("Sudah diterapkan; nomor pencatatan", { exact: false }),
     ).toBeVisible();
     await page.goto(
       "/master-data/pegawai?q=" + encodeURIComponent(name("Impor Browser")),
@@ -339,7 +339,7 @@ test.describe("Phase 03+04 development operations", () => {
     await page.goto(batch);
     await expect(
       page.getByRole("button", {
-        name: "Impor Baris yang Disetujui",
+        name: "Terapkan pembaruan",
         exact: true,
       }),
     ).toBeDisabled();

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { importApiContext } from "@/features/imports/server";
 import { DOMAINS, FIELDS } from "@/features/imports/normalize";
 import { readableXlsx } from "@/lib/xlsx-readability";
+import { CLIENT_TEMPLATE_EXAMPLE_MARKER } from "@/features/imports/client-template";
 export async function GET(r: NextRequest) {
   if (
     !(await importApiContext(r.nextUrl.searchParams.get("branch") || undefined))
@@ -47,7 +48,26 @@ export async function GET(r: NextRequest) {
       totalsRow: false,
       style: { theme: "TableStyleMedium2", showRowStripes: true },
       columns: headers.map((name) => ({ name })),
-      rows: Array.from({ length: 20 }, () => Array(headers.length).fill("")),
+      rows: [
+        [
+          "KSP",
+          `${CLIENT_TEMPLATE_EXAMPLE_MARKER} PT Pelanggan Contoh`,
+          "Sertifikat Contoh",
+          "CONTOH-CERT-001",
+          "Objek inspeksi contoh",
+          "SN-CONTOH-001",
+          "Denpasar",
+          "Bali",
+          new Date("2026-01-01T00:00:00.000Z"),
+          12,
+          new Date("2027-01-01T00:00:00.000Z"),
+          1000000,
+          "CONTOH-SPK-001",
+          "Nama PIC Contoh",
+          "contoh@example.invalid",
+        ],
+        ...Array.from({ length: 19 }, () => Array(headers.length).fill("")),
+      ],
     });
     s.getRow(1).height = 36.75;
     s.getRow(1).eachCell((cell) => {
@@ -65,6 +85,17 @@ export async function GET(r: NextRequest) {
       s.getRow(row).height = 22;
       s.getRow(row).alignment = { vertical: "middle" };
     }
+    s.getRow(2).font = {
+      name: "Arial",
+      size: 10,
+      italic: true,
+      color: { argb: "FF7C2D12" },
+    };
+    s.getRow(2).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFEF3C7" },
+    };
     s.getColumn(9).numFmt = "dd mmm yyyy";
     s.getColumn(11).numFmt = "dd mmm yyyy";
     s.getColumn(12).numFmt = "#,##0";
@@ -91,24 +122,26 @@ export async function GET(r: NextRequest) {
     fgColor: { argb: "FF0B2545" },
   };
   if (!isClientTemplate) s.views = [{ state: "frozen", ySplit: 1 }];
-  const help = book.addWorksheet("Petunjuk");
-  help.columns = [
-    { header: "Kolom", width: 32 },
-    { header: "Penjelasan", width: 70 },
-  ];
-  Object.entries(FIELDS[domain.data]).forEach(([k, v]) => help.addRow([k, v]));
-  help.addRow([
-    "Persetujuan",
-    "Unggah → staging → pemetaan → persetujuan per baris → konfirmasi impor. Tidak membuat akun login atau memverifikasi dokumen.",
-  ]);
-  help.addRow([
-    "NPP",
-    "Simpan lima digit sebagai teks, termasuk angka nol awal.",
-  ]);
-  help.addRow([
-    "Pemetaan referensi",
-    "Nama pelanggan/jenis sertifikat pada template klien dipetakan ke master yang sudah ada saat review. AM dan wilayah mengikuti pelanggan; tidak dibuat otomatis dari nama. Gunakan tanggal ISO YYYY-MM-DD atau sel tanggal Excel.",
-  ]);
+  if (!isClientTemplate) {
+    const help = book.addWorksheet("Petunjuk");
+    help.columns = [
+      { header: "Kolom", width: 32 },
+      { header: "Penjelasan", width: 70 },
+    ];
+    Object.entries(FIELDS[domain.data]).forEach(([k, v]) => help.addRow([k, v]));
+    help.addRow([
+      "Urutan penggunaan",
+      "Unggah file → periksa kecocokan data → periksa perubahan → terapkan pembaruan. Proses ini tidak membuat akun login atau memverifikasi dokumen resmi.",
+    ]);
+    help.addRow([
+      "NPP",
+      "Simpan lima digit sebagai teks, termasuk angka nol awal.",
+    ]);
+    help.addRow([
+      "Kecocokan data",
+      "Nama pelanggan dan jenis sertifikat dicocokkan dengan data yang sudah tersedia. Gunakan tanggal ISO YYYY-MM-DD atau sel tanggal Excel.",
+    ]);
+  }
   if (!isClientTemplate) s.getColumn(1).numFmt = "@";
   const b = await readableXlsx(new Uint8Array(await book.xlsx.writeBuffer()));
   return new NextResponse(new Uint8Array(b), {

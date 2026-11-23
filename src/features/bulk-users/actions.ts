@@ -53,7 +53,7 @@ export async function createBulkUser(token:string,index:number) {
  let created:string|undefined;
  try {
   const review=readReview(token);const c=await context(review.branch);
-  if(c.user.id!==review.actor||!Number.isInteger(index)||index<0||index>=review.rows.length)throw Error("Pratinjau tidak sesuai sesi Admin.");
+  if(c.user.id!==review.actor||!Number.isInteger(index)||index<0||index>=review.rows.length)throw Error("Hasil pemeriksaan tidak sesuai dengan sesi Admin.");
   const r=review.rows[index];if(r.status!=="ready"||!r.employeeId)return {status:"skip" as const,message:"Baris tidak disetujui untuk dibuat."};
   const parsed=bulkRowSchema.safeParse({name:r.name,npp:r.npp,email:r.email,roles:r.roles});if(!parsed.success)throw Error("Isi pratinjau tidak valid.");
   const {data:existing,error:existingError}=await c.db.from(review.branch===SIMULATION_BRANCH?"simulation_profiles":"profiles").select("id").eq("branch_code",review.branch).ilike("email",r.email).limit(1);

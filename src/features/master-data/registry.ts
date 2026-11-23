@@ -230,7 +230,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     title: "Portofolio",
     singular: "Portofolio",
     path: "/master-data/portofolio",
-    description: "Portofolio dan pemetaan label historis yang telah diperiksa.",
+    description: "Portofolio dan penyesuaian nama lama yang telah diperiksa.",
     detail: "/master-data/portofolio",
     fields: [
       text("code", "Kode portofolio", true, 32),
@@ -249,10 +249,10 @@ export const ENTITIES: Record<string, EntityConfig> = {
     path: "/master-data/portofolio",
     labelKey: "alias",
     description:
-      "Pemetaan historis; tidak menyimpulkan portofolio dari label yang belum diverifikasi.",
+      "Riwayat penyesuaian nama; tidak menentukan portofolio dari nama yang belum diperiksa.",
     fields: [
       text("alias", "Label historis", true),
-      lookup("portfolio_id", "Portofolio kanonis", "portofolio", true, true),
+      lookup("portfolio_id", "Portofolio utama", "portofolio", true, true),
       verification,
       { ...text("verification_note", "Catatan verifikasi"), kind: "textarea" },
       active,
@@ -424,7 +424,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
     singular: "Jenis layanan",
     path: "/master-data/layanan",
     description:
-      "Katalog layanan; pemetaan kompetensi harus ditinjau secara terpisah.",
+      "Katalog layanan; hubungan dengan kompetensi perlu diperiksa secara terpisah.",
     fields: [
       text("code", "Kode layanan", true, 40),
       text("name", "Nama layanan", true),
@@ -437,12 +437,12 @@ export const ENTITIES: Record<string, EntityConfig> = {
     ...base,
     key: "persyaratan",
     table: "service_competency_requirements",
-    title: "Pemetaan Kompetensi Layanan",
-    singular: "Pemetaan",
+    title: "Hubungan Kompetensi dan Layanan",
+    singular: "Hubungan",
     path: "/master-data/jenis-sertifikat",
     labelKey: "requirement_note",
     description:
-      "Tidak berisi asumsi kewajiban hukum. Setiap pemetaan memerlukan dasar yang diverifikasi.",
+      "Tidak menentukan kewajiban hukum. Setiap hubungan harus memiliki dasar yang telah diperiksa.",
     fields: [
       lookup("service_type_id", "Jenis layanan", "layanan", true, true),
       lookup(

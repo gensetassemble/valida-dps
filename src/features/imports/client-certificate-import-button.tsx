@@ -17,12 +17,12 @@ export function ClientCertificateImportButton({ branch }: { branch: string }) {
         open={open}
         onOpenChange={setOpen}
         title="Impor pembaruan sertifikat klien"
-        description="Unggah, periksa pemetaan, review setiap perubahan penting, lalu terapkan setelah dikonfirmasi."
+        description="Unggah file, periksa perubahan penting, lalu terapkan pembaruan setelah semuanya sesuai."
         size="large"
       >
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-950">
-          File hanya dibaca pada tahap pratinjau. Data sertifikat belum berubah
-          sampai baris selesai direview dan batch dikonfirmasi.
+          File hanya dibaca untuk menampilkan perubahan. Data sertifikat baru
+          diperbarui setelah Anda menekan <strong>Terapkan pembaruan</strong>.
         </div>
         <ImportUpload
           branch={branch}

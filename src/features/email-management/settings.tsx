@@ -17,7 +17,7 @@ export function ReminderSettings({branch,enabled,days,canManage}:{branch:string;
       {canManage && <Button disabled={busy}>Simpan pengaturan</Button>}
     </form>
     {canManage && <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-      {confirm ? <><span className="text-xs">Proses hingga 100 email tertunda, dengan batas waktu sekitar empat menit?</span><Button disabled={busy} onClick={async()=>{setBusy(true);try{const r=await processEmailBatch({branch,confirmed:true});setMessage(r.error || `${r.processed} email diproses; periksa status masing-masing.`);router.refresh();}catch{setMessage("Hasil batch belum dapat dikonfirmasi. Periksa riwayat.");}finally{setBusy(false);setConfirm(false);}}}>Ya, proses antrean</Button><Button variant="outline" disabled={busy} onClick={()=>setConfirm(false)}>Batal</Button></> : <Button variant="outline" onClick={()=>setConfirm(true)}>Proses antrean tertunda</Button>}
+      {confirm ? <><span className="text-xs">Proses hingga 100 email tertunda, dengan batas waktu sekitar empat menit?</span><Button disabled={busy} onClick={async()=>{setBusy(true);try{const r=await processEmailBatch({branch,confirmed:true});setMessage(r.error || `${r.processed} email diproses; periksa status masing-masing.`);router.refresh();}catch{setMessage("Hasil pengiriman belum dapat dikonfirmasi. Periksa riwayat.");}finally{setBusy(false);setConfirm(false);}}}>Ya, proses antrean</Button><Button variant="outline" disabled={busy} onClick={()=>setConfirm(false)}>Batal</Button></> : <Button variant="outline" onClick={()=>setConfirm(true)}>Proses antrean tertunda</Button>}
     </div>}
     {message && <p role="status" className="text-sm">{message}</p>}
   </section>;

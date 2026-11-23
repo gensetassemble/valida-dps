@@ -5,6 +5,7 @@ import { clientExpiry } from "@/features/operations/client-certificate";
 import { normalize, validateNormalized } from "@/features/imports/normalize";
 import { parseSource } from "@/features/imports/parser";
 import { addClientSheet } from "@/features/operations/client-export";
+import { CLIENT_TEMPLATE_EXAMPLE_MARKER } from "@/features/imports/client-template";
 describe("client source workbook",()=>{
   it("preserves day intervals and calendar month boundaries",()=>{
     expect(clientExpiry("2026-10-21",null,56)).toBe("2026-12-16");
@@ -44,6 +45,16 @@ describe("client source workbook",()=>{
     const parsed=await parseSource("clients.xlsx",Buffer.from(await book.xlsx.writeBuffer()),"clients");
     expect(parsed.rows.map(row=>row.normalized.certificate_number)).toEqual(["CERT-001","CERT-002"]);
     expect(parsed.rows.map(row=>row.sheet)).toEqual(["KSP","LAB"]);
+  });
+  it("always ignores the marked example row from the downloadable template",async()=>{
+    const book=new ExcelJS.Workbook(),sheet=book.addWorksheet("Sertifikat_Klien");
+    sheet.addRow(["Portfolio","Nama Pelanggan","Jenis Sertifikat","Nomor Sertifikat"]);
+    sheet.addRow(["KSP",`${CLIENT_TEMPLATE_EXAMPLE_MARKER} PT Pelanggan Contoh`,"Sertifikat Contoh","CONTOH-CERT-001"]);
+    sheet.addRow(["KSP","Perusahaan sebenarnya","Residual","CERT-AKTUAL-001"]);
+    const parsed=await parseSource("clients.xlsx",Buffer.from(await book.xlsx.writeBuffer()),"clients");
+    expect(parsed.rows).toHaveLength(1);
+    expect(parsed.rows[0].normalized.certificate_number).toBe("CERT-AKTUAL-001");
+    expect(JSON.stringify(parsed.rows)).not.toContain(CLIENT_TEMPLATE_EXAMPLE_MARKER);
   });
   it("exports source column labels, typed dates, text references and test-contact label",()=>{
     const book=new ExcelJS.Workbook();addClientSheet(book,[{client_name:"Perusahaan uji",issue_date:"2026-10-21",interval_label:"56 hari",previous_order_value:"2250000.00",order_reference:"000019",pic_name:"[UJI] Adli",pic_is_test:true}]);
