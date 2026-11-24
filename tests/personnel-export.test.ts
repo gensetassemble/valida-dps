@@ -81,14 +81,14 @@ describe("personnel monitoring export", () => {
     expect(sheet.getCell("O6").value).toBe("Sedang Diproses");
     expect(sheet.getCell("O7").value).toBe("Tidak perlu perpanjangan");
     expect(sheet.getCell("B7").value).toBe("");
-    expect(sheet.getCell("C7").value).toBe("Non-NPP");
+    expect(sheet.getCell("C7").value).toBe("PTT Project");
     expect(sheet.getCell("J7").value).toBe("Seumur hidup");
     expect(sheet.getCell("I7").value).toBeNull();
     expect(sheet.getCell("K7").value).toBeNull();
     expect(sheet.getCell("B8").value).toBe("");
     expect(sheet.getCell("C8").value).toBe("Non-NPP");
     expect(sheet.getCell("B9").value).toBe("");
-    expect(sheet.getCell("C9").value).toBe("Non-NPP");
+    expect(sheet.getCell("C9").value).toBe("LS");
     expect(sheet.views[0]).toMatchObject({
       state: "frozen",
       xSplit: 4,

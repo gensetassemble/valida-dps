@@ -34,6 +34,16 @@ function date(value: unknown) {
     : null;
 }
 
+export function personnelEmployeeType(record: Record<string, unknown>) {
+  const category = String(record.employment_category || "");
+  const categoryLabel: Record<string, string> = {
+    LS: "LS",
+    PTT_PROJECT: "PTT Project",
+    PTT_REGULAR: "PTT Regular",
+  };
+  return categoryLabel[category] || (record.npp ? "NPP" : "Non-NPP");
+}
+
 export function addPersonnelSheet(
   book: ExcelJS.Workbook,
   rows: Record<string, unknown>[],
@@ -117,7 +127,7 @@ export function addPersonnelSheet(
     const values = [
       index + 1,
       npp,
-      npp ? "NPP" : "Non-NPP",
+      personnelEmployeeType(record),
       personnelText(record.employee_name),
       positionText(record.position),
       String(record.portfolio_plot || ""),
