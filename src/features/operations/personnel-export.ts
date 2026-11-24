@@ -12,8 +12,8 @@ import {
 
 export const personnelExportHeaders = [
   "NO.",
-  "NPP",
   "TIPE PEGAWAI",
+  "NPP",
   "NAMA PEGAWAI",
   "JABATAN",
   "PLOT PORTOFOLIO PEGAWAI",
@@ -37,11 +37,12 @@ function date(value: unknown) {
 export function personnelEmployeeType(record: Record<string, unknown>) {
   const category = String(record.employment_category || "");
   const categoryLabel: Record<string, string> = {
+    PT: "PT",
     LS: "LS",
     PTT_PROJECT: "PTT Project",
     PTT_REGULAR: "PTT Regular",
   };
-  return categoryLabel[category] || (record.npp ? "NPP" : "Non-NPP");
+  return categoryLabel[category] || "Belum dikonfirmasi";
 }
 
 export function addPersonnelSheet(
@@ -126,8 +127,8 @@ export function addPersonnelSheet(
         : null;
     const values = [
       index + 1,
-      npp,
       personnelEmployeeType(record),
+      npp || "Non-NPP",
       personnelText(record.employee_name),
       positionText(record.position),
       String(record.portfolio_plot || ""),
@@ -170,13 +171,13 @@ export function addPersonnelSheet(
         const row = sheet.addRow(piece);
         row.font = { name: "Arial", size: 10 };
         row.alignment = { vertical: "middle", wrapText: true };
-        for (const col of [1, 2, 3, 8, 9, 10])
+        for (const col of [1, 2, 3, 8, 9, 10, 14, 15])
           row.getCell(col).alignment = {
             vertical: "middle",
             horizontal: "center",
             wrapText: true,
           };
-        row.getCell(2).numFmt = "@";
+        row.getCell(3).numFmt = "@";
         row.getCell(12).numFmt = "@";
         row.getCell(8).numFmt = "dd mmm yyyy";
         row.getCell(10).numFmt = "dd mmm yyyy";

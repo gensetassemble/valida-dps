@@ -26,6 +26,7 @@ describe("personnel monitoring export", () => {
           id: "a",
           employee_name: "[CONTOH] Alpha",
           npp: "00123",
+          employment_category: "PT",
           position: "Inspector 1",
           portfolio_plot: "HMPM / LAB",
           original_title: "Updated licence",
@@ -40,7 +41,8 @@ describe("personnel monitoring export", () => {
         {
           id: "c",
           employee_name: "[CONTOH] Charlie",
-          npp: null,
+          npp: "54321",
+          employment_category: "PTT_REGULAR",
           expiry_date: "2026-10-28",
         },
         {
@@ -65,8 +67,8 @@ describe("personnel monitoring export", () => {
       expect(sheet.getCell(col >= 8 && col <= 10 ? 5 : 4, col).value).toBe(
         personnelExportHeaders[col - 1],
       );
-    expect(sheet.getCell("B6").value).toBe("00123");
-    expect(sheet.getCell("C6").value).toBe("NPP");
+    expect(sheet.getCell("B6").value).toBe("PT");
+    expect(sheet.getCell("C6").value).toBe("00123");
     expect(sheet.getCell("E6").value).toBe("Inspector 1");
     expect(sheet.getCell("F6").value).toBe("HMPM / LAB");
     expect(sheet.getCell("G6").value).toBe("Updated licence");
@@ -79,16 +81,18 @@ describe("personnel monitoring export", () => {
     expect(sheet.getCell("M6").value).toBe("Updated remarks");
     expect(sheet.getCell("N8").value).toBe(-1);
     expect(sheet.getCell("O6").value).toBe("Sedang Diproses");
+    expect(sheet.getCell("N6").alignment.horizontal).toBe("center");
+    expect(sheet.getCell("O6").alignment.horizontal).toBe("center");
     expect(sheet.getCell("O7").value).toBe("Tidak perlu perpanjangan");
-    expect(sheet.getCell("B7").value).toBe("");
-    expect(sheet.getCell("C7").value).toBe("PTT Project");
+    expect(sheet.getCell("B7").value).toBe("PTT Project");
+    expect(sheet.getCell("C7").value).toBe("Non-NPP");
     expect(sheet.getCell("J7").value).toBe("Seumur hidup");
     expect(sheet.getCell("I7").value).toBeNull();
     expect(sheet.getCell("K7").value).toBeNull();
-    expect(sheet.getCell("B8").value).toBe("");
-    expect(sheet.getCell("C8").value).toBe("Non-NPP");
-    expect(sheet.getCell("B9").value).toBe("");
-    expect(sheet.getCell("C9").value).toBe("LS");
+    expect(sheet.getCell("B8").value).toBe("PTT Regular");
+    expect(sheet.getCell("C8").value).toBe("54321");
+    expect(sheet.getCell("B9").value).toBe("LS");
+    expect(sheet.getCell("C9").value).toBe("Non-NPP");
     expect(sheet.views[0]).toMatchObject({
       state: "frozen",
       xSplit: 4,
