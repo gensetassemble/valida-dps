@@ -8,6 +8,7 @@ import { entityContext, masterClient, publicDatabaseError } from "./server";
 import { recordSchema, requestScopeSchema } from "./validation";
 import { addMonths } from "@/lib/domain/validity";
 import { clientExpiry } from "@/features/operations/client-certificate";
+import { isInternalCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 import { measurementKeys } from "@/features/operations/monitoring";
 import {
   mergeMeasurementGroups,
@@ -48,6 +49,13 @@ export async function saveRecord(
       ),
     };
   const payload: Record<string, unknown> = { ...parsed.data };
+  if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key)) {
+    const prefix = entity.key === "kalibrasi-alat" ? "initial_" : "";
+    if (isInternalCalibrationLaboratory(payload[prefix + "laboratory"])) {
+      payload[prefix + "calibration_internal"] = "√";
+      payload[prefix + "calibration_external"] = "-";
+    }
+  }
   if(branch===SIMULATION_BRANCH && entity.key==="cabang")return {ok:true,id:branch,message:"Simulasi pengaturan cabang berhasil; ruang latihan tetap aktif dan konfigurasi organisasi tidak diubah."};
   let measurementGroups = payload.measurement_groups as
     MeasurementGroupInput[] | undefined;

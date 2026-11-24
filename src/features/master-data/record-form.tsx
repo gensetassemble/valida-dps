@@ -30,7 +30,7 @@ import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
 import { equipmentUnits, normalizeEquipmentUnit } from "@/features/operations/equipment-units";
-import { calibrationLaboratories, normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
+import { calibrationLaboratories, isInternalCalibrationLaboratory, normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
 import {
   calibrationMark,
@@ -409,6 +409,10 @@ export function RecordForm({
       }
     }
     const prefix = initialEquipment ? "initial_" : "";
+    if (isInternalCalibrationLaboratory(defaults[prefix + "laboratory"])) {
+      defaults[prefix + "calibration_internal"] = "√";
+      defaults[prefix + "calibration_external"] = "-";
+    }
     if (calibrationChoiceValue(defaults[prefix + "calibration_internal"], defaults[prefix + "calibration_external"]) === "√") {
       defaults[prefix + "laboratory"] = laboratoryForCalibrationChoice("√", defaults[prefix + "laboratory"]);
     }

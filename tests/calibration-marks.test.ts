@@ -27,6 +27,12 @@ describe("exclusive calibration report marks", () => {
     expect(laboratoryForCalibrationChoice("√", "PT Caltesys Indonesia")).toBe("PT SUCOFINDO Laboratorium Cibitung");
     expect(laboratoryForCalibrationChoice("-", "PT SUCOFINDO Laboratorium Cibitung")).toBe("");
     expect(laboratoryForCalibrationChoice("-", "Laboratorium Baru")).toBe("Laboratorium Baru");
+    const inconsistent = {
+      laboratory: "PT SUCOFINDO Laboratorium Cibitung",
+      calibration_internal: "-",
+      calibration_external: "√",
+    };
+    expect(calibrationChoiceLabel("calibration_internal", inconsistent)).toBe("Internal");
   });
   it("uses one choice per report pair for initial and subsequent calibrations", () => {
     for (const prefix of ["", "initial_"]) {
@@ -74,6 +80,26 @@ describe("exclusive calibration report marks", () => {
     expect(
       monitoringValue({ calibration_external: "'√" }, "calibration_external"),
     ).toBe("√");
+    expect(
+      monitoringValue(
+        {
+          monitoring_laboratory: "Laboratorium Cibitung",
+          calibration_internal: "-",
+          calibration_external: "√",
+        },
+        "calibration_internal",
+      ),
+    ).toBe("√");
+    expect(
+      monitoringValue(
+        {
+          monitoring_laboratory: "Laboratorium Cibitung",
+          calibration_internal: "-",
+          calibration_external: "√",
+        },
+        "calibration_external",
+      ),
+    ).toBe("-");
     expect(
       monitoringValue(
         { monitoring_measurements: [{ significant_no: "✓" }] },

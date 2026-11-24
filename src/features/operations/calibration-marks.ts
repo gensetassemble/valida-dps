@@ -1,3 +1,5 @@
+import { isInternalCalibrationLaboratory } from "./calibration-laboratories";
+
 export const calibrationMarkPairs = [
   ["calibration_internal", "calibration_external"],
   ["significant_yes", "significant_no"],
@@ -60,6 +62,14 @@ export function calibrationChoiceLabel(key: string, row: Record<string, unknown>
   const choice = calibrationChoice(key);
   const pair = pairedCalibrationField(key);
   if (!choice || !pair) return "—";
+  const prefix = key.startsWith("initial_") ? "initial_" : "";
+  if (
+    key === prefix + "calibration_internal" &&
+    isInternalCalibrationLaboratory(
+      row[prefix + "laboratory"] ?? row.laboratory ?? row.monitoring_laboratory,
+    )
+  )
+    return "Internal";
   const selected = calibrationChoiceValue(row[key], row[pair]);
   return choice.options.find((option) => option.value === selected)?.label ||
     (calibrationMark(row[key]) || calibrationMark(row[pair]) ? "Periksa pilihan" : "Belum diisi");
