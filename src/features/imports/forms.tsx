@@ -20,6 +20,8 @@ export function ImportUpload({
     [busy, setBusy] = useState(false);
   const router = useRouter();
   const clientImport = lockedDomain && domain === "clients";
+  const personnelImport = lockedDomain && domain === "personnel";
+  const guidedImport = clientImport || personnelImport;
   return (
     <form
       className="space-y-4"
@@ -99,7 +101,7 @@ export function ImportUpload({
         </label>
       )}
       <label className="block text-xs font-semibold">
-        {clientImport ? "File pembaruan sertifikat klien" : "CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB"}
+        {clientImport ? "File pembaruan sertifikat klien" : personnelImport ? "File pembaruan kompetensi personil" : "CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB"}
         <Input
           name="file"
           type="file"
@@ -108,23 +110,23 @@ export function ImportUpload({
           onChange={() => setHeaders([])}
           className="mt-2"
         />
-        {clientImport && (
+        {guidedImport && (
           <span className="mt-2 block font-normal text-muted-foreground">
             CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB. Lembar yang berisi tabel akan ditemukan otomatis.
           </span>
         )}
       </label>
-      {!clientImport && (
+      {!guidedImport && (
         <label className="block text-xs">
           Nama lembar (opsional; pilihan awal: PT &amp; PTT Reguler)
           <Input name="sheet" className="mt-2" />
         </label>
       )}
-      {clientImport && (
+      {guidedImport && (
         <section className="overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-br from-teal-50/80 via-white to-sky-50/70">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-teal-100 px-4 py-3">
             <div>
-              <p className="font-semibold text-brand-navy">Cara kerja impor sertifikat klien</p>
+              <p className="font-semibold text-brand-navy">Cara kerja impor {personnelImport ? "kompetensi personil" : "sertifikat klien"}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Gunakan template VALIDA atau tabel lama; susunan kolom akan dicocokkan saat file diperiksa.
               </p>
@@ -137,13 +139,13 @@ export function ImportUpload({
             {[
               {
                 title: "Siapkan kolom utama",
-                text: "Isi portofolio, pelanggan, jenis dan nomor sertifikat. Tanggal terbit wajib untuk sertifikat baru.",
+                text: personnelImport ? "Gunakan hasil ekspor kompetensi atau tabel lama. Nama, NPP, judul lisensi, nomor sertifikat, tanggal, dan keterangan akan dibaca." : "Isi portofolio, pelanggan, jenis dan nomor sertifikat. Tanggal terbit wajib untuk sertifikat baru.",
                 icon: FileSpreadsheet,
                 tone: "bg-sky-100 text-sky-700",
               },
               {
                 title: "Tabel ditemukan otomatis",
-                text: "Tidak perlu memilih nama lembar. Judul kolom dan lembar yang berisi data sertifikat akan ditemukan otomatis.",
+                text: `Tidak perlu memilih nama lembar. Judul kolom dan lembar yang berisi data ${personnelImport ? "kompetensi" : "sertifikat"} akan ditemukan otomatis.`,
                 icon: ScanSearch,
                 tone: "bg-violet-100 text-violet-700",
               },
@@ -172,7 +174,7 @@ export function ImportUpload({
             ))}
           </div>
           <p className="border-t border-teal-100 px-4 py-3 text-xs font-medium text-teal-800">
-            Baris identik dilewati dan perubahan nomor atau tanggal sertifikat tetap harus diperiksa sebelum diterapkan.
+            Baris identik dilewati. {personnelImport ? "Catatan perpanjangan hanya membuat proses Sedang Diproses bila masa berlaku sudah masuk 90 hari terakhir atau telah berakhir." : "Perubahan nomor atau tanggal sertifikat tetap harus diperiksa sebelum diterapkan."}
           </p>
         </section>
       )}

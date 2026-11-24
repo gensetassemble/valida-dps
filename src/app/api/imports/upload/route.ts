@@ -5,6 +5,7 @@ import { DOMAINS } from "@/features/imports/normalize";
 import { importContext } from "@/features/imports/server";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { boundedForm } from "@/lib/http/bounded-form";
+import { resolvePersonnelImportRows } from "@/features/imports/personnel-resolver";
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== new URL(request.url).origin)
     return new NextResponse(null, { status: 403 });
@@ -17,20 +18,27 @@ export async function POST(request: NextRequest) {
     await requireActiveUser();
     const form = await boundedForm(request, 6 * 1024 * 1024);
     const domain = z.enum(DOMAINS).parse(form.get("domain"));
-    const c = await importContext(String(form.get("branch") || ""));
+    const c = await importContext(String(form.get("branch") || ""), domain);
     const file = form.get("file");
     if (!(file instanceof File)) throw Error("Pilih berkas.");
     const mapping = z
       .record(z.string().max(100), z.string().max(100))
       .parse(JSON.parse(String(form.get("mapping") || "{}")));
     const bytes = Buffer.from(await file.arrayBuffer());
-    const parsed = await parseSource(
+    const source = await parseSource(
       file.name,
       bytes,
       domain,
       String(form.get("sheet") || "") || undefined,
       mapping,
     );
+    const parsed = {
+      ...source,
+      rows:
+        domain === "personnel"
+          ? await resolvePersonnelImportRows(c.db, c.branch, source.rows)
+          : source.rows,
+    };
     if (form.get("preview") === "true")
       return NextResponse.json(
         {
@@ -43,18 +51,28 @@ export async function POST(request: NextRequest) {
         { headers: { "Cache-Control": "private, no-store" } },
       );
     const name = file.name.replace(/[^\p{L}\p{N} ._()-]/gu, "_").slice(0, 180);
-    const { data, error } = await c.db.rpc("stage_import", {
-      b: c.branch,
-      d: domain,
-      f: name,
-      h: parsed.hash,
-      sz: bytes.length,
-      items: parsed.rows,
-      note:
-        "File diunggah melalui aplikasi; kecocokan kolom " +
-        JSON.stringify(mapping) +
-        ". Hasil pemeriksaan belum menerapkan perubahan.",
-    });
+    const note =
+      "File diunggah melalui aplikasi; kecocokan kolom " +
+      JSON.stringify(mapping) +
+      ". Hasil pemeriksaan belum menerapkan perubahan.";
+    const { data, error } = domain === "personnel"
+      ? await c.db.rpc("stage_personnel_import", {
+          b: c.branch,
+          f: name,
+          h: parsed.hash,
+          sz: bytes.length,
+          items: parsed.rows,
+          note,
+        })
+      : await c.db.rpc("stage_import", {
+          b: c.branch,
+          d: domain,
+          f: name,
+          h: parsed.hash,
+          sz: bytes.length,
+          items: parsed.rows,
+          note,
+        });
     if (error || !data) throw Error("Hasil pembacaan file belum dapat disiapkan.");
     const extension = name.toLowerCase().match(/\.(csv|xlsx|xlsb|xls)$/)?.[0];
     if (!extension) throw Error("Gunakan CSV UTF-8, XLSX, XLS, atau XLSB.");

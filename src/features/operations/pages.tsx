@@ -37,6 +37,7 @@ import { calibrationExpiryReview } from "./calibration-expiry";
 import { EquipmentArchiveAction, EquipmentPermanentDelete } from "./equipment-archive-action";
 import { EquipmentImportButton } from "@/features/equipment-sync/import-button";
 import { ClientCertificateImportButton } from "@/features/imports/client-certificate-import-button";
+import { PersonnelCertificateImportButton } from "@/features/imports/personnel-certificate-import-button";
 import { currentComponentData } from "./calibration-component-data";
 import { CalibrationComponentsTable } from "./calibration-components-table";
 import { FileDown, Table2, UserRoundX } from "lucide-react";
@@ -64,6 +65,7 @@ export async function OperationList({
       <div className={compact ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
         {entity === "kalibrasi-alat" && c.canWrite && <EquipmentImportButton branch={c.branch}/>}
         {entity === "sertifikat-klien" && hasPermission(c.scopes,c.branch,["admin"]) && <ClientCertificateImportButton branch={c.branch}/>}
+        {entity === "kompetensi-personil" && hasPermission(c.scopes,c.branch,["admin"]) && <PersonnelCertificateImportButton branch={c.branch}/>}
         {entity === "kalibrasi-alat" && params.active !== "false" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",

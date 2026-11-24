@@ -2156,7 +2156,6 @@ export type Database = {
           notes: string | null;
           original_holder_name: string | null;
           original_title: string | null;
-          portfolio_id: string | null;
           source_folder_url: string | null;
           source_import_row_id: string | null;
           source_provider: string | null;
@@ -2184,7 +2183,6 @@ export type Database = {
           notes?: string | null;
           original_holder_name?: string | null;
           original_title?: string | null;
-          portfolio_id?: string | null;
           source_folder_url?: string | null;
           source_import_row_id?: string | null;
           source_provider?: string | null;
@@ -2212,7 +2210,6 @@ export type Database = {
           notes?: string | null;
           original_holder_name?: string | null;
           original_title?: string | null;
-          portfolio_id?: string | null;
           source_folder_url?: string | null;
           source_import_row_id?: string | null;
           source_provider?: string | null;
@@ -4415,7 +4412,6 @@ export type Database = {
           original_holder_name: string | null;
           original_title: string | null;
           portfolio_ids: string[] | null;
-          portfolio_id: string | null;
           previous_certificate_id: string | null;
           renewal_status: string | null;
           source_folder_url: string | null;
@@ -5106,6 +5102,14 @@ export type Database = {
         }[];
       };
       commit_import: { Args: { batch: string }; Returns: number };
+      commit_personnel_certificate_import: {
+        Args: { batch: string };
+        Returns: number;
+      };
+      approve_personnel_import_batch: {
+        Args: { batch: string };
+        Returns: number;
+      };
       complete_personnel_renewal: {
         Args: {
           case_id: string;
@@ -5185,6 +5189,10 @@ export type Database = {
         Args: { approve: boolean; n: Json; r: string; reason: string };
         Returns: undefined;
       };
+      review_personnel_import: {
+        Args: { approve: boolean; n: Json; r: string; reason: string };
+        Returns: undefined;
+      };
       save_profile_identity: {
         Args: { b: string; details: Json; profile: string };
         Returns: string;
@@ -5193,6 +5201,17 @@ export type Database = {
         Args: {
           b: string;
           d: string;
+          f: string;
+          h: string;
+          items: Json;
+          note: string;
+          sz: number;
+        };
+        Returns: string;
+      };
+      stage_personnel_import: {
+        Args: {
+          b: string;
           f: string;
           h: string;
           items: Json;

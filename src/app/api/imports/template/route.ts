@@ -9,17 +9,17 @@ import {
   CLIENT_TEMPLATE_EXAMPLE_MARKER,
 } from "@/features/imports/client-template";
 export async function GET(r: NextRequest) {
+  const domain = z
+    .enum(DOMAINS)
+    .safeParse(r.nextUrl.searchParams.get("domain"));
+  if (!domain.success) return new NextResponse(null, { status: 400 });
   if (
-    !(await importApiContext(r.nextUrl.searchParams.get("branch") || undefined))
+    !(await importApiContext(r.nextUrl.searchParams.get("branch") || undefined, domain.data))
   )
     return NextResponse.json(
       { error: "Akses impor ditolak." },
       { status: 403 },
     );
-  const domain = z
-    .enum(DOMAINS)
-    .safeParse(r.nextUrl.searchParams.get("domain"));
-  if (!domain.success) return new NextResponse(null, { status: 400 });
   const book = new ExcelJS.Workbook();
   book.creator = "VALIDA";
   const isClientTemplate = domain.data === "clients";

@@ -5,6 +5,7 @@ import { importApiContext } from "@/features/imports/server";
 export async function GET(r: NextRequest) {
   const c = await importApiContext(
     r.nextUrl.searchParams.get("branch") || undefined,
+    "personnel",
   );
   if (!c)
     return NextResponse.json(

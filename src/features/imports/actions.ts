@@ -7,6 +7,7 @@ import { approvedClientWorkbook } from "./client-workbook-batch";
 import {
   DOMAINS,
   FIELDS,
+  personnelRenewalIntent,
   validateNormalized,
   type ImportDomain,
 } from "./normalize";
@@ -29,7 +30,7 @@ export async function reviewRow(form: FormData) {
       ),
     );
   if (!p.success) return { error: "Periksa catatan dan pilihan untuk baris ini." };
-  const c = await importContext(p.data.branch);
+  const c = await importContext(p.data.branch, p.data.domain);
   const { data: batch } = await c.db
     .from("import_batches")
     .select("id,domain")
@@ -50,6 +51,8 @@ export async function reviewRow(form: FormData) {
       String(form.get(k) || "").trim(),
     ]),
   );
+  if (p.data.domain === "personnel")
+    normalized.renewal_intent = personnelRenewalIntent(normalized);
   if (p.data.decision === "approve") {
     if (form.get("confirmed") !== "on")
       return {
@@ -61,12 +64,15 @@ export async function reviewRow(form: FormData) {
     );
     if (errors.length) return { error: errors.join(" ") };
   }
-  const { error } = await c.db.rpc("review_import", {
+  const reviewArgs = {
     r: p.data.row,
     n: normalized,
     approve: p.data.decision === "approve",
     reason: p.data.reason,
-  });
+  };
+  const { error } = p.data.domain === "personnel"
+    ? await c.db.rpc("review_personnel_import", reviewArgs)
+    : await c.db.rpc("review_import", reviewArgs);
   if (error)
     return {
       error: "Hasil pemeriksaan belum tersimpan. Periksa kewenangan akun dan status data.",
@@ -75,7 +81,7 @@ export async function reviewRow(form: FormData) {
   return { ok: true };
 }
 export async function commitBatch(form: FormData) {
-  const c = await importContext(String(form.get("branch") || ""));
+  const c = await importContext(String(form.get("branch") || ""), "personnel");
   const batch = z.uuid().safeParse(form.get("batch"));
   if (!batch.success) return { error: "Riwayat impor tidak valid." };
   const { data: batchRow } = await c.db
@@ -89,13 +95,18 @@ export async function commitBatch(form: FormData) {
   const confirmation = "TERAPKAN PEMBARUAN";
   if (form.get("confirmation") !== confirmation)
     return { error: `Ketik ${confirmation} sebagai konfirmasi.` };
-  if (isProductionEnvironment() && !clientImport)
+  const personnelImport = batchRow.domain === "personnel";
+  if (isProductionEnvironment() && !clientImport && !personnelImport)
     return {
       error:
         "Pembaruan ini tidak tersedia pada lingkungan produksi.",
     };
   const { data, error } = await c.db.rpc(
-    clientImport ? "commit_client_certificate_import" : "commit_import",
+    clientImport
+      ? "commit_client_certificate_import"
+      : personnelImport
+        ? "commit_personnel_certificate_import"
+        : "commit_import",
     {
     batch: batch.data,
     },
@@ -111,21 +122,41 @@ export async function commitBatch(form: FormData) {
     revalidatePath("/sertifikat-klien");
     revalidatePath("/pipeline-perpanjangan");
   }
+  if (personnelImport) {
+    revalidatePath("/kompetensi-personil");
+    revalidatePath("/notifikasi");
+  }
   return {
     ok: true,
     message:
       String(data) +
       (clientImport
         ? " sertifikat berhasil diterapkan. Pemeriksaan dokumen resmi tetap dilakukan melalui proses terpisah."
+        : personnelImport
+          ? " kompetensi berhasil diperbarui. Catatan perpanjangan yang relevan sudah disinkronkan ke status proses."
         : " baris berhasil diterapkan. Pemeriksaan dokumen resmi tetap dilakukan melalui proses terpisah."),
   };
+}
+
+export async function approvePersonnelBatch(form: FormData) {
+  const c = await importContext(String(form.get("branch") || ""), "personnel");
+  const batch = z.uuid().safeParse(form.get("batch"));
+  if (!batch.success || form.get("confirmed") !== "on")
+    return { error: "Centang konfirmasi setelah memeriksa ringkasan perubahan." };
+  const { data, error } = await c.db.rpc("approve_personnel_import_batch", {
+    batch: batch.data,
+  });
+  if (error)
+    return { error: "Baris siap belum dapat disetujui. Periksa data yang perlu diperbaiki." };
+  revalidatePath("/impor-data/" + batch.data);
+  return { ok: true, message: `${data} baris siap disertakan dalam pembaruan.` };
 }
 
 // This action deliberately uses the signed-in admin's database client, including
 // MFA, review_import validation, reviewed_by, and the atomic commit_import RPC.
 // It never supplies JWT claims, service credentials, or direct approval writes.
 export async function importAuthorizedClientWorkbook(form: FormData) {
-  const c = await importContext(String(form.get("branch") || ""));
+  const c = await importContext(String(form.get("branch") || ""), "clients");
   if (form.get("confirmation") !== "TERAPKAN 19 SERTIFIKAT KLIEN" || form.get("confirmed") !== "on")
     return { error: "Pastikan data sudah diperiksa lalu ketik konfirmasi yang ditampilkan." };
   const id = String(form.get("batch") || "");

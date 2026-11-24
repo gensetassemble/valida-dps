@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { importPageContext } from "@/features/imports/server";
 import { ReviewForm, ImportReference } from "@/features/imports/forms";
-import { reviewRow, commitBatch, importAuthorizedClientWorkbook } from "@/features/imports/actions";
+import { reviewRow, commitBatch, importAuthorizedClientWorkbook, approvePersonnelBatch } from "@/features/imports/actions";
 import { approvedClientWorkbook } from "@/features/imports/client-workbook-batch";
 import {
   DOMAIN_LABELS,
@@ -60,7 +60,7 @@ export default async function Page({
   const id = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await searchParams,
-    c = await importPageContext(p.branch);
+    c = await importPageContext(p.branch, "personnel");
   if (!c) return <AccessDenied />;
   const page = Math.max(1, Math.min(125, Number(p.page) || 1));
   const { data: batch } = await c.db
@@ -188,6 +188,22 @@ export default async function Page({
         </a>
       </Card>
       <Card className="mb-5 p-5">
+        {domain === "personnel" && stat.pending > 0 && (
+          <div className="mb-5 rounded-lg border border-teal-200 bg-teal-50 p-4">
+            <h2 className="text-sm font-bold text-brand-navy">Sertakan semua baris yang siap</h2>
+            <p className="my-3 text-xs leading-6 text-teal-900">
+              Baris yang sudah cocok dapat disetujui sekaligus. Baris yang perlu diperbaiki tetap tidak akan diterapkan.
+            </p>
+            <ReviewForm action={approvePersonnelBatch}>
+              <input type="hidden" name="batch" value={id} />
+              <input type="hidden" name="branch" value={c.branch} />
+              <label className="block text-xs">
+                <input type="checkbox" name="confirmed" required /> Saya sudah memeriksa ringkasan dan ingin menyertakan semua baris yang siap.
+              </label>
+              <Button>Sertakan semua yang siap</Button>
+            </ReviewForm>
+          </div>
+        )}
         {approvedClientWorkbook(batch) && <div className="mb-5 rounded-lg border border-border p-4">
           <h2 className="text-sm font-bold">Pembaruan sertifikat klien</h2>
           <p className="my-3 text-xs leading-6">19 sertifikat untuk 11 perusahaan, portofolio IND, PIK, dan KSP. Pastikan seluruh data di bawah sudah sesuai. PIC [UJI] Adli Alfian adalah penerima internal pengujian. Penerapan perubahan dicatat atas akun Admin yang sedang masuk; MFA tetap diperlukan.</p>

@@ -135,6 +135,13 @@ export function addPersonnelSheet(
     const renewalStatus = lifetime
       ? "lifetime"
       : String(record.renewal_status || "unprocessed");
+    const renewalLabel = lifetime
+      ? "Tidak perlu perpanjangan"
+      : renewalStatus === "unprocessed" && days !== null && days > 90
+        ? ""
+        : RENEWAL_STATUSES[
+            renewalStatus as keyof typeof RENEWAL_STATUSES
+          ] || "Belum Diproses";
     const values = [
       index + 1,
       personnelEmployeeType(record),
@@ -168,11 +175,7 @@ export function addPersonnelSheet(
         .filter(Boolean)
         .join("\n"),
       days,
-      renewalStatus === "lifetime"
-        ? "Tidak perlu perpanjangan"
-        : RENEWAL_STATUSES[
-            renewalStatus as keyof typeof RENEWAL_STATUSES
-          ] || "Belum Diproses",
+      renewalLabel,
     ];
     exportContinuationRows(values as ExcelJS.CellValue[], widths).forEach(
       (piece, part) => {
@@ -233,18 +236,20 @@ export function addPersonnelSheet(
             color: { argb: "FF9A3412" },
           };
         }
-        const renewalColor = renewalColors[renewalStatus] || renewalColors.unprocessed;
-        row.getCell(15).fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: renewalColor.fill },
-        };
-        row.getCell(15).font = {
-          name: "Arial",
-          size: 10,
-          bold: true,
-          color: { argb: renewalColor.text },
-        };
+        if (renewalLabel && !record.employee_inactive) {
+          const renewalColor = renewalColors[renewalStatus] || renewalColors.unprocessed;
+          row.getCell(15).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: renewalColor.fill },
+          };
+          row.getCell(15).font = {
+            name: "Arial",
+            size: 10,
+            bold: true,
+            color: { argb: renewalColor.text },
+          };
+        }
         const lines = piece.map((value, i) => {
           const text =
             value instanceof Date

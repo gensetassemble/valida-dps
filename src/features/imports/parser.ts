@@ -86,6 +86,32 @@ export async function parseSource(
       }
       return null;
     };
+    const personnelHeader = (worksheet: ExcelJS.Worksheet) => {
+      for (let row = 1; row <= Math.min(10, worksheet.rowCount); row++) {
+        const current: string[] = [];
+        const next: string[] = [];
+        worksheet
+          .getRow(row)
+          .eachCell({ includeEmpty: true }, (cell, index) => (current[index - 1] = clean(cell.text)));
+        worksheet
+          .getRow(row + 1)
+          .eachCell({ includeEmpty: true }, (cell, index) => (next[index - 1] = clean(cell.text)));
+        const labels = [...current, ...next];
+        const human = labels.includes("NPP") && labels.includes("NAMA PEGAWAI") && labels.includes("JUDUL LISENSI");
+        const technical = labels.includes("employee_id") && labels.includes("original_title");
+        if (!human && !technical) continue;
+        const hasSubheader = next.includes("TERBIT") || next.includes("BERAKHIR");
+        const length = Math.max(current.length, hasSubheader ? next.length : 0);
+        return {
+          row,
+          dataRow: hasSubheader ? row + 1 : row,
+          headers: Array.from({ length }, (_, index) =>
+            clean((hasSubheader && next[index]) || current[index]),
+          ),
+        };
+      }
+      return null;
+    };
     let selectedSheets: ExcelJS.Worksheet[];
     if (sheet) {
       const selected = book.getWorksheet(sheet);
@@ -95,6 +121,10 @@ export async function parseSource(
       selectedSheets = book.worksheets.filter((worksheet) => clientHeaderRow(worksheet) !== null);
       if (!selectedSheets.length)
         throw Error("Tabel sertifikat klien tidak ditemukan. Gunakan judul kolom Nama Pelanggan dan Nomor Sertifikat.");
+    } else if (domain === "personnel") {
+      selectedSheets = book.worksheets.filter((worksheet) => personnelHeader(worksheet) !== null);
+      if (!selectedSheets.length)
+        throw Error("Tabel kompetensi personil tidak ditemukan. Gunakan judul kolom NPP, NAMA PEGAWAI, dan JUDUL LISENSI.");
     } else if (domain === "employees") {
       const selected = book.getWorksheet("PT & PTT Reguler") || book.worksheets[0];
       if (!selected) throw Error("File tidak memiliki lembar data.");
@@ -107,14 +137,16 @@ export async function parseSource(
         throw Error("File memiliki beberapa lembar. Isi nama lembar yang ingin digunakan.");
     }
     for (const selected of selectedSheets) {
-      const headerRow = domain === "clients" ? clientHeaderRow(selected) || 1 : 1;
-      const headers: string[] = [];
-      selected
-        .getRow(headerRow)
-        .eachCell(
-          { includeEmpty: true },
-          (cell, index) => (headers[index - 1] = clean(cell.text)),
-        );
+      const personnel = domain === "personnel" ? personnelHeader(selected) : null;
+      const headerRow = domain === "clients" ? clientHeaderRow(selected) || 1 : personnel?.dataRow || 1;
+      const headers: string[] = personnel?.headers || [];
+      if (!headers.length)
+        selected
+          .getRow(headerRow)
+          .eachCell(
+            { includeEmpty: true },
+            (cell, index) => (headers[index - 1] = clean(cell.text)),
+          );
       selected.eachRow((row, index) => {
         if (index <= headerRow) return;
         const vals: unknown[] = [];
@@ -126,6 +158,16 @@ export async function parseSource(
                 ? cell.value.toISOString().slice(0, 10)
                 : cell.text),
         );
+        if (domain === "personnel" && /\(lanjutan\)/i.test(clean(vals[0]))) {
+          const previous = source.at(-1);
+          if (previous?.sheet === selected.name)
+            headers.forEach((header, column) => {
+              const value = clean(vals[column]);
+              if (header && value && column > 0)
+                previous.raw[header] = [previous.raw[header], value].filter(Boolean).join("\n");
+            });
+          return;
+        }
         add(headers, vals, selected.name, index);
       });
     }

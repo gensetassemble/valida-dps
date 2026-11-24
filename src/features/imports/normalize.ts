@@ -22,6 +22,7 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
   },
   personnel: {
     employee_id: "Pegawai terpetakan",
+    employee_name: "Nama pegawai pada file",
     certificate_type_id: "Jenis kompetensi terpetakan",
     original_title: "Judul lisensi asli",
     original_holder_name: "Nama pada sumber",
@@ -35,6 +36,8 @@ export const FIELDS: Record<ImportDomain, Record<string, string>> = {
     validity_kind: "Jenis masa berlaku",
     source_folder_url: "Folder Google Drive",
     notes: "Catatan",
+    renewal_status_source: "Status proses perpanjangan pada file",
+    change_reason: "Jenis pembaruan",
   },
   calibrations: {
     equipment_id: "Aset terverifikasi",
@@ -79,6 +82,14 @@ export const clean = (v: unknown) =>
   String(v ?? "")
     .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, "")
     .trim();
+export function personnelRenewalIntent(values: Record<string, string>) {
+  return /^sedang\s+diproses$/i.test(values.renewal_status_source?.trim() || "") ||
+    /(?:dalam|sedang).{0,60}(?:proses|tahap)?\s*perpanjang|proses\s*perpanjang/i.test(
+      values.notes || "",
+    )
+    ? "processing"
+    : "";
+}
 export function clientSourceDate(value: string) {
   if (!value || validDate(value)) return value;
   const parts = value.trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
@@ -115,33 +126,42 @@ export function normalize(
       ),
     };
   if (domain === "personnel")
-    n = {
+    n = (() => {
+      const sourceNpp = get("npp", "NPP", "NRK_Master", "NPP_Normalized", "NPPAsli");
+      const expiry = get("expiry_date", "TanggalBerakhirISO", "BERAKHIR");
+      const notes = get("notes", "KETERANGAN", "Catatan", "CatatanValidasi");
+      const renewalStatus = get("renewal_status_source", "STATUS PROSES PERPANJANGAN");
+      const renewalIntent = personnelRenewalIntent({ notes, renewal_status_source: renewalStatus });
+      return {
       employee_id: get("employee_id"),
+      employee_name: get("employee_name", "NAMA PEGAWAI", "NamaPegawai"),
       certificate_type_id: get("certificate_type_id"),
-      original_title: get("original_title", "JudulLisensiAsli"),
+      original_title: get("original_title", "JUDUL LISENSI", "JudulLisensiAsli"),
       original_holder_name: get("original_holder_name", "NamaPegawai"),
-      npp: get("npp", "NRK_Master", "NPP_Normalized", "NPPAsli"),
+      npp: /^\d{5}$/.test(sourceNpp) ? sourceNpp : "",
       issuer: get("issuer", "PenerbitAsli"),
-      certificate_number: get("certificate_number", "NomorSertifikat"),
-      issue_date: get("issue_date", "TanggalTerbitISO"),
-      expiry_date: get("expiry_date", "TanggalBerakhirISO"),
-      interval_months: get("interval_months", "IntervalBulan"),
+      certificate_number: get("certificate_number", "No. Sertifikat (jika ada)", "NomorSertifikat"),
+      existing_certificate_number: get("existing_certificate_number", "Nomor Sertifikat Lama"),
+      issue_date: clientSourceDate(get("issue_date", "TanggalTerbitISO", "TERBIT")),
+      expiry_date: /^seumur\s*hidup$/i.test(expiry) ? "" : clientSourceDate(expiry),
+      interval_months: get("interval_months", "INTERVAL (BULAN)", "IntervalBulan"),
       validity_kind:
         get("validity_kind") ||
+        (/^seumur\s*hidup$/i.test(expiry) ||
         (get("JenisMasaBerlaku") === "LIFETIME" &&
-        get("IsLifetime").toLowerCase() === "true"
+        get("IsLifetime").toLowerCase() === "true")
           ? "lifetime"
           : "term"),
-      source_folder_url: get("source_folder_url", "LinkFolderDrive"),
-      notes: [
-        get("CatatanValidasi"),
-        get("DasarKlasifikasi"),
-        get("NPPSebelumKoreksi") &&
-          "Nomor sebelum koreksi tersimpan pada sumber",
-      ]
-        .filter(Boolean)
-        .join("; "),
-    };
+      source_folder_url: get("source_folder_url", "Link Sertifikat", "LinkFolderDrive"),
+      notes: notes || [
+          get("DasarKlasifikasi"),
+          get("NPPSebelumKoreksi") && "Nomor sebelum koreksi tersimpan pada sumber",
+        ].filter(Boolean).join("; "),
+      renewal_status_source: renewalStatus,
+      renewal_intent: renewalIntent,
+      change_reason: get("change_reason") || "data_correction",
+      };
+    })();
   if (domain === "calibrations")
     n = {
       equipment_id: get("equipment_id"),
