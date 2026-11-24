@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Popover } from "radix-ui";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { equipmentExportQuery } from "./equipment-export-scope";
 
@@ -17,7 +17,7 @@ export function EquipmentExportMenu({ branch, portfolios, unavailable = false }:
   const source = new URLSearchParams(params.toString()); source.set("branch", branch);
   const href = mode === "selected" && !selected.length ? null : "/api/operations/export?" + equipmentExportQuery(source, mode, selected);
   return <Popover.Root open={open} onOpenChange={setOpen}>
-    <Popover.Trigger asChild><Button type="button" variant="outline" disabled={unavailable} title={unavailable ? "Pilihan ekspor belum dapat dimuat. Gunakan Refresh." : undefined}><Download/>Ekspor XLSX<ChevronDown/></Button></Popover.Trigger>
+    <Popover.Trigger asChild><Button type="button" variant="outline" disabled={unavailable} title={unavailable ? "Pilihan ekspor belum dapat dimuat. Gunakan Refresh." : undefined}><FileDown className="size-4" aria-hidden="true"/>Ekspor XLSX<ChevronDown/></Button></Popover.Trigger>
     <Popover.Portal><Popover.Content align="end" sideOffset={8} collisionPadding={12} aria-label="Pilih portofolio untuk ekspor" className="z-[80] w-[min(22rem,calc(100vw-1.5rem))] rounded-xl border border-border bg-white p-4 shadow-xl">
       <h2 className="text-sm font-bold">Ekspor laporan kalibrasi</h2>
       <fieldset className="mt-3 space-y-2 text-xs"><legend className="sr-only">Cakupan portofolio</legend>
@@ -30,7 +30,7 @@ export function EquipmentExportMenu({ branch, portfolios, unavailable = false }:
         {!portfolios.length && <p className="text-xs text-muted-foreground">Belum ada portofolio alat sesuai akses.</p>}
       </div>}
       <p className="mt-3 text-[10px] leading-5 text-muted-foreground">Filter lain seperti masa berlaku, pencarian, dan subunit tetap digunakan. Setiap portofolio menjadi sheet terpisah.</p>
-      <div className="mt-3 flex justify-end gap-2 border-t border-border pt-3"><Button type="button" variant="ghost" onClick={() => setOpen(false)}>Batal</Button>{href ? <Button asChild><a href={href} onClick={() => setOpen(false)}><Download/>Unduh XLSX</a></Button> : <Button disabled>Pilih portofolio</Button>}</div>
+      <div className="mt-3 flex justify-end gap-2 border-t border-border pt-3"><Button type="button" variant="ghost" onClick={() => setOpen(false)}>Batal</Button>{href ? <Button asChild><a href={href} onClick={() => setOpen(false)}><FileDown className="size-4" aria-hidden="true"/>Unduh XLSX</a></Button> : <Button disabled>Pilih portofolio</Button>}</div>
     </Popover.Content></Popover.Portal>
   </Popover.Root>;
 }
