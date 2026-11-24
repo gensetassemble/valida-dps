@@ -28,6 +28,13 @@ export const personnelExportHeaders = [
   "STATUS PROSES PERPANJANGAN",
 ];
 const widths = [6, 16, 16, 30, 32, 25, 48, 18, 20, 18, 30, 32, 48, 14, 30];
+const renewalColors: Record<string, { fill: string; text: string }> = {
+  unprocessed: { fill: "FFFEF3C7", text: "FF92400E" },
+  processing: { fill: "FFDBEAFE", text: "FF1D4ED8" },
+  renewed: { fill: "FFDCFCE7", text: "FF166534" },
+  lifetime: { fill: "FFDCFCE7", text: "FF166534" },
+  cancelled: { fill: "FFFEE2E2", text: "FF991B1B" },
+};
 function date(value: unknown) {
   return typeof value === "string" && validDate(value)
     ? new Date(value + "T00:00:00Z")
@@ -125,6 +132,9 @@ export function addPersonnelSheet(
       typeof record.expiry_date === "string" && !lifetime
         ? remainingDays(record.expiry_date, today)
         : null;
+    const renewalStatus = lifetime
+      ? "lifetime"
+      : String(record.renewal_status || "unprocessed");
     const values = [
       index + 1,
       personnelEmployeeType(record),
@@ -158,11 +168,10 @@ export function addPersonnelSheet(
         .filter(Boolean)
         .join("\n"),
       days,
-      lifetime
+      renewalStatus === "lifetime"
         ? "Tidak perlu perpanjangan"
         : RENEWAL_STATUSES[
-            (record.renewal_status ||
-              "unprocessed") as keyof typeof RENEWAL_STATUSES
+            renewalStatus as keyof typeof RENEWAL_STATUSES
           ] || "Belum Diproses",
     ];
     exportContinuationRows(values as ExcelJS.CellValue[], widths).forEach(
@@ -224,6 +233,18 @@ export function addPersonnelSheet(
             color: { argb: "FF9A3412" },
           };
         }
+        const renewalColor = renewalColors[renewalStatus] || renewalColors.unprocessed;
+        row.getCell(15).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: renewalColor.fill },
+        };
+        row.getCell(15).font = {
+          name: "Arial",
+          size: 10,
+          bold: true,
+          color: { argb: renewalColor.text },
+        };
         const lines = piece.map((value, i) => {
           const text =
             value instanceof Date

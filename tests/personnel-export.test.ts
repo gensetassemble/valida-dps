@@ -83,7 +83,17 @@ describe("personnel monitoring export", () => {
     expect(sheet.getCell("O6").value).toBe("Sedang Diproses");
     expect(sheet.getCell("N6").alignment.horizontal).toBe("center");
     expect(sheet.getCell("O6").alignment.horizontal).toBe("center");
+    expect(sheet.getCell("O6").fill).toMatchObject({
+      fgColor: { argb: "FFDBEAFE" },
+    });
+    expect(sheet.getCell("O6").font).toMatchObject({
+      bold: true,
+      color: { argb: "FF1D4ED8" },
+    });
     expect(sheet.getCell("O7").value).toBe("Tidak perlu perpanjangan");
+    expect(sheet.getCell("O7").fill).toMatchObject({
+      fgColor: { argb: "FFDCFCE7" },
+    });
     expect(sheet.getCell("B7").value).toBe("PTT Project");
     expect(sheet.getCell("C7").value).toBe("Non-NPP");
     expect(sheet.getCell("J7").value).toBe("Seumur hidup");
