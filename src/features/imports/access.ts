@@ -7,9 +7,9 @@ export const IMPORT_ROLES_BY_DOMAIN: Record<
   readonly Role[]
 > = {
   employees: ["admin"],
-  personnel: ["hrga"],
-  clients: ["account_manager"],
-  calibrations: ["equipment_manager"],
+  personnel: ["super_admin", "hrga"],
+  clients: ["super_admin", "account_manager"],
+  calibrations: ["super_admin", "equipment_manager"],
 };
 
 export const IMPORT_NAVIGATION_ROLES = [

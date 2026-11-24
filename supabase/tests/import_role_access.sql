@@ -14,7 +14,8 @@ insert into auth.users(id,email) values
 ('da100000-0000-4000-8000-000000000002','import-hrga@example.invalid'),
 ('da100000-0000-4000-8000-000000000003','import-am@example.invalid'),
 ('da100000-0000-4000-8000-000000000004','import-ptk@example.invalid'),
-('da100000-0000-4000-8000-000000000005','import-coordinator@example.invalid');
+('da100000-0000-4000-8000-000000000005','import-coordinator@example.invalid'),
+('da100000-0000-4000-8000-000000000006','import-super-admin@example.invalid');
 insert into public.profiles(id,branch_code,full_name,is_active,activated_at)
 select id,'DPS','[CONTOH] Import role '||row_number() over(),true,now()
 from auth.users where id::text like 'da100000-%';
@@ -23,7 +24,8 @@ insert into public.user_role_assignments(profile_id,branch_code,role_code,grant_
 ('da100000-0000-4000-8000-000000000002','DPS','hrga','[CONTOH] Access test'),
 ('da100000-0000-4000-8000-000000000003','DPS','account_manager','[CONTOH] Access test'),
 ('da100000-0000-4000-8000-000000000004','DPS','equipment_manager','[CONTOH] Access test'),
-('da100000-0000-4000-8000-000000000005','DPS','coordinator','[CONTOH] Access test');
+('da100000-0000-4000-8000-000000000005','DPS','coordinator','[CONTOH] Access test'),
+('da100000-0000-4000-8000-000000000006','DPS','super_admin','[CONTOH] Access test');
 insert into public.import_batches(id,branch_code,domain,filename,file_hash,file_bytes,source_count,created_by) values
 ('da200000-0000-4000-8000-000000000001','DPS','employees','employees.csv',repeat('1',64),10,1,'da100000-0000-4000-8000-000000000001'),
 ('da200000-0000-4000-8000-000000000002','DPS','personnel','personnel.csv',repeat('2',64),10,1,'da100000-0000-4000-8000-000000000002'),
@@ -54,6 +56,10 @@ select set_config('request.jwt.claim.sub','da100000-0000-4000-8000-000000000005'
 select pg_temp.assert_import(not private.import_role_scope('DPS','employees') and not private.import_role_scope('DPS','personnel') and not private.import_role_scope('DPS','clients') and not private.import_role_scope('DPS','calibrations'),'Coordinator receives no import permission');
 select pg_temp.assert_import((select count(*)=0 from public.import_batches),'Coordinator sees no import history');
 
-select pass('Document import access follows HRGA, commercial and PTK responsibility');
+select set_config('request.jwt.claim.sub','da100000-0000-4000-8000-000000000006',true);
+select pg_temp.assert_import(private.import_role_scope('DPS','employees') and private.import_role_scope('DPS','personnel') and private.import_role_scope('DPS','clients') and private.import_role_scope('DPS','calibrations'),'Super Admin imports every domain');
+select pg_temp.assert_import((select count(*)=4 from public.import_batches where id::text like 'da200000-%'),'Super Admin sees all four synthetic import histories');
+
+select pass('Document import access follows business responsibility with Super Admin oversight');
 select * from finish();
 rollback;

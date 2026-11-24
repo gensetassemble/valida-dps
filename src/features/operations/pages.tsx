@@ -63,9 +63,9 @@ export async function OperationList({
           <p className="mt-1 text-xs text-muted-foreground">{entity === "kalibrasi-alat" ? "Monitoring alat internal per portofolio." : entity === "sertifikat-klien" ? "Arsip bertahap · PIC [UJI] untuk pengujian internal." : "Pantau masa berlaku dan tindak lanjut sertifikat."}</p>
         </header>}
       <div className={compact ? "flex flex-wrap items-center gap-2" : "mb-4 flex flex-wrap items-center gap-3"}>
-        {entity === "kalibrasi-alat" && hasPermission(c.scopes,c.branch,["equipment_manager"]) && <EquipmentImportButton branch={c.branch}/>}
-        {entity === "sertifikat-klien" && hasPermission(c.scopes,c.branch,["account_manager"]) && <ClientCertificateImportButton branch={c.branch}/>}
-        {entity === "kompetensi-personil" && hasPermission(c.scopes,c.branch,["hrga"]) && <PersonnelCertificateImportButton branch={c.branch}/>}
+        {entity === "kalibrasi-alat" && hasPermission(c.scopes,c.branch,["super_admin","equipment_manager"]) && <EquipmentImportButton branch={c.branch}/>}
+        {entity === "sertifikat-klien" && hasPermission(c.scopes,c.branch,["super_admin","account_manager"]) && <ClientCertificateImportButton branch={c.branch}/>}
+        {entity === "kompetensi-personil" && hasPermission(c.scopes,c.branch,["super_admin","hrga"]) && <PersonnelCertificateImportButton branch={c.branch}/>}
         {entity === "kalibrasi-alat" && params.active !== "false" &&
           c.scopes.some(
             (s) => s.branch_code === c.branch && s.role_code === "coordinator",

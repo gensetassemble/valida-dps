@@ -29,6 +29,15 @@ describe("document import role access", () => {
     );
   });
 
+  it("grants Super Admin access to every import domain", () => {
+    expect(importDomainsForScopes([scope("super_admin")], "DPS")).toEqual([
+      "employees",
+      "personnel",
+      "clients",
+      "calibrations",
+    ]);
+  });
+
   it("keeps every permission branch-specific", () => {
     expect(canImportDomain([scope("hrga")], "TEST", "personnel")).toBe(false);
   });

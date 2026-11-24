@@ -32,6 +32,12 @@ describe('UMA authenticated import endpoint',()=>{
     }
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
+  it('allows Super Admin to preview the calibration import',async()=>{
+    mocks.context.mockResolvedValueOnce({branch:'DPS',scopes:[{branch_code:'DPS',role_code:'super_admin'}]});
+    const response=await POST(request('Nama Barang,Tag-Number\nPump,PIK-001'));
+    expect(response.status).toBe(200);
+    expect(mocks.rpc).toHaveBeenCalledWith('preview_equipment_uma',expect.any(Object));
+  });
   it('applies only the same screened file with a classification for sensitive changes',async()=>{
     const content='Nama Barang,Tag-Number,Nomor Sertifikat,Tanggal terbit sertifikat\nPump,PIK-001,CERT-2,01/11/2026';
     mocks.rpc.mockImplementation(async(name:string)=>name==='preview_equipment_uma'?{data:{rows:[{sheet:'CSV',row:2,name:'Pump',tag:'PIK-001',equipment_id:'new-id',equipment:'added',calibration:'added',match:'new'}]},error:null}:{data:{run:'run-id',rows:[{equipment:'added',calibration:'added'}]},error:null});

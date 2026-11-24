@@ -17,7 +17,7 @@ const reviewValues = new Set(["calibration_event", "data_correction"]);
 function databaseIssues(error:{code?:string;message?:string}) {
   if(error.code==='P0001')return (error.message||'Data file perlu diperiksa.').split('\n');
   if(['57014','55P03'].includes(error.code||''))return ['Proses melewati batas waktu atau masih ada impor lain yang berjalan. Coba kembali atau bagi file per portofolio.'];
-  if(error.code==='42501')return ['Impor kalibrasi alat hanya tersedia untuk PTK pada cabang ini.'];
+  if(error.code==='42501')return ['Impor kalibrasi alat hanya tersedia untuk Super Admin atau PTK pada cabang ini.'];
   if(error.code==='23503')return ['Referensi cabang, portofolio, alat, atau akun pada data sumber tidak ditemukan.'];
   return ['File belum dapat diperiksa oleh sistem. Muat ulang halaman lalu coba kembali; bila berulang, sampaikan waktu kejadian kepada IT.'];
 }
@@ -27,7 +27,7 @@ export async function POST(request:NextRequest){
     const form=await boundedForm(request,4*1024*1024);
     const branch=String(form.get('branch')||'');
     const c=await entityContext('kalibrasi-alat',branch,true);
-    if(!hasPermission(c.scopes,c.branch,['equipment_manager']))return NextResponse.json({error:'Impor kalibrasi alat hanya tersedia untuk PTK.'},{status:403,headers});
+    if(!hasPermission(c.scopes,c.branch,['super_admin','equipment_manager']))return NextResponse.json({error:'Impor kalibrasi alat hanya tersedia untuk Super Admin atau PTK.'},{status:403,headers});
     const file=form.get('file');if(!(file instanceof File))throw new UmaImportError(['Pilih file CSV, XLSX, XLS, atau XLSB.']);
     const fallback=String(form.get('portfolio')||'');
     if(fallback&&!/^(IND|PIK|SERCO|KSP|HMPM|AEBT|LAB|MIN|BBR|LSI)$/.test(fallback))throw new UmaImportError(['Portofolio file tidak valid.']);
@@ -69,7 +69,7 @@ export async function POST(request:NextRequest){
 export async function GET(request:NextRequest){
   try{
     const c=await entityContext('kalibrasi-alat',request.nextUrl.searchParams.get('branch')||undefined,true);
-    if(!hasPermission(c.scopes,c.branch,['equipment_manager']))return NextResponse.json({error:'Riwayat impor hanya tersedia untuk PTK.'},{status:403,headers});
+    if(!hasPermission(c.scopes,c.branch,['super_admin','equipment_manager']))return NextResponse.json({error:'Riwayat impor hanya tersedia untuk Super Admin atau PTK.'},{status:403,headers});
     const db=await masterClient();const {data,error}=await db.from('equipment_sync_runs').select('id,source_name,created_at').eq('branch_code',c.branch).order('created_at',{ascending:false}).limit(10);
     if(error)throw error;return NextResponse.json({runs:data},{headers});
   }catch{return NextResponse.json({error:'Riwayat impor belum dapat dimuat.'},{status:403,headers});}
