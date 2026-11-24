@@ -245,8 +245,10 @@ export function AppShell({
           className="min-h-0 flex-1 overflow-y-auto px-3 pb-4"
         >
           {groups.map((group) => {
-            const items = group.items.filter((item) =>
-              hasPermission(user.scopes, branch, item.roles),
+            const items = group.items.filter(
+              (item) =>
+                !item.future &&
+                hasPermission(user.scopes, branch, item.roles),
             );
             if (!items.length) return null;
             return (

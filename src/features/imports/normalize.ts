@@ -1,4 +1,5 @@
 import { driveFolder, validDate } from "@/lib/domain/validity";
+import { CLIENT_CERTIFICATE_TEMPLATE_COLUMNS } from "./client-template";
 export const DOMAINS = [
   "employees",
   "personnel",
@@ -162,25 +163,10 @@ export function normalize(
         k,
         get(
           k,
-          (
-            {
-              certificate_number: "Nomor Sertifikat",
-              client_name: "Nama Pelanggan",
-              certificate_type_name: "Jenis Sertifikat",
-              portfolio_code: "Portfolio",
-              work_area_name: "Wilayah",
-              pic_name: "PIC Perusahaan",
-              pic_email: "Email PIC",
-              object_type: "Objek Inspeksi",
-              object_serial: "Nomor Seri (opsional)",
-              installation_location: "Lokasi",
-              order_reference: "Nomor SPK",
-              issue_date: "Tanggal Terbit",
-              expiry_date: "Tanggal Berakhir",
-              interval_months: "Interval (bulan)",
-              previous_order_value: "Nilai Kontrak (IDR)",
-            } as Record<string, string>
-          )[k] || k,
+          CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.find(
+            (column) => column.sourceKey === k,
+          )?.header || k,
+          k === "portfolio_code" ? "Portfolio" : k,
         ),
       ]),
     );

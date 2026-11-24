@@ -39,6 +39,7 @@ import { EquipmentImportButton } from "@/features/equipment-sync/import-button";
 import { ClientCertificateImportButton } from "@/features/imports/client-certificate-import-button";
 import { currentComponentData } from "./calibration-component-data";
 import { CalibrationComponentsTable } from "./calibration-components-table";
+import { FileDown, Table2, UserRoundX } from "lucide-react";
 async function EquipmentExportAction({branch}:{branch:string}) {
   const options = await equipmentOptions(branch);
   return <EquipmentExportMenu key={branch} branch={branch} portfolios={options.portfolios} unavailable={options.unavailable}/>;
@@ -78,6 +79,7 @@ export async function OperationList({
         {entity === "kompetensi-personil" && (
           <Button asChild variant="outline">
             <Link href={"/kompetensi-personil/matriks?branch=" + c.branch}>
+              <Table2 className="size-4" aria-hidden="true" />
               Matriks Kompetensi
             </Link>
           </Button>
@@ -93,6 +95,7 @@ export async function OperationList({
               } as Record<string, string>)
             }
           >
+            <FileDown className="size-4" aria-hidden="true" />
             Ekspor XLSX sesuai filter
           </a>
         </Button>}
@@ -109,6 +112,7 @@ export async function OperationList({
                 } as Record<string, string>)
               }
             >
+              <UserRoundX className="size-4" aria-hidden="true" />
               Ekspor termasuk personil nonaktif
             </a>
           </Button>

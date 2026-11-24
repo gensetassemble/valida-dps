@@ -25,6 +25,7 @@ export type Field = {
   lookup?: string;
   hint?: string;
   immutable?: boolean;
+  formHidden?: boolean;
 };
 export type EntityConfig = {
   key: string;

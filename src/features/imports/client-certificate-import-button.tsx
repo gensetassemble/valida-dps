@@ -11,7 +11,7 @@ export function ClientCertificateImportButton({ branch }: { branch: string }) {
   return (
     <>
       <Button variant="outline" onClick={() => setOpen(true)}>
-        <FileUp /> Impor Excel / CSV
+        <FileUp className="size-4" aria-hidden="true" /> Impor Excel / CSV
       </Button>
       <Modal
         open={open}

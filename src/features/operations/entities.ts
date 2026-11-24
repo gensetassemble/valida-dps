@@ -1,6 +1,10 @@
 import type { EntityConfig, Field } from "@/features/master-data/registry";
 import { MODULE_ACCESS } from "@/lib/auth/module-access";
 import {
+  CLIENT_CERTIFICATE_FORM_KEYS,
+  CLIENT_CERTIFICATE_TEMPLATE_COLUMNS,
+} from "@/features/imports/client-template";
+import {
   monitoringColumns,
   monitoringAssetFields,
   monitoringCalibrationFields,
@@ -50,6 +54,15 @@ const common = {
 const clientRoles = MODULE_ACCESS.clients.read;
 const personnelRoles = MODULE_ACCESS.personnel.read;
 const equipmentRoles = MODULE_ACCESS.calibrations.read;
+const clientHeader = (formKey: string) =>
+  CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.find(
+    (column) => column.formKey === formKey,
+  )?.header || formKey;
+const clientVisibleKeys = new Set<string>(CLIENT_CERTIFICATE_FORM_KEYS);
+const clientField = (field: Field): Field => ({
+  ...field,
+  formHidden: !clientVisibleKeys.has(field.key),
+});
 export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
   "sertifikat-klien": {
     ...common,
@@ -64,29 +77,25 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
     labelKey: "certificate_number",
     readRoles: clientRoles,
     writeRoles: ["admin", "account_manager"],
-    fields: [
-      ref("client_id", "Pelanggan", "pelanggan", true, true),
-      ref("certificate_type_id", "Jenis sertifikat", "jenis-sertifikat"),
-      text("certificate_number", "Nomor sertifikat", true),
-      text("object_type", "Objek inspeksi", true),
-      text("object_serial", "Nomor seri"),
+    fields: ([
+      ref("portfolio_id", clientHeader("portfolio_id"), "portofolio", false),
+      ref("client_id", clientHeader("client_id"), "pelanggan", true, true),
+      ref("certificate_type_id", clientHeader("certificate_type_id"), "jenis-sertifikat"),
+      text("certificate_number", clientHeader("certificate_number"), true),
+      text("object_type", clientHeader("object_type"), true),
+      text("object_serial", clientHeader("object_serial")),
+      text("installation_location", clientHeader("installation_location")),
+      ref("certificate_work_area_id", clientHeader("certificate_work_area_id"), "wilayah", false),
+      date("issue_date", clientHeader("issue_date")),
+      { ...interval, label: clientHeader("interval_months") },
+      date("expiry_date", clientHeader("expiry_date")),
+      { key: "previous_order_value", label: clientHeader("previous_order_value"), kind: "money" },
+      text("order_reference", clientHeader("order_reference")),
       text("capacity", "Kapasitas"),
-      text("installation_location", "Lokasi"),
-      text("order_reference", "Nomor SPK"),
       text("contract_reference", "Nomor kontrak"),
       date("inspection_date", "Tanggal inspeksi"),
-      date("issue_date", "Tanggal terbit"),
-      { ...interval, label: "Interval masa berlaku" },
       { key: "interval_days", label: "Interval (hari)", kind: "integer", max: 36500 },
-      date("expiry_date", "Tanggal berakhir"),
-      ref("certificate_work_area_id", "Wilayah sertifikat", "wilayah", false),
       ref("inspector_employee_id", "Inspector", "pegawai", false),
-      ref("portfolio_id", "Portofolio", "portofolio", false),
-      {
-        key: "previous_order_value",
-        label: "Nilai kontrak (IDR)",
-        kind: "money",
-      },
       ref(
         "previous_certificate_id",
         "Generasi sertifikat sebelumnya",
@@ -96,7 +105,7 @@ export const OPERATIONAL_ENTITIES: Record<string, EntityConfig> = {
       ),
       notes,
       active,
-    ],
+    ] satisfies Field[]).map(clientField),
     columns: [
       "validity_status",
       "expiry_date",

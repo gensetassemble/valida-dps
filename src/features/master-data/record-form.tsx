@@ -25,7 +25,6 @@ import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
 import { clientExpiry } from "@/features/operations/client-certificate";
-import { ClientIntervalInput } from "@/features/operations/client-interval-input";
 import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
@@ -348,7 +347,7 @@ export function RecordForm({
         ? entity.fields.filter(
             (f) => !["employment_status", "is_active"].includes(f.key),
           )
-        : entity.fields
+        : entity.fields.filter((field) => !field.formHidden)
   ).map((field) =>
     entity.key === "penugasan" && !isAdmin && field.key === "assignment_type"
       ? {
@@ -457,7 +456,6 @@ export function RecordForm({
     control,
     name: initialEquipment ? "initial_interval_months" : "interval_months",
   });
-  const intervalDays = useWatch({ control, name: "interval_days" });
   const calculationBase = useWatch({ control, name: "calculation_base" });
   const validityKind = useWatch({ control, name: "validity_kind" });
   const baseDate =
@@ -476,7 +474,7 @@ export function RecordForm({
     entity.key === "kompetensi-personil" && validityKind === "lifetime";
   const calculated =
     entity.key === "sertifikat-klien"
-      ? clientExpiry(String(baseDate || ""), months, intervalDays)
+      ? clientExpiry(String(baseDate || ""), months, undefined)
       : typeof baseDate === "string" &&
     validDate(baseDate) &&
     Number.isInteger(Number(months)) &&
@@ -581,6 +579,11 @@ export function RecordForm({
         <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] leading-5 text-muted-foreground">
           Cabang <strong className="text-brand-navy">{branch}</strong>
         </div>
+        {entity.key === "sertifikat-klien" && (
+          <p className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs leading-5 text-teal-900">
+            PIC Perusahaan dan Email PIC mengikuti kontak utama pada data pelanggan yang dipilih, sehingga tidak perlu diisi ulang di sertifikat.
+          </p>
+        )}
         {entity.key === "riwayat-kalibrasi" && (
           <Controller
             control={control}
@@ -876,9 +879,6 @@ export function RecordForm({
                         />
                       )}
                     />
-                  ) : entity.key === "sertifikat-klien" && field.key === "interval_months" ? (
-                    <ClientIntervalInput months={months} days={intervalDays}
-                      onChange={(m,d) => { setValue("interval_months",m,{shouldDirty:true,shouldValidate:true}); setValue("interval_days",d,{shouldDirty:true,shouldValidate:true}); }} />
                   ) : field.kind === "money" ? (
                     <Controller control={control} name={field.key} render={({field:input}) => (
                       <ContractMoneyInput id={field.key} value={input.value} onChange={input.onChange} invalid={!!message}/>

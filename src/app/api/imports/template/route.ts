@@ -4,7 +4,10 @@ import { z } from "zod";
 import { importApiContext } from "@/features/imports/server";
 import { DOMAINS, FIELDS } from "@/features/imports/normalize";
 import { readableXlsx } from "@/lib/xlsx-readability";
-import { CLIENT_TEMPLATE_EXAMPLE_MARKER } from "@/features/imports/client-template";
+import {
+  CLIENT_CERTIFICATE_TEMPLATE_COLUMNS,
+  CLIENT_TEMPLATE_EXAMPLE_MARKER,
+} from "@/features/imports/client-template";
 export async function GET(r: NextRequest) {
   if (
     !(await importApiContext(r.nextUrl.searchParams.get("branch") || undefined))
@@ -22,24 +25,25 @@ export async function GET(r: NextRequest) {
   const isClientTemplate = domain.data === "clients";
   const s = book.addWorksheet(isClientTemplate ? "Sertifikat_Klien" : "Data");
   if (isClientTemplate) {
-    const headers = [
-      "Portfolio",
-      "Nama Pelanggan",
-      "Jenis Sertifikat",
-      "Nomor Sertifikat",
-      "Objek Inspeksi",
-      "Nomor Seri (opsional)",
-      "Lokasi",
-      "Wilayah",
-      "Tanggal Terbit",
-      "Interval (bulan)",
-      "Tanggal Berakhir",
-      "Nilai Kontrak (IDR)",
-      "Nomor SPK",
-      "PIC Perusahaan",
-      "Email PIC",
-    ];
-    const widths = [14.5, 34, 37.625, 51.625, 48.25, 28.5, 36.875, 13.5, 20.625, 21.625, 23.5, 24.625, 32, 27, 27];
+    const headers = CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.map((column) => column.header);
+    const widths = CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.map((column) => column.width);
+    const example: Record<string, string | number | Date> = {
+      portfolio_code: "KSP",
+      client_name: `${CLIENT_TEMPLATE_EXAMPLE_MARKER} PT Pelanggan Contoh`,
+      certificate_type_name: "Sertifikat Contoh",
+      certificate_number: "CONTOH-CERT-001",
+      object_type: "Objek inspeksi contoh",
+      object_serial: "SN-CONTOH-001",
+      installation_location: "Denpasar",
+      work_area_name: "Bali",
+      issue_date: new Date("2026-01-01T00:00:00.000Z"),
+      interval_months: 12,
+      expiry_date: new Date("2027-01-01T00:00:00.000Z"),
+      previous_order_value: 1000000,
+      order_reference: "CONTOH-SPK-001",
+      pic_name: "Nama PIC Contoh",
+      pic_email: "contoh@example.invalid",
+    };
     s.columns = headers.map((_, index) => ({ key: `column_${index + 1}`, width: widths[index] }));
     s.addTable({
       name: "UpdateTableSertifikatKlien",
@@ -49,23 +53,7 @@ export async function GET(r: NextRequest) {
       style: { theme: "TableStyleMedium2", showRowStripes: true },
       columns: headers.map((name) => ({ name })),
       rows: [
-        [
-          "KSP",
-          `${CLIENT_TEMPLATE_EXAMPLE_MARKER} PT Pelanggan Contoh`,
-          "Sertifikat Contoh",
-          "CONTOH-CERT-001",
-          "Objek inspeksi contoh",
-          "SN-CONTOH-001",
-          "Denpasar",
-          "Bali",
-          new Date("2026-01-01T00:00:00.000Z"),
-          12,
-          new Date("2027-01-01T00:00:00.000Z"),
-          1000000,
-          "CONTOH-SPK-001",
-          "Nama PIC Contoh",
-          "contoh@example.invalid",
-        ],
+        CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.map((column) => example[column.sourceKey]),
         ...Array.from({ length: 19 }, () => Array(headers.length).fill("")),
       ],
     });

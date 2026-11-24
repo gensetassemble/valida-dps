@@ -115,6 +115,7 @@ export function recordSchema(entity: EntityConfig, editing = false) {
       ? initialCalibrationFields
       : []),
   ]) {
+    if (field.formHidden) continue;
     if (
       entity.key === "pegawai" &&
       ["employment_status", "is_active"].includes(field.key)

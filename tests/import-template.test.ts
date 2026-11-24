@@ -8,6 +8,10 @@ vi.mock("@/features/imports/server", () => ({
 }));
 
 import { GET } from "@/app/api/imports/template/route";
+import {
+  CLIENT_CERTIFICATE_TEMPLATE_COLUMNS,
+} from "@/features/imports/client-template";
+import { OPERATIONAL_ENTITIES } from "@/features/operations/entities";
 
 describe("client certificate import template", () => {
   it("uses the familiar source layout and requested download name", async () => {
@@ -26,7 +30,7 @@ describe("client certificate import template", () => {
     );
     const sheet = book.getWorksheet("Sertifikat_Klien")!;
     expect((sheet.getRow(1).values as unknown[]).slice(1)).toEqual([
-      "Portfolio",
+      "Portofolio",
       "Nama Pelanggan",
       "Jenis Sertifikat",
       "Nomor Sertifikat",
@@ -53,5 +57,27 @@ describe("client certificate import template", () => {
     expect(sheet.rowCount).toBe(21);
     expect(sheet.getColumn(12).numFmt).toBe("#,##0");
     expect(sheet.getRow(2).font.italic).toBe(true);
+  });
+
+  it("keeps the manual client form aligned with the template", () => {
+    const entity = OPERATIONAL_ENTITIES["sertifikat-klien"];
+    const formFields = entity.fields.filter((field) => !field.formHidden);
+    const templateFormColumns = CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.filter(
+      (column) => column.formKey,
+    );
+    expect(formFields.map((field) => field.key)).toEqual(
+      templateFormColumns.map((column) => column.formKey),
+    );
+    expect(formFields.map((field) => field.label)).toEqual(
+      templateFormColumns.map((column) => column.header),
+    );
+    expect(
+      entity.fields.find((field) => field.key === "inspector_employee_id")
+        ?.formHidden,
+    ).toBe(true);
+    expect(
+      CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.filter((column) => !column.formKey)
+        .map((column) => column.header),
+    ).toEqual(["PIC Perusahaan", "Email PIC"]);
   });
 });
