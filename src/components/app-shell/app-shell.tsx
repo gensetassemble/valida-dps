@@ -38,6 +38,7 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { cn } from "@/lib/utils";
 import { APPLICATION_RELEASE } from "@/lib/version";
 import { RefreshButton } from "@/components/shared/refresh-button";
+import { IMPORT_NAVIGATION_ROLES } from "@/features/imports/access";
 type Item = {
   label: string;
   href?: string;
@@ -124,7 +125,7 @@ const groups: { label: string; items: Item[] }[] = [
         label: "Impor Data",
         href: "/impor-data",
         icon: Database,
-        roles: ["admin"],
+        roles: IMPORT_NAVIGATION_ROLES,
       },
     ],
   },

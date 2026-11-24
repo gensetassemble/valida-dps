@@ -81,7 +81,7 @@ export async function reviewRow(form: FormData) {
   return { ok: true };
 }
 export async function commitBatch(form: FormData) {
-  const c = await importContext(String(form.get("branch") || ""), "personnel");
+  const c = await importContext(String(form.get("branch") || ""));
   const batch = z.uuid().safeParse(form.get("batch"));
   if (!batch.success) return { error: "Riwayat impor tidak valid." };
   const { data: batchRow } = await c.db
@@ -91,6 +91,9 @@ export async function commitBatch(form: FormData) {
     .eq("branch_code", c.branch)
     .maybeSingle();
   if (!batchRow) return { error: "Riwayat impor tidak dapat diakses." };
+  if (!DOMAINS.includes(batchRow.domain as ImportDomain))
+    return { error: "Jenis data impor tidak valid." };
+  await importContext(c.branch, batchRow.domain as ImportDomain);
   const clientImport = batchRow.domain === "clients";
   const confirmation = "TERAPKAN PEMBARUAN";
   if (form.get("confirmation") !== confirmation)
@@ -152,7 +155,7 @@ export async function approvePersonnelBatch(form: FormData) {
   return { ok: true, message: `${data} baris siap disertakan dalam pembaruan.` };
 }
 
-// This action deliberately uses the signed-in admin's database client, including
+// This action deliberately uses the signed-in commercial user's database client, including
 // MFA, review_import validation, reviewed_by, and the atomic commit_import RPC.
 // It never supplies JWT claims, service credentials, or direct approval writes.
 export async function importAuthorizedClientWorkbook(form: FormData) {
@@ -177,11 +180,11 @@ export async function importAuthorizedClientWorkbook(form: FormData) {
   for (const row of preparedRows.filter(row => row.decision === "pending")) {
     const { error: reviewError } = await c.db.rpc("review_import", {
       r: row.id, n: row.normalized_values, approve: true,
-      reason: "Admin memeriksa dan menyetujui pemetaan workbook klien, 19 baris, melalui sesi aplikasi; bukan verifikasi PDF.",
+      reason: "Tim AM/Marketing/PDOS memeriksa dan menyetujui pemetaan workbook klien, 19 baris, melalui sesi aplikasi; bukan verifikasi PDF.",
     });
-    if (reviewError) return { error: "Perubahan belum dapat disimpan. Periksa sesi Admin, MFA, dan kecocokan data." };
+    if (reviewError) return { error: "Perubahan belum dapat disimpan. Periksa peran AM/Marketing/PDOS dan kecocokan data." };
   }
-  const { data: committed, error: commitError } = await c.db.rpc("commit_import", { batch: id });
+  const { data: committed, error: commitError } = await c.db.rpc("commit_client_certificate_import", { batch: id });
   if (commitError) return { error: "Pembaruan dibatalkan. Hasil pemeriksaan tetap tersedia; periksa data yang bertentangan." };
   for (const path of ["/impor-data/" + id, "/sertifikat-klien", "/pipeline-perpanjangan", "/dashboard"]) revalidatePath(path);
   return { ok: true, message: `${committed} sertifikat berhasil diterapkan. Kontak [UJI] tetap menjadi penerima internal; tidak ada email yang dikirim.` };

@@ -30,7 +30,11 @@ export default async function Page({
           <h2 className="mb-4 text-sm font-bold">
             Unggah file untuk diperiksa
           </h2>
-          <ImportUpload branch={c.branch} />
+          <ImportUpload
+            branch={c.branch}
+            initialDomain={c.allowedDomains[0]!}
+            domains={c.allowedDomains}
+          />
           <p className="mt-4 text-xs leading-6 text-muted-foreground">
             Data website tidak langsung berubah. Anda akan melihat hasil
             pemeriksaan terlebih dahulu sebelum pembaruan diterapkan.

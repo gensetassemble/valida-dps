@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { z } from "zod";
 import { importApiContext } from "@/features/imports/server";
+import { DOMAINS } from "@/features/imports/normalize";
 export async function GET(r: NextRequest) {
   const c = await importApiContext(
     r.nextUrl.searchParams.get("branch") || undefined,
-    "personnel",
   );
   if (!c)
     return NextResponse.json(
@@ -16,11 +16,17 @@ export async function GET(r: NextRequest) {
   if (!batch.success) return new NextResponse(null, { status: 400 });
   const { data: info } = await c.db
     .from("import_batches")
-    .select("id")
+    .select("id,domain")
     .eq("id", batch.data)
     .eq("branch_code", c.branch)
     .maybeSingle();
   if (!info) return new NextResponse(null, { status: 404 });
+  const domain = z.enum(DOMAINS).safeParse(info.domain);
+  if (!domain.success || !(await importApiContext(c.branch, domain.data)))
+    return NextResponse.json(
+      { error: "Akses hasil pemeriksaan ditolak." },
+      { status: 403 },
+    );
   const book = new ExcelJS.Workbook();
   const s = book.addWorksheet("Hasil Pemeriksaan");
   s.addRow([

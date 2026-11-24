@@ -13,7 +13,7 @@ select ('e9120000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'UMAQA',(array['
 insert into public.portfolios(id,branch_code,code,name) values('e9140000-0000-4000-8000-000000000001','UMAQA','PIK','PIK'),('e9140000-0000-4000-8000-000000000002','UMAQA','LAB','LAB');
 insert into public.employee_portfolio_assignments(branch_code,employee_id,portfolio_id,assignment_type,verification_status,approved_at)
 values('UMAQA','e9130000-0000-4000-8000-000000000002','e9140000-0000-4000-8000-000000000001','equipment_responsible','verified',now()),('UMAQA','e9130000-0000-4000-8000-000000000003','e9140000-0000-4000-8000-000000000001','coordinator','verified',now());
-select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000002',true);
 select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 set local role authenticated;
 select public.sync_equipment_uma('UMAQA','test.csv',repeat('a',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","serial":"S-001","asset":{"serial":"S-001","notes":"Patah"},"calibration":{"certificate_number":"C-1","issue_date":"2026-01-31","due_date":"2027-01-31","interval_months":12,"notes":"Patah","monitoring_measurements":[{"measurement_range":"0–10 L","correction_factor":"0,1\n0,2"}]}}]');
@@ -55,7 +55,7 @@ select public.apply_equipment_uma_reviewed('UMAQA','reviewed.csv',repeat('a',64)
 select pg_temp.uma_assert(exists(select 1 from public.equipment where branch_code='UMAQA' and notes='REVIEWED APPLY'),'reviewed import is applied');
 select pg_temp.uma_assert(exists(select 1 from public.equipment_sync_runs where branch_code='UMAQA' and source_name='reviewed.csv' and source_rows->0->'review'->>'classification'='no_sensitive_change'),'review classification is retained');
 select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000003',true);
-select public.sync_equipment_uma('UMAQA','coordinator.csv',repeat('f',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","asset":{"item_status":"Terpakai"},"calibration":{}}]');
+select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','coordinator.csv',repeat('f',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","asset":{"item_status":"Terpakai"},"calibration":{}}]')$q$);
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','scope.csv',repeat('f',64),'[{"sheet":"CSV","row":2,"portfolio":"LAB","name":"[UJI] Outside Scope","tag":"OTHER","asset":{},"calibration":{}}]')$q$);
 select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000002',true);
 select public.sync_equipment_uma('UMAQA','ptk.csv',repeat('f',64),'[{"sheet":"CSV","row":2,"portfolio":"PIK","name":"[UJI] UMA Pump","tag":"TEST-001","asset":{"item_condition":"Baik"},"calibration":{}}]');
@@ -63,8 +63,10 @@ select pg_temp.uma_denied($q$select public.sync_equipment_uma('DPS','branch.csv'
 select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000004',true);
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','reader.csv',repeat('f',64),'[]')$q$);
 select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','admin.csv',repeat('f',64),'[]')$q$);
 select set_config('request.jwt.claims','{"aal":"aal1"}',true);
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','mfa.csv',repeat('f',64),'[]')$q$);
 reset role;
-select 'PASS: UMA create, replay, updates, history, rollback, serial, stale file, PTK, coordinator, reader, MFA and branch boundaries' as result;
+select 'PASS: UMA create, replay, updates, history, rollback, serial, stale file, PTK-only access, reader, MFA and branch boundaries' as result;
 rollback;

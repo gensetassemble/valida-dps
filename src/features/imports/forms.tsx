@@ -4,15 +4,17 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileSpreadsheet, ScanSearch, ShieldCheck, ListChecks } from "lucide-react";
-import { DOMAIN_LABELS, FIELDS, type ImportDomain } from "./normalize";
+import { DOMAINS, DOMAIN_LABELS, FIELDS, type ImportDomain } from "./normalize";
 export function ImportUpload({
   branch,
   initialDomain = "employees",
   lockedDomain = false,
+  domains = DOMAINS,
 }: {
   branch: string;
   initialDomain?: ImportDomain;
   lockedDomain?: boolean;
+  domains?: readonly ImportDomain[];
 }) {
   const [domain, setDomain] = useState<ImportDomain>(initialDomain),
     [headers, setHeaders] = useState<string[]>([]),
@@ -92,9 +94,9 @@ export function ImportUpload({
             }}
             className="mt-2 h-10 w-full rounded-lg border border-input px-3"
           >
-            {Object.entries(DOMAIN_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
+            {domains.map((item) => (
+              <option key={item} value={item}>
+                {DOMAIN_LABELS[item]}
               </option>
             ))}
           </select>

@@ -60,7 +60,7 @@ export default async function Page({
   const id = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await searchParams,
-    c = await importPageContext(p.branch, "personnel");
+    c = await importPageContext(p.branch);
   if (!c) return <AccessDenied />;
   const page = Math.max(1, Math.min(125, Number(p.page) || 1));
   const { data: batch } = await c.db
@@ -206,7 +206,7 @@ export default async function Page({
         )}
         {approvedClientWorkbook(batch) && <div className="mb-5 rounded-lg border border-border p-4">
           <h2 className="text-sm font-bold">Pembaruan sertifikat klien</h2>
-          <p className="my-3 text-xs leading-6">19 sertifikat untuk 11 perusahaan, portofolio IND, PIK, dan KSP. Pastikan seluruh data di bawah sudah sesuai. PIC [UJI] Adli Alfian adalah penerima internal pengujian. Penerapan perubahan dicatat atas akun Admin yang sedang masuk; MFA tetap diperlukan.</p>
+          <p className="my-3 text-xs leading-6">19 sertifikat untuk 11 perusahaan, portofolio IND, PIK, dan KSP. Pastikan seluruh data di bawah sudah sesuai. PIC [UJI] Adli Alfian adalah penerima internal pengujian. Penerapan perubahan dicatat atas akun AM/Marketing/PDOS yang sedang masuk.</p>
           <ReviewForm action={importAuthorizedClientWorkbook}>
             <input type="hidden" name="batch" value={id} />
             <input type="hidden" name="branch" value={c.branch} />

@@ -1,15 +1,19 @@
 import "server-only";
 import { requireActiveUser } from "@/lib/auth/guards";
-import { activeBranch, hasPermission } from "@/lib/auth/permissions";
+import { activeBranch } from "@/lib/auth/permissions";
 import { masterClient } from "@/features/master-data/server";
 import type { ImportDomain } from "./normalize";
+import { canImportDomain, importDomainsForScopes } from "./access";
 export async function importContext(requested?: string, domain?: ImportDomain) {
-  void domain;
   const c = await requireActiveUser();
   const branch = activeBranch(c.scopes, c.profile.branch_code, requested);
-  if (!hasPermission(c.scopes, branch, ["admin"]))
-    throw Error("Impor hanya tersedia untuk Admin cabang.");
-  return { ...c, branch, db: await masterClient() };
+  const allowedDomains = importDomainsForScopes(c.scopes, branch);
+  if (
+    (domain && !canImportDomain(c.scopes, branch, domain)) ||
+    (!domain && !allowedDomains.length)
+  )
+    throw Error("Impor tidak tersedia untuk peran Anda pada cabang ini.");
+  return { ...c, branch, allowedDomains, db: await masterClient() };
 }
 export async function importPageContext(requested?: string, domain?: ImportDomain) {
   try {

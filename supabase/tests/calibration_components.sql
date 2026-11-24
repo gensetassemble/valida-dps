@@ -13,7 +13,7 @@ select ('e9120000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'UMAQA',(array['
 insert into public.portfolios(id,branch_code,code,name) values('e9140000-0000-4000-8000-000000000001','UMAQA','PIK','PIK'),('e9140000-0000-4000-8000-000000000002','UMAQA','LAB','LAB');
 insert into public.employee_portfolio_assignments(branch_code,employee_id,portfolio_id,assignment_type,verification_status,approved_at)
 values('UMAQA','e9130000-0000-4000-8000-000000000002','e9140000-0000-4000-8000-000000000001','equipment_responsible','verified',now()),('UMAQA','e9130000-0000-4000-8000-000000000003','e9140000-0000-4000-8000-000000000001','coordinator','verified',now());
-select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000002',true);
 select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 set local role authenticated;
 -- Isolated valve certificates; always roll back.

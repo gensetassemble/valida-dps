@@ -11,7 +11,7 @@ function request(content:string,origin='https://valida.test',extra:Record<string
   return new NextRequest('https://valida.test/api/operations/equipment-import',{method:'POST',headers:{origin},body:f});
 }
 describe('UMA authenticated import endpoint',()=>{
-  beforeEach(()=>{vi.clearAllMocks();mocks.context.mockResolvedValue({branch:'DPS'});mocks.rpc.mockResolvedValue({data:{rows:[{sheet:'CSV',row:2,name:'Pump',tag:'PIK-001',equipment_id:'new-id',equipment:'added',calibration:'none',match:'new'}]},error:null});});
+  beforeEach(()=>{vi.clearAllMocks();mocks.context.mockResolvedValue({branch:'DPS',scopes:[{branch_code:'DPS',role_code:'equipment_manager'}]});mocks.rpc.mockResolvedValue({data:{rows:[{sheet:'CSV',row:2,name:'Pump',tag:'PIK-001',equipment_id:'new-id',equipment:'added',calibration:'none',match:'new'}]},error:null});});
   it('rejects cross-origin and unauthorized requests without a database mutation',async()=>{
     expect((await POST(request('invalid','https://other.test'))).status).toBe(403);expect(mocks.rpc).not.toHaveBeenCalled();
     mocks.context.mockRejectedValue(Error('denied'));expect((await POST(request('invalid'))).status).toBe(400);expect(mocks.rpc).not.toHaveBeenCalled();
@@ -23,6 +23,14 @@ describe('UMA authenticated import endpoint',()=>{
     expect(mocks.rpc).not.toHaveBeenCalledWith('apply_equipment_uma_reviewed',expect.anything());
     expect(mocks.refresh).not.toHaveBeenCalled();expect(r.headers.get('cache-control')).toContain('no-store');
     expect((await r.json()).phase).toBe('preview');
+  });
+  it('rejects Admin and Coordinator roles before parsing or calling the import RPC',async()=>{
+    for(const role_code of ['admin','coordinator']){
+      mocks.context.mockResolvedValueOnce({branch:'DPS',scopes:[{branch_code:'DPS',role_code}]});
+      const response=await POST(request('Nama Barang,Tag-Number\nPump,PIK-001'));
+      expect(response.status).toBe(403);
+    }
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it('applies only the same screened file with a classification for sensitive changes',async()=>{
     const content='Nama Barang,Tag-Number,Nomor Sertifikat,Tanggal terbit sertifikat\nPump,PIK-001,CERT-2,01/11/2026';
