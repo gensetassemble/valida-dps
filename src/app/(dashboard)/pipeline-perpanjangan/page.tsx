@@ -140,11 +140,11 @@ export default async function Page({
       </AutoFilterForm>
       <PipelineDragProvider>
         <div
-          className="min-w-0 pb-3"
+          className="min-w-0 overflow-x-auto pb-3"
           role="region"
           aria-label="Papan pipeline perpanjangan"
         >
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="pipeline-board grid grid-flow-col auto-cols-[minmax(16rem,1fr)] gap-4">
             {stages.map(([stage, label, color], index) => (
               <PipelineDropColumn key={stage} stage={stage} label={label}>
                 <PipelineColumn label={label} color={color} count={summary[stage]?.count || 0} amount={summary[stage]?.amount || "0"}>

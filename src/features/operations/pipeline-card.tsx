@@ -19,11 +19,11 @@ export function PipelineCard({ row, branch, accountManager, dragHandle, children
 }) {
   return (
     <article
-      className="min-w-0 rounded-lg border border-border bg-white p-2.5 shadow-sm"
+      className="min-w-0 rounded-lg border border-border bg-white p-3 shadow-sm"
     >
       <div className="flex items-start gap-1">
       <Link
-        className="min-w-0 flex-1 line-clamp-2 break-words text-xs font-bold leading-4 text-brand-navy hover:underline"
+        className="min-w-0 flex-1 line-clamp-2 break-words text-sm font-bold leading-5 text-primary-hover hover:underline"
         title={String(row.client_name)}
         href={
           "/sertifikat-klien/" +
@@ -38,7 +38,7 @@ export function PipelineCard({ row, branch, accountManager, dragHandle, children
       </div>
       <p
         title={String(row.certificate_number || "")}
-        className="mt-1 truncate text-[10px] text-muted-foreground"
+        className="mt-1 break-words text-[11px] text-muted-foreground"
       >
         {String(
           row.certificate_number || "Nomor belum diisi",
@@ -46,7 +46,7 @@ export function PipelineCard({ row, branch, accountManager, dragHandle, children
       </p>
       <p
         title={String(row.certificate_type_name)}
-        className="mt-1 line-clamp-1 text-[10px] text-muted-foreground"
+        className="mt-1 line-clamp-2 text-[11px] text-muted-foreground"
       >
         {String(row.certificate_type_name)}
       </p>
@@ -80,15 +80,22 @@ export function PipelineColumn({label, color, count, amount, children}: {
   label: string; color: string; count: number; amount: string; children: ReactNode;
 }) {
   return (
-    <Card className={"min-h-48 min-w-0 flex-1 border-t-4 bg-slate-50 p-2.5 " + color}>
-      <div className="sticky top-14 z-10 -mx-2.5 -mt-2.5 mb-2 rounded-t-lg border-b border-border bg-slate-50 px-2.5 py-2">
+    <Card className={"flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-t-4 bg-slate-50 " + color}>
+      <div className="shrink-0 border-b border-border bg-white px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xs font-bold">{label}</h2>
-          <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] tabular-nums">{count}</span>
+          <h2 className="text-sm font-bold">{label}</h2>
+          <span className="shrink-0 rounded-full border border-border bg-slate-50 px-2 py-0.5 text-xs font-semibold tabular-nums">{count}</span>
         </div>
         <p className="mt-2 text-[11px] tabular-nums">{formatRupiah(amount)}</p>
       </div>
-      {children}
+      <div
+        role="region"
+        aria-label={"Daftar " + label}
+        tabIndex={0}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3 [scrollbar-gutter:stable] focus-visible:outline-offset-[-3px]"
+      >
+        {children}
+      </div>
     </Card>
   );
 }

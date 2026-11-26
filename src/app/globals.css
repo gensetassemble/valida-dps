@@ -245,6 +245,9 @@ input:not(:disabled):hover, select:not(:disabled):hover, textarea:not(:disabled)
   .certificate-frozen-table [data-record-frozen="client_name"] { position: static; box-shadow: none; }
   .certificate-frozen-table [data-record-frozen] { padding-inline: 0.5rem; }
 }
+.pipeline-board {
+  height: clamp(24rem, calc(100dvh - 17rem), 54rem);
+}
 :focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 3px;
