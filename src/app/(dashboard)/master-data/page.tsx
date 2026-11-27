@@ -40,8 +40,8 @@ export default async function MasterOverview({ searchParams }: { searchParams: P
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {visible.map(({ key, icon: Icon, description }) => {
               const entity = ENTITIES[key], writable = !entity.readonly && hasPermission(context.scopes, branch, entity.writeRoles);
-              return <Link key={key} href={`${key === "kalibrasi-alat" ? "/master-data/alat" : entity.path}?branch=${branch}`}
-                className="group flex min-w-0 items-start gap-3 rounded-xl border border-border bg-white p-3 shadow-sm transition-colors hover:border-teal-300 hover:bg-[#effaf9] focus-visible:outline-primary-hover">
+              return <Link key={key} href={`${key === "kalibrasi-alat" ? "/master-data/alat" : entity.path}?branch=${branch}`} data-hover="subtle"
+                className="group flex min-w-0 items-start gap-3 rounded-xl border border-border bg-white p-3 text-brand-navy shadow-sm transition-colors hover:border-teal-300 hover:bg-[#effaf9] focus-visible:border-teal-300 focus-visible:bg-[#effaf9] focus-visible:outline-primary-hover">
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-800"><Icon size={18} aria-hidden="true"/></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2"><h3 className="text-sm font-bold leading-snug">{key === "kalibrasi-alat" ? "Alat" : entity.title}</h3><ArrowUpRight size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-primary"/></div>

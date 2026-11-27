@@ -1,5 +1,17 @@
 import { ALL_ROLES, ROLE_LABELS, hasPermission } from "@/lib/auth/permissions";
 import { ENTITIES } from "./registry";
+import { ShieldCheck, Wrench, ClipboardCheck, Network, Contact, Users, BadgeCheck, Building2, Info } from "lucide-react";
+
+const roleGuides = [
+  { title: "Super Admin & Admin", icon: ShieldCheck, tone: "bg-blue-50 text-blue-800", description: "Kelola data cabang. Arsip, pemulihan, dan verifikasi cepat pegawai khusus Super Admin." },
+  { title: "PTK", icon: Wrench, tone: "bg-teal-50 text-teal-800", description: "Kelola alat dan kalibrasi dalam portofolio yang ditugaskan." },
+  { title: "QSHE", icon: ClipboardCheck, tone: "bg-violet-50 text-violet-800", description: "Baca seluruh kalibrasi dan kompetensi personil cabang, lalu beri catatan QC tanpa mengubah sertifikat." },
+  { title: "Koordinator Operasional", icon: Network, tone: "bg-cyan-50 text-cyan-800", description: "Baca alat dan kompetensi sesuai penetapan portofolio aktif. Akun harus terhubung ke pegawai yang ditetapkan." },
+  { title: "AM / Marketing", icon: Contact, tone: "bg-amber-50 text-amber-800", description: "Kelola pelanggan dan sertifikat dalam cakupan penugasannya." },
+  { title: "HRGA", icon: Users, tone: "bg-emerald-50 text-emerald-800", description: "Kelola direktori pegawai dan kompetensi personil cabang." },
+  { title: "Personil", icon: BadgeCheck, tone: "bg-indigo-50 text-indigo-800", description: "Lihat sertifikat kompetensi milik sendiri." },
+  { title: "Pimpinan & Tester", icon: Building2, tone: "bg-slate-100 text-slate-700", description: "Kepala Cabang, Kepala Bidang, Kepala UP, dan Tester membaca data cabang sesuai peran." },
+];
 
 const columns = [
   ["kalibrasi-alat", "Alat"],
@@ -81,34 +93,21 @@ export function DirectoryAccessMatrix({ branch }: { branch: string }) {
           </tbody>
         </table>
       </div>
-      <ul className="mt-3 space-y-2 leading-6 text-muted-foreground">
-        <li>
-          IT Officer/Admin: mengelola data cabang. Arsip/pemulihan dan
-          verifikasi cepat nama pegawai hanya untuk IT Officer.
-        </li>
-        <li>
-          PTK: mengelola alat dalam portofolio tugasnya. QSHE: membaca seluruh
-          kalibrasi dan kompetensi personil cabang serta memberi catatan QC,
-          tanpa mengubah data sertifikat.
-        </li>
-        <li>
-          Koordinator Operasional: membaca alat dan kompetensi pada
-          portofolionya sesuai Penetapan Koordinator atau Penugasan Portofolio yang
-          berlaku. Akun harus ditautkan ke pegawai yang ditetapkan.
-        </li>
-        <li>
-          AM: mengubah pelanggan/sertifikat yang ditugaskan. HRGA: mengelola
-          direktori dan kompetensi personil cabang.
-        </li>
-        <li>
-          Personil: membaca sertifikat sendiri. Kepala Bidang, Kepala UP, Kepala
-          Cabang dan Tester: membaca data cabang sesuai peran.
-        </li>
-        <li>
-          Direktori ini tidak membuat akun, menambah peran, atau memperluas
-          cakupan akses.
-        </li>
-      </ul>
+      <section aria-label="Ringkasan akses per peran" className="mt-3 border-t border-border pt-3">
+        <h3 className="mb-2 text-xs font-bold text-brand-navy">Peran & tanggung jawab</h3>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {roleGuides.map(({ title, icon: Icon, tone, description }) => (
+            <div key={title} className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+              <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${tone}`}><Icon size={16} aria-hidden="true"/></span>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold leading-snug text-brand-navy">{title}</h4>
+                <p className="mt-1 text-[11px] leading-snug text-slate-600">{description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground"><Info size={13} className="mt-0.5 shrink-0" aria-hidden="true"/>Direktori menyimpan identitas. Akun login dan peran dikelola melalui Pengaturan.</p>
+      </section>
     </details>
   );
 }

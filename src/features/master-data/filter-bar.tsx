@@ -52,8 +52,8 @@ export function FilterBar({ entity }: { entity: EntityConfig }) {
         </div>
         {!["kompetensi-personil", "pegawai"].includes(entity.key) &&
           entity.fields.some((field) => field.key === "is_active") && (
-            <label className="space-y-1 text-[11px] text-muted-foreground">
-              <span className="block">Status</span>
+            <label className="text-[11px] text-muted-foreground">
+              <span className="sr-only">Status</span>
               <select
                 name="active"
                 defaultValue={active || ""}
