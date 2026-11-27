@@ -21,7 +21,6 @@ export function WorkflowDialog({
   record,
   requester = false,
   ptk = false,
-  replacements = [],
   calibrationResults = [],
   initialValues = {},
   supervisors = [],
@@ -33,7 +32,6 @@ export function WorkflowDialog({
   record?: Row;
   requester?: boolean;
   ptk?: boolean;
-  replacements?: { id: string; label: string }[];
   calibrationResults?: { id: string; label: string }[];
   initialValues?: Row;
   supervisors?: { id: string; label: string }[];
@@ -55,7 +53,7 @@ export function WorkflowDialog({
     ? []
     : kind === "calibration"
       ? requestTransitions(status, requester, ptk)
-      : renewalTransitions(status);
+      : renewalTransitions(status).filter(stage => stage !== "renewed");
   const canEdit =
     kind === "calibration" &&
     requester &&
@@ -79,7 +77,6 @@ export function WorkflowDialog({
           ? {
               certificate_id: parent,
               status: text("status"),
-              replacement_certificate_id: text("replacement_certificate_id"),
               notes: text("notes"),
             }
           : {
@@ -432,24 +429,8 @@ export function WorkflowDialog({
                 ))}
               </select>
             </label>
-            {kind === "personnel" && !!current && status === "processing" && (
-              <label className="grid gap-1 text-xs">
-                Sertifikat pengganti (wajib untuk selesai)
-                <select
-                  name="replacement_certificate_id"
-                  className={inputClass}
-                  defaultValue=""
-                >
-                  <option value="">Pilih sertifikat baru</option>
-                  {replacements.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
           </div>
+          {kind === "personnel" && <p className="rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-900">Sertifikat terbaru sudah terbit? Tutup jendela ini, lalu pilih <strong>Catat sertifikat terbaru</strong>. Sertifikat baru, bukti, dan riwayat penyelesaian akan disimpan bersama.</p>}
           <label className="grid gap-1 text-xs">
             Catatan proses / alasan
             <textarea

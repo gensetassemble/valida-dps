@@ -10,7 +10,7 @@ export function ClientCertificateImportButton({ branch }: { branch: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="outline" onClick={() => setOpen(true)}>
+      <Button variant="import" onClick={() => setOpen(true)}>
         <FileUp className="size-4" aria-hidden="true" /> Impor Excel / CSV
       </Button>
       <Modal

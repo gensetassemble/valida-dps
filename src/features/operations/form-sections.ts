@@ -1,4 +1,5 @@
 export function certificateFormSections(entity:string){
+  if(entity==="sertifikat-klien")return [{id:"identity",label:"Data sertifikat"},{id:"dates",label:"Masa berlaku"}];
   if(entity==="kalibrasi-alat")return [{id:"identity",label:"Identitas alat"},{id:"specification",label:"Spesifikasi & kondisi"},{id:"initial",label:"Kalibrasi awal"},{id:"notes",label:"Catatan"}];
   if(["riwayat-kalibrasi","kompetensi-personil","sertifikat-klien"].includes(entity))return [{id:"identity",label:"Data sertifikat"},{id:"dates",label:"Masa berlaku"},...(entity==="riwayat-kalibrasi"?[{id:"parameters",label:"Parameter & koreksi"}]:[]),{id:"notes",label:"Catatan & dokumen"}];
   return [];

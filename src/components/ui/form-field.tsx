@@ -53,7 +53,7 @@ export function FormField({
       </div>
     );
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
         <label htmlFor={id}>{label}</label>
         {required && (

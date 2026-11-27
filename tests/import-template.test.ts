@@ -71,10 +71,7 @@ describe("client certificate import template", () => {
     expect(formFields.map((field) => field.label)).toEqual(
       templateFormColumns.map((column) => column.header),
     );
-    expect(
-      entity.fields.find((field) => field.key === "inspector_employee_id")
-        ?.formHidden,
-    ).toBe(true);
+    expect(entity.fields.some((field) => ["inspector_employee_id", "inspection_date", "previous_certificate_id"].includes(field.key))).toBe(false);
     expect(
       CLIENT_CERTIFICATE_TEMPLATE_COLUMNS.filter((column) => !column.formKey)
         .map((column) => column.header),

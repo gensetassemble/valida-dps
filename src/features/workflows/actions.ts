@@ -80,6 +80,8 @@ export async function saveWorkflow(
     return { error: "Periksa formulir dan catatan (minimal 8 karakter)." };
   if (kind === "personnel" && !id && parsed.data.status !== "processing")
     return { error: "Mulai perpanjangan dengan status Sedang Diproses dan isi keterangannya." };
+  if (kind === "personnel" && (parsed.data.status === "renewed" || ("replacement_certificate_id" in parsed.data && parsed.data.replacement_certificate_id)))
+    return { error: "Gunakan Catat sertifikat terbaru untuk menyimpan sertifikat baru, bukti, dan penyelesaian proses bersama." };
   const db = await masterClient(),
     table =
       kind === "personnel" ? "personnel_renewal_cases" : "calibration_requests";

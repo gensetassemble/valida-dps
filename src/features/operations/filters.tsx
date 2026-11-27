@@ -115,8 +115,6 @@ export async function OperationalFilters({
         keys={[
           "branch",
           "q",
-          "from",
-          "until",
           ...options.map((o) => o.param),
           ...(entity === "kalibrasi-alat" ? ["eligibility"] : []),
           ...(entity === "kompetensi-personil" ? [] : ["validity"]),
@@ -192,24 +190,6 @@ export async function OperationalFilters({
         {params.examples && (
           <input type="hidden" name="examples" value={params.examples} />
         )}
-        <label className="text-xs">
-          Akhir mulai
-          <input
-            type="date"
-            name="from"
-            defaultValue={params.from}
-            className="mt-1 block h-10 rounded-lg border border-input px-2"
-          />
-        </label>
-        <label className="text-xs">
-          Akhir sampai
-          <input
-            type="date"
-            name="until"
-            defaultValue={params.until}
-            className="mt-1 block h-10 rounded-lg border border-input px-2"
-          />
-        </label>
         <Link
           href={(clearPath || "/" + entity) + "?branch=" + branch}
           className="text-xs underline"

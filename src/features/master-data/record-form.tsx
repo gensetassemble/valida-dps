@@ -25,7 +25,6 @@ import type { DataRow } from "./server";
 import type { EntityConfig, Field } from "./registry";
 import { addMonths, validDate } from "@/lib/domain/validity";
 import { clientExpiry } from "@/features/operations/client-certificate";
-import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
@@ -575,7 +574,7 @@ export function RecordForm({
   return (
     <>
       <form
-        className="space-y-5"
+        className="space-y-3"
         onInvalidCapture={event=>{
           if(!sections.length)return;
           const field=event.target as HTMLElement;
@@ -594,14 +593,9 @@ export function RecordForm({
           if(key){setFormSection(certificateFieldSection(entity.key,key));requestAnimationFrame(()=>document.getElementById(key)?.focus());}
         })}
       >
-        <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+        {!sections.length && <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] leading-5 text-muted-foreground">
           Cabang <strong className="text-brand-navy">{branch}</strong>
-        </div>
-        {entity.key === "sertifikat-klien" && (
-          <p className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs leading-5 text-teal-900">
-            PIC Perusahaan dan Email PIC mengikuti kontak utama pada data pelanggan yang dipilih, sehingga tidak perlu diisi ulang di sertifikat.
-          </p>
-        )}
+        </div>}
         {!!sections.length && <SectionNavigation items={sections} value={formSection} onChange={setFormSection}/>}
         <div className={sections.length?"valida-form-section-body space-y-4":"space-y-4"}>
         <div data-form-section="parameters" hidden={!!sections.length && formSection!=="parameters"}>
@@ -651,7 +645,7 @@ export function RecordForm({
           className={
             entity.key === "kalibrasi-alat"
               ? "equipment-entry grid overflow-hidden rounded-lg border border-border md:grid-cols-2"
-              : "grid gap-4 sm:grid-cols-2"
+              : "grid gap-x-4 gap-y-3 sm:grid-cols-2"
           }
         >
           {entity.key === "kalibrasi-alat" && section.id==="identity" && (
@@ -1021,27 +1015,6 @@ export function RecordForm({
             Kelola tanggal dan riwayat kalibrasi alat →
           </Link>
         )}
-        <div hidden={!!sections.length && formSection!==(initialEquipment?"initial":"dates")}>
-        {endField && !lifetime && (!initialEquipment || !!initialEnabled) && (
-          <p className="rounded-lg border border-border bg-slate-50 p-3 text-xs">
-            Tanggal hasil perhitungan kalender:{" "}
-            <span className="block text-[11px] text-muted-foreground">
-              {typeof baseDate === "string" && validDate(baseDate)
-                ? formatBusinessDate(baseDate)
-                : "Tanggal awal belum diisi"}{" "}
-              + {String(months || "—")} bulan
-            </span>
-            <strong>
-              {calculated
-                ? formatBusinessDate(calculated)
-                : "Pilih tanggal dasar dan interval positif."}
-            </strong>
-            {entity.key === "riwayat-kalibrasi"
-              ? automaticEnd ? ". Digunakan sebagai tanggal berakhir monitoring." : ". Monitoring memakai tanggal berakhir sesuai dokumen yang Anda koreksi."
-              : ". Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin tanggal dokumen bila tersedia."}
-          </p>
-        )}
-        </div>
         </div>
         {error && (
           <p

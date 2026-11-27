@@ -22,7 +22,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { DeadlineDate } from "@/components/ui/deadline-date";
 import { formatBusinessDate, formatRupiah } from "@/lib/format";
 import { driveFolder, validityLabel, todayWita } from "@/lib/domain/validity";
-import { OperationalForm, CorrectionForm } from "./forms";
+import { OperationalForm } from "./forms";
 import { CertificateDocuments } from "./certificate-documents";
 import { OperationalFilters } from "./filters";
 import { measurementInputs } from "./measurement-groups";
@@ -88,7 +88,7 @@ export async function OperationList({
             </Link>
           </Button>
         )}
-        {entity === "kalibrasi-alat" ? <Suspense fallback={<Button disabled variant="outline">Menyiapkan ekspor…</Button>}><EquipmentExportAction branch={c.branch}/></Suspense> : <Button asChild variant="outline">
+        {entity === "kalibrasi-alat" ? <Suspense fallback={<Button disabled variant="export">Menyiapkan ekspor…</Button>}><EquipmentExportAction branch={c.branch}/></Suspense> : <Button asChild variant="export">
           <a
             href={
               "/api/operations/export?" +
@@ -104,7 +104,7 @@ export async function OperationList({
           </a>
         </Button>}
         {entity === "kompetensi-personil" && (
-          <Button asChild variant="outline">
+          <Button asChild variant="export">
             <a
               href={
                 "/api/operations/export?" +
@@ -293,15 +293,6 @@ export async function OperationDetail({
         .order("created_at", { ascending: false })
     : { data: [], error: null };
   const sourceFolder = driveFolder(row.source_folder_url as string | null);
-  let history: DataRow[] = [];
-  if (entity === "sertifikat-klien") {
-    const q = await db
-      .from("client_certificate_records")
-      .select("id,certificate_number,issue_date,expiry_date")
-      .eq("previous_certificate_id", id)
-      .limit(50);
-    history = (q.data || []) as DataRow[];
-  }
   return (
     <>
       <Link
@@ -362,7 +353,8 @@ export async function OperationDetail({
       <RecordSections items={[
         {id:"summary",label:"Data sertifikat"},
         ...(hasMeasurementTable?[{id:"parameters",label:"Parameter & bagian alat"}]:[]),
-        ...(["kalibrasi-alat","kompetensi-personil","sertifikat-klien"].includes(entity)?[{id:"process",label:"Proses & riwayat"}]:[]),
+        ...(["kalibrasi-alat","kompetensi-personil"].includes(entity)?[{id:"process",label:"Perpanjangan"}]:[]),
+        ...(entity === "kompetensi-personil"?[{id:"related",label:"Sertifikat pegawai"}]:[]),
         ...(domain?[{id:"documents",label:"Lampiran"}]:[]),
         ...(["kalibrasi-alat","riwayat-kalibrasi","kompetensi-personil"].includes(entity)?[{id:"qc",label:"Catatan QC"}]:[]),
       ]}>
@@ -452,6 +444,8 @@ export async function OperationDetail({
                   String(row.interval_label || "—")
                 ) : f.key === "notes" ? (
                   businessNotes(row.notes)
+                ) : f.key === "source_folder_url" && sourceFolder ? (
+                  <a href={sourceFolder} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary-hover underline underline-offset-2">Buka folder Google Drive ↗</a>
                 ) : f.kind === "lookup" ? (
                   labels[f.key] || "—"
                 ) : f.kind === "money" ? (
@@ -499,44 +493,6 @@ export async function OperationDetail({
       )}
       </div>
       <div data-record-section="process">
-      {entity === "sertifikat-klien" && (
-        <Card className="mb-5 p-5">
-          <h2 className="text-sm font-bold">
-            Generasi sertifikat terkait secara eksplisit
-          </h2>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Riwayat mengikuti relasi generasi yang dipilih; serial sama/kosong
-            tidak otomatis menggabungkan objek.
-          </p>
-          {row.previous_certificate_id ? (
-            <Link
-              className="mt-3 block text-xs underline"
-              href={
-                "/sertifikat-klien/" +
-                row.previous_certificate_id +
-                "?branch=" +
-                c.branch
-              }
-            >
-              Buka generasi sebelumnya
-            </Link>
-          ) : (
-            <p className="mt-3 text-xs">
-              Belum ada generasi sebelumnya yang ditautkan.
-            </p>
-          )}
-          {history.map((h) => (
-            <Link
-              key={String(h.id)}
-              className="mt-2 block text-xs underline"
-              href={"/sertifikat-klien/" + h.id + "?branch=" + c.branch}
-            >
-              {String(h.certificate_number || "Generasi berikutnya")} ·{" "}
-              {<DeadlineDate value={h.expiry_date} />}
-            </Link>
-          ))}
-        </Card>
-      )}
       {entity === "kalibrasi-alat" && (
         <>
           <WorkflowPanel kind="calibration" branch={c.branch} row={row} />
@@ -577,44 +533,20 @@ export async function OperationDetail({
             </Card>
           )}
           <WorkflowPanel kind="personnel" branch={c.branch} row={row} />
-          <Card className="mb-5 p-5">
-            <h2 className="text-sm font-bold">Sumber dan usulan koreksi</h2>
-            {sourceFolder ? (
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 block text-sm text-primary-hover underline"
-                href={sourceFolder}
-              >
-                Buka Folder Sertifikat
-              </a>
-            ) : (
-              <p className="mt-2 text-xs">
-                Belum ada referensi folder. Hak akses Google Drive ditetapkan
-                pemilik folder.
-              </p>
-            )}
-            <p className="mt-2 text-xs text-muted-foreground">
-              Folder merupakan referensi arsip. Hak akses dokumen mengikuti
-              pengaturan pemilik folder.
-            </p>
-            {(hasPermission(c.scopes, c.branch, ["admin", "hrga"]) ||
-              (hasPermission(c.scopes, c.branch, ["inspector"]) &&
-                c.profile.employee_id === row.employee_id)) && (
-              <CorrectionForm id={id} branch={c.branch} />
-            )}
-          </Card>
-          <MasterTable
+        </>
+      )}
+      </div>
+      <div data-record-section="related">
+        {entity === "kompetensi-personil" && <MasterTable
             entity="kompetensi-personil"
             params={{ branch: c.branch }}
             parent={{ field: "employee_id", id: String(row.employee_id) }}
-          />
-        </>
-      )}
+          />}
       </div>
       <div data-record-section="documents">
       {domain && (
         <Card className="mt-5 p-5">
+          {sourceFolder && <a href={sourceFolder} target="_blank" rel="noopener noreferrer" className="mb-3 inline-block text-sm font-semibold text-primary-hover underline underline-offset-2">Buka folder Google Drive ↗</a>}
           {entity === "kalibrasi-alat" && <p className="mb-3 text-xs text-muted-foreground">Lampiran untuk hasil kalibrasi terbaru. Lampiran hasil sebelumnya tersedia di Riwayat Kalibrasi.</p>}
           {documentError ? <p role="alert" className="text-sm text-red-800">Daftar lampiran belum dapat dimuat. Gunakan Refresh untuk mencoba kembali.</p> :
             <CertificateDocuments documents={documents || []} domain={domain} id={documentRecordId} branch={c.branch} canWrite={canEditRow} />}

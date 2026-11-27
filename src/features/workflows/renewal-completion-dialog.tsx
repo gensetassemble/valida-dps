@@ -36,7 +36,6 @@ export function RenewalCompletionDialog({
     <>
       <Button
         size="sm"
-        variant="outline"
         onClick={() => {
           setError("");
           setOpen(true);
@@ -49,10 +48,10 @@ export function RenewalCompletionDialog({
         onOpenChange={(v) => {
           if (!busy) setOpen(v);
         }}
-        title="Sertifikat terbaru · HRGA"
+        title="Catat sertifikat terbaru"
         description={
           title +
-          ". Sertifikat baru dan penyelesaian proses disimpan bersamaan. Riwayat sertifikat lama tetap tersedia."
+          ". Lengkapi data dan bukti sertifikat baru. Riwayat otomatis tercatat dan proses selesai saat disimpan."
         }
       >
         <form

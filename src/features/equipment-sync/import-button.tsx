@@ -34,7 +34,7 @@ export function EquipmentImportButton({branch}:{branch:string}){
   }
   const changed=result?.rows?.filter(r=>r.equipment!=='unchanged'||['added','updated'].includes(r.calibration)).length||0;
   const missingReview=result?.phase==='preview'&&result.rows?.some(row=>row.requiresReview&&!reviews[row.reviewKey||'']);
-  return <><Button variant="outline" onClick={()=>setOpen(true)}><FileUp className="size-4" aria-hidden="true"/>Impor Excel / CSV</Button>
+  return <><Button variant="import" onClick={()=>setOpen(true)}><FileUp className="size-4" aria-hidden="true"/>Impor Excel / CSV</Button>
     <Modal open={open} onOpenChange={value=>{if(!busy)setOpen(value);}} title="Impor pembaruan alat · UMA/198" description="Unggah laporan monitoring terbaru. Sekali proses untuk memperbarui alat, keterangan, serta riwayat kalibrasi." size="large">
       <form id="equipment-import-form" onSubmit={submit} className="space-y-4">
         <input type="hidden" name="branch" value={branch}/>

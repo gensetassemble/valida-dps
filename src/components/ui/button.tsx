@@ -10,6 +10,8 @@ const buttonVariants = cva(
         default:
           "border border-primary bg-primary text-primary-foreground hover:bg-primary-hover hover:text-white",
         outline: "border border-input bg-white text-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary-hover",
+        import: "border border-blue-200 bg-blue-50 text-blue-900 hover:border-blue-400 hover:bg-blue-100",
+        export: "border border-emerald-200 bg-emerald-50 text-emerald-900 hover:border-emerald-400 hover:bg-emerald-100",
         ghost: "text-muted-foreground hover:bg-primary/5 hover:text-primary-hover",
         danger: "border border-red-700 bg-red-700 text-white hover:bg-red-800",
       },

@@ -4,15 +4,13 @@ import { masterClient, type DataRow } from "@/features/master-data/server";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { formatTimestamp } from "@/lib/format";
-import { ROLE_LABELS, type Role } from "@/lib/auth/permissions";
 import { Card } from "@/components/ui/card";
 import { WorkflowDialog } from "./dialog";
 import { REQUEST_STATUSES, RENEWAL_STATUSES } from "./model";
 import { RenewalCompletionDialog } from "./renewal-completion-dialog";
-import { CalibrationFormPreview } from "./form-preview";
-import { resolveRequestIdentity } from "./request-identity";
 import { CalibrationRequestPanel } from "./calibration-panel";
 import { RenewalCleanupDialog } from "./renewal-cleanup-dialog";
+import { RenewalSections } from "./renewal-sections";
 
 export async function WorkflowPanel(props: {
   kind: "calibration" | "personnel";
@@ -22,326 +20,95 @@ export async function WorkflowPanel(props: {
   return props.kind === "calibration" ? (
     <CalibrationRequestPanel branch={props.branch} row={props.row} />
   ) : (
-    <LegacyWorkflowPanel {...props} />
+    <PersonnelRenewalPanel branch={props.branch} row={props.row} />
   );
 }
-async function LegacyWorkflowPanel({
-  kind,
-  branch,
-  row,
-}: {
-  kind: "calibration" | "personnel";
-  branch: string;
-  row: DataRow;
-}) {
-  const { scopes, profile } = await requireActiveUser(),
-    db = await masterClient();
-  const table =
-      kind === "calibration"
-        ? "calibration_requests"
-        : "personnel_renewal_cases",
-    parentField = kind === "calibration" ? "equipment_id" : "certificate_id";
-  const { data, error } = await db
-    .from(table)
-    .select("*")
-    .eq("branch_code", branch)
-    .eq(parentField, row.id)
-    .is("history_deleted_at", null)
-    .order("created_at", { ascending: false });
-  if (error) throw Error("Riwayat proses belum dapat dimuat.");
-  const records =
-    kind === "calibration"
-      ? await Promise.all(
-          ((data || []) as DataRow[]).map((r) => resolveRequestIdentity(db, r)),
-        )
-      : ((data || []) as DataRow[]);
-  const requester = hasPermission(scopes, branch, ["admin", "coordinator"]),
-    ptk = hasPermission(scopes, branch, ["admin", "equipment_manager"]),
-    hrga = hasPermission(scopes, branch, ["admin", "hrga"]);
-  const [
-    { data: supervisorData, error: supervisorError },
-    { data: requesterIdentity },
-  ] =
-    kind === "calibration" && (requester || ptk)
-      ? await Promise.all([
-          db.rpc("calibration_request_supervisors", { b: branch }),
-          profile.employee_id
-            ? db
-                .from("employee_directory_records")
-                .select("full_name,npp")
-                .eq("id", profile.employee_id)
-                .eq("branch_code", branch)
-                .maybeSingle()
-            : Promise.resolve({ data: null }),
-        ])
-      : [{ data: [], error: null }, { data: null }];
-  if (supervisorError)
-    throw Error("Pilihan Kepala Bidang/Kepala UP belum dapat dimuat.");
-  const supervisors = (supervisorData || []).map(
-    (s: { id: string; full_name: string; role_code: string }) => ({
-      id: s.id,
-      label: `${s.full_name} · ${ROLE_LABELS[s.role_code as Role] || s.role_code}`,
-    }),
-  );
-  const labels: Record<string, string> =
-    kind === "calibration" ? REQUEST_STATUSES : RENEWAL_STATUSES;
-  const ids = records.map((r) => r.id);
-  const { data: history } = ids.length
-    ? await db
-        .from(
-          kind === "calibration"
-            ? "calibration_request_events"
-            : "personnel_renewal_events",
-        )
-        .select("*")
-        .in(kind === "calibration" ? "request_id" : "case_id", ids)
-        .order("created_at", { ascending: false })
+
+async function PersonnelRenewalPanel({ branch, row }: { branch: string; row: DataRow }) {
+  const { scopes } = await requireActiveUser();
+  const db = await masterClient();
+  const { data, error } = await db.from("personnel_renewal_cases").select("*")
+    .eq("branch_code", branch).eq("certificate_id", row.id)
+    .is("history_deleted_at", null).order("created_at", { ascending: false });
+  if (error) throw Error("Proses perpanjangan belum dapat dimuat.");
+  const records = (data || []) as DataRow[];
+  const ids = records.map(r => r.id);
+  const { data: events, error: eventError } = ids.length
+    ? await db.from("personnel_renewal_events").select("*").in("case_id", ids).order("created_at", { ascending: false })
+    : { data: [], error: null };
+  if (eventError) throw Error("Riwayat perpanjangan belum dapat dimuat.");
+  const actorIds = [...new Set((events || []).map(event => String(event.actor_id)).filter(Boolean))];
+  const { data: actors } = actorIds.length
+    ? await db.from("profiles").select("id,full_name").eq("branch_code", branch).in("id", actorIds)
     : { data: [] };
-  const actorIds = [...new Set((history || []).map(h => String(h.actor_id)).filter(Boolean))];
-  const { data: actors } = actorIds.length ? await db.from("profiles").select("id,full_name").eq("branch_code", branch).in("id", actorIds) : { data: [] };
   const actorNames = new Map((actors || []).map(actor => [String(actor.id), personnelText(actor.full_name)]));
-  const { data: replacementData } =
-    kind === "personnel" && hrga
-      ? await db
-          .from("personnel_certificates")
-          .select("id,certificate_number,original_title,issue_date")
-          .eq("employee_id", row.employee_id)
-          .eq("certificate_type_id", row.certificate_type_id)
-          .neq("id", row.id)
-          .eq("is_active", true)
-          .order("issue_date", { ascending: false })
-          .limit(100)
-      : { data: [] };
-  const replacements = (replacementData || []).map((r) => ({
-    id: String(r.id),
-    label:
-      String(r.certificate_number || r.original_title) +
-      " · " +
-      String(r.issue_date || "Tanggal belum diisi"),
-  }));
-  const { data: calibrationData } =
-    kind === "calibration" && ptk && records.length
-      ? await db
-          .from("calibrations")
-          .select("id,certificate_number,calibration_date,created_at")
-          .eq("equipment_id", row.id)
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(100)
-      : { data: [] };
-  const calibrationResults = (calibrationData || []).map((r) => ({
-    id: String(r.id),
-    label:
-      String(r.certificate_number || "Nomor belum diisi") +
-      " · " +
-      String(r.calibration_date || "Tanggal belum diisi"),
-  }));
-  const alreadyRenewed =
-    kind === "personnel" && row.renewal_status === "renewed";
-  const superseded = kind === "personnel" && !!row.superseded_by_certificate_id;
-  const lifetime = kind === "personnel" && row.validity_kind === "lifetime";
-  return (
-    <Card className="mb-5 p-4">
-      <p className="mb-3 text-xs text-muted-foreground">Pembaruan dikirim sebagai notifikasi dalam aplikasi ke akun pemilik yang terhubung. Email otomatis belum diaktifkan.</p>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-bold">
-          {kind === "calibration"
-            ? "Permintaan Kalibrasi · FOR/SCI-UMA/197"
-            : "Perpanjangan kompetensi · HRGA"}
-        </h2>
-        {!lifetime &&
-          !superseded &&
-          (!alreadyRenewed ||
-            ["Expired", "Kritis", "Perhatian", "Pantau"].includes(
-              String(row.validity_status),
-            )) &&
-          !(kind === "calibration"
-            ? records.some(
-                (r) => !["completed", "cancelled"].includes(String(r.status)),
-              )
-            : records.some((r) => r.status !== "cancelled")) &&
-          (kind === "calibration" ? requester : hrga) && (
-            <WorkflowDialog
-              kind={kind}
-              branch={branch}
-              parent={String(row.id)}
-              requester={requester}
-              ptk={ptk}
-              actorId={profile.id}
-              supervisors={supervisors}
-              initialValues={{
-                ...row,
-                tag: row.tag || row.asset_id,
-                unit_name: row.unit,
-                requester_name:
-                  requesterIdentity?.full_name || profile.full_name,
-                requester_npp: requesterIdentity?.npp,
-              }}
-            />
-          )}
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        {kind === "calibration"
-          ? "Pengajuan tidak mengubah kelayakan alat. Alat expired tetap Tidak Layak Pakai sampai hasil kalibrasi baru dicatat."
-          : lifetime
-            ? "Sertifikat seumur hidup tidak masuk perpanjangan berkala."
-            : "Belum Diproses → Sedang Diproses → Sudah Diperpanjang. Penyelesaian wajib menautkan sertifikat pengganti beserta bukti."}
-      </p>
-      {kind === "personnel" && !lifetime && (
-        <ol
-          aria-label="Tahap perpanjangan sertifikat"
-          className="mt-3 flex flex-wrap gap-2 text-xs"
-        >
-          {Object.entries(RENEWAL_STATUSES)
-            .filter(
-              ([stage]) =>
-                stage !== "cancelled" || records[0]?.status === "cancelled",
-            )
-            .map(([stage, label]) => (
-              <li
-                key={stage}
-                className={
-                  "rounded-full border px-3 py-1 " +
-                  ((records[0]?.status ||
-                    row.renewal_status ||
-                    "unprocessed") === stage
-                    ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-900"
-                    : "border-border text-muted-foreground")
-                }
-              >
-                {label}
-              </li>
-            ))}
-        </ol>
-      )}
-      {!records.length && !lifetime && (
-        <p className="mt-3 text-xs">
-          {kind === "calibration"
-            ? "Belum ada permintaan."
-            : alreadyRenewed
-              ? "Perpanjangan selesai. Ini sertifikat terbaru yang berlaku."
-              : "Belum Diproses — HRGA belum membuka proses perpanjangan."}
-        </p>
-      )}
-      {records.map((r) => (
-        <div
-          key={String(r.id)}
-          className="mt-3 rounded-lg border border-border p-3"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <strong className="text-xs">
-              {String(r.request_number || "Proses perpanjangan")} ·{" "}
-              {labels[String(r.status)]}
-            </strong>
-            {!["completed", "cancelled", "renewed"].includes(
-              String(r.status),
-            ) &&
-              (kind === "calibration"
-                ? (requester &&
-                    ["draft", "awaiting_signatures", "correction"].includes(
-                      String(r.status),
-                    )) ||
-                  (ptk && ["submitted", "accepted"].includes(String(r.status)))
-                : hrga) && (
-                <WorkflowDialog
-                  kind={kind}
-                  branch={branch}
-                  parent={String(row.id)}
-                  record={r}
-                  requester={requester}
-                  ptk={ptk}
-                  actorId={profile.id}
-                  supervisors={supervisors}
-                  replacements={replacements}
-                  calibrationResults={calibrationResults}
-                />
-              )}
+  const hrga = hasPermission(scopes, branch, ["admin", "hrga"]);
+  const lifetime = row.validity_kind === "lifetime";
+  const superseded = !!row.superseded_by_certificate_id;
+  const active = records.filter(r => !["cancelled", "renewed"].includes(String(r.status)));
+  const finished = records.filter(r => ["cancelled", "renewed"].includes(String(r.status)));
+  const status = String(active[0]?.status || row.renewal_status || "unprocessed");
+  const canStart = hrga && !lifetime && !superseded && !active.length && row.renewal_status !== "renewed";
+  const labels: Record<string, string> = RENEWAL_STATUSES;
+  return <Card className="mb-3 p-4">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h2 className="text-sm font-bold">Perpanjangan HRGA</h2>
+      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-900">
+        {lifetime ? "Berlaku seumur hidup" : superseded ? "Sudah digantikan" : labels[status] || status}
+      </span>
+    </div>
+    <RenewalSections count={(events || []).length} process={
+      <div className="space-y-3">
+        {active.map(r => <div key={String(r.id)} className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <strong className="text-sm">{labels[String(r.status)]}</strong>
+              <p className="mt-1 text-[11px] text-muted-foreground">Diperbarui {formatTimestamp(String(r.updated_at))}</p>
+            </div>
+            {hrga && <WorkflowDialog kind="personnel" branch={branch} parent={String(row.id)} record={r}/>}
           </div>
-          <p className="mt-2 whitespace-pre-wrap text-xs">{String(r.notes)}</p>
-          {kind === "personnel" && hrga && (
-            <div className="mt-3">
-              <RenewalCleanupDialog
-                id={String(r.id)}
-                branch={branch}
-                version={Number(r.version)}
-                status={String(r.status)}
-              />
+          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-5">{processNotes(r.notes)}</p>
+          {hrga && <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-blue-100 pt-3">
+            {r.status === "processing" && <RenewalCompletionDialog branch={branch} caseId={String(r.id)}
+              version={Number(r.version)} title={String(row.original_title)} issuer={String(row.issuer || "")}/>}
+            <RenewalCleanupDialog id={String(r.id)} branch={branch} version={Number(r.version)} status={String(r.status)}/>
+          </div>}
+        </div>)}
+        {!active.length && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-3">
+          <p className="text-xs leading-5 text-muted-foreground">{lifetime ? "Tidak memerlukan perpanjangan berkala."
+            : superseded ? "Sertifikat pengganti dapat dibuka dari tautan di atas."
+            : row.renewal_status === "renewed" ? "Perpanjangan selesai. Sertifikat terbaru sudah tercatat."
+            : "Belum ada proses perpanjangan yang berjalan."}</p>
+          {canStart && <WorkflowDialog kind="personnel" branch={branch} parent={String(row.id)}/>}
+        </div>}
+        {hrga && active.some(r => r.status === "processing") && <p className="text-[11px] leading-5 text-muted-foreground">
+          Setelah sertifikat terbit, pilih <strong>Catat sertifikat terbaru</strong>. Data, bukti, dan riwayat penyelesaian tersimpan sekaligus.
+        </p>}
+      </div>
+    } history={
+      <div className="space-y-3">
+        {finished.map(r => <div key={String(r.id)} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3 text-xs">
+          <div>
+            <strong>{labels[String(r.status)]}</strong>
+            <span className="ml-2 text-muted-foreground">{formatTimestamp(String(r.updated_at))}</span>
+            {r.replacement_certificate_id ? <Link className="mt-1 block font-semibold text-primary-hover underline"
+              href={"/kompetensi-personil/" + r.replacement_certificate_id + "?branch=" + branch}>Buka sertifikat terbaru ↗</Link> : null}
+          </div>
+          {hrga && <RenewalCleanupDialog id={String(r.id)} branch={branch} version={Number(r.version)} status={String(r.status)}/>}
+        </div>)}
+        {(events || []).length ? <ol className="space-y-3">
+          {(events || []).map(event => <li key={String(event.id)} className="border-l-2 border-blue-200 pl-3 text-xs">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <strong>{labels[String(event.new_status)] || "Catatan proses"}</strong>
+              <time className="text-[11px] text-muted-foreground">{formatTimestamp(String(event.created_at))}</time>
             </div>
-          )}
-          {kind === "calibration" && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <CalibrationFormPreview
-                id={String(r.id)}
-                version={Number(r.version)}
-              />
-            </div>
-          )}
-          {kind === "personnel" && hrga && r.status === "processing" && (
-            <div className="mt-3">
-              <RenewalCompletionDialog
-                branch={branch}
-                caseId={String(r.id)}
-                version={Number(r.version)}
-                title={String(row.original_title)}
-                issuer={String(row.issuer || "")}
-              />
-            </div>
-          )}
-          {r.signed_document_id ? (
-            <a
-              href={"/api/workflows/documents?id=" + r.signed_document_id}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-xs underline"
-            >
-              PDF pengajuan bertanda tangan
-            </a>
-          ) : null}
-          {r.replacement_certificate_id ? (
-            <Link
-              className="mt-2 block text-xs underline"
-              href={
-                "/kompetensi-personil/" +
-                r.replacement_certificate_id +
-                "?branch=" +
-                branch
-              }
-            >
-              Buka sertifikat pengganti
-            </Link>
-          ) : null}
-          <details className="mt-3 text-xs">
-            <summary className="cursor-pointer font-semibold">
-              Log proses
-            </summary>
-            <ol className="mt-2 space-y-2">
-              {(history || [])
-                .filter(
-                  (h) =>
-                    h[kind === "calibration" ? "request_id" : "case_id"] ===
-                    r.id,
-                )
-                .map((h) => (
-                  <li key={h.id} className="border-l-2 border-border pl-3">
-                    <strong>{labels[h.new_status]}</strong> ·{" "}
-                    {formatTimestamp(h.created_at)}
-                    <span className="block text-[10px] text-muted-foreground">
-                      Dicatat oleh: {actorNames.get(String(h.actor_id)) || "Petugas berwenang"}
-                    </span>
-                    <p className="whitespace-pre-wrap break-words">{processNotes(h.notes)}</p>
-                    {kind === "personnel" && !h.holder_delivery_available && (
-                      <p className="text-amber-800">
-                        Saat pembaruan ini dicatat, pemilik belum memiliki akun penerima notifikasi dalam aplikasi.
-                      </p>
-                    )}
-                  </li>
-                ))}
-            </ol>
-          </details>
-        </div>
-      ))}
-    </Card>
-  );
+            <p className="mt-1 whitespace-pre-wrap break-words leading-5">{processNotes(event.notes)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{actorNames.get(String(event.actor_id)) || "Petugas berwenang"}</p>
+          </li>)}
+        </ol> : <p className="py-2 text-xs text-muted-foreground">Riwayat akan muncul setelah proses diperbarui.</p>}
+      </div>
+    }/>
+  </Card>;
 }
 export async function WorkflowOverview({
   kind,

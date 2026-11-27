@@ -251,24 +251,6 @@ export async function listRecords(
     /^[0-9a-f-]{36}$/i.test(params.portfolio)
   )
     query = query.contains("portfolio_ids", [params.portfolio]);
-  const dateColumn =
-    entity.key === "kalibrasi-alat"
-      ? "latest_due_date"
-      : entity.key === "riwayat-kalibrasi"
-        ? "due_date"
-        : "expiry_date";
-  if (
-    entity.readTable &&
-    params.from &&
-    /^\d{4}-\d{2}-\d{2}$/.test(params.from)
-  )
-    query = query.gte(dateColumn, params.from);
-  if (
-    entity.readTable &&
-    params.until &&
-    /^\d{4}-\d{2}-\d{2}$/.test(params.until)
-  )
-    query = query.lte(dateColumn, params.until);
   for (const order of ordering ?? [{column: sort, ascending: params.dir !== "desc"}])
     query = query.order(order.column, { ascending: order.ascending, nullsFirst: false });
   if (!ordering && entity.key === "kalibrasi-alat" && sort !== "name")

@@ -157,6 +157,8 @@ export function CompactOperationalFilters({
   function changeValues(values: Record<string,string>) {
     const next = new URLSearchParams(params.toString());
     next.delete("page");
+    next.delete("from");
+    next.delete("until");
     if (Object.hasOwn(values,"sort")) next.delete("dir");
     for (const [key,value] of Object.entries(values)) {
       if (value) next.set(key, value);
@@ -212,43 +214,6 @@ export function CompactOperationalFilters({
           onChange={(v) => change("sort", v)}
         />
       )}
-      <Popover.Root>
-        <Popover.Trigger className="h-9 rounded-lg border border-input px-3 text-xs">
-          Rentang tanggal{params.get("from") || params.get("until") ? " •" : ""}
-        </Popover.Trigger>
-        <Popover.Portal>
-          <Popover.Content
-            sideOffset={6}
-            collisionPadding={12}
-            className="z-[80] rounded-xl border border-border bg-white p-4 shadow-xl"
-          >
-            <AutoFilterForm
-              keys={["from", "until"]}
-              onApply={changeValues}
-              className="grid gap-3 text-xs"
-            >
-              <label>
-                Akhir mulai
-                <input
-                  type="date"
-                  name="from"
-                  defaultValue={params.get("from") || ""}
-                  className="mt-1 block rounded-md border border-input p-2"
-                />
-              </label>
-              <label>
-                Akhir sampai
-                <input
-                  type="date"
-                  name="until"
-                  defaultValue={params.get("until") || ""}
-                  className="mt-1 block rounded-md border border-input p-2"
-                />
-              </label>
-            </AutoFilterForm>
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover.Root>
       <button
         type="button"
         onClick={() =>

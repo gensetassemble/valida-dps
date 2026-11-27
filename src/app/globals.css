@@ -110,8 +110,8 @@ input:not(:disabled):hover, select:not(:disabled):hover, textarea:not(:disabled)
 .valida-route-body > [data-slot="page-header"] h1 { font-size: 1.25rem; line-height: 1.5; }
 .valida-route-body > [data-slot="page-header"] p { font-size: 0.75rem; line-height: 1.7; }
 .valida-route-body > [data-slot="card"]:has(> form) { border: 0; padding: 0; box-shadow: none; }
-.valida-detail-grid { gap: 0.75rem; border: 0; padding: 0; box-shadow: none; }
-.valida-detail-grid > div { min-width: 0; border: 1px solid var(--color-border); border-radius: 0.75rem; padding: 1rem; }
+.valida-detail-grid { gap: 0.5rem; border: 0; padding: 0; box-shadow: none; }
+.valida-detail-grid > div { min-width: 0; border: 1px solid var(--color-border); border-radius: 0.75rem; padding: 0.75rem; line-height: 1.45; }
 .valida-detail-grid > div > p:first-child { font-weight: 600; }
 @keyframes valida-overlay-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes valida-modal-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -258,6 +258,7 @@ input:not(:disabled):hover, select:not(:disabled):hover, textarea:not(:disabled)
 .valida-route-body .valida-record-sections { display:flex; flex-direction:column; flex:1; min-height:0; }
 .valida-route-body .valida-section-body { flex:1; min-height:0; max-height:none; }
 .valida-route-body > [data-slot="card"]:has(.valida-form-section-body) { display:flex; flex-direction:column; flex:1; min-height:0; }
+.valida-route-body:has(.valida-form-section-body) > [data-slot="page-header"] { display:none; }
 .valida-route-body form:has(> .valida-form-section-body) { display:flex; flex-direction:column; flex:1; min-height:0; }
 .valida-route-body form:has(> .valida-form-section-body) > * { flex-shrink:0; }
 .valida-route-body form > .valida-form-section-body { flex:1 1 0%; min-height:0; max-height:none; }
