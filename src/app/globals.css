@@ -70,6 +70,18 @@ a[href][class~="border"][class*="rounded"]:not([data-slot="button"]):not([data-h
 .valida-button:not(:disabled):active { transform: translateY(0) scale(0.98); box-shadow: none; }
 .valida-nav-item, button:not([data-slot="button"]), [role="button"], a[href][class~="border"][class*="rounded"] { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease; }
 .valida-nav-item:hover, .valida-direct-link:hover { background: #008580; color: white; }
+/* Card hover colors must cover descendants with their own text utilities. */
+.valida-master-card:is(:hover, :focus-visible) {
+  background-color: #008580;
+  border-color: #008580;
+  color: #fff;
+  transform: translateY(-2px);
+}
+.valida-master-card :is(h3, p, svg, [data-access-label], [data-card-icon]) {
+  transition: color 180ms ease, background-color 180ms ease;
+}
+.valida-master-card:is(:hover, :focus-visible) :is(h3, p, svg, [data-access-label], [data-card-icon]) { color: #fff; }
+.valida-master-card:is(:hover, :focus-visible) [data-card-icon] { background-color: rgb(255 255 255 / 18%); }
 [role="option"]:hover svg { color: inherit; }
 .valida-nav-item svg { transition: transform 160ms ease; }
 .valida-nav-item:hover svg { transform: translateX(2px); }
