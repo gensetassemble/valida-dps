@@ -3,9 +3,34 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { requireActiveUser } from "@/lib/auth/guards";
 import { masterClient } from "@/features/master-data/server";
-import type { QcPost, QcThread } from "./model";
+import { QC_MAX_FINDINGS, type QcPost, type QcThread } from "./model";
 
 const targetSchema = z.object({ branch: z.string().regex(/^[A-Z0-9]{2,8}$/), domain: z.enum(["calibration","personnel"]), record: z.uuid() });
+const findingsSchema = targetSchema.extend({
+  findings: z.array(z.object({
+    requestId: z.uuid(), title: z.string().trim().min(1).max(160), body: z.string().trim().min(1).max(4000),
+  }).strict()).min(1).max(QC_MAX_FINDINGS).refine(items => new Set(items.map(item => item.requestId)).size === items.length),
+}).strict();
+
+export async function submitQcFindings(input: unknown) {
+  const parsed = findingsSchema.safeParse(input);
+  if (!parsed.success) {
+    const point = parsed.error.issues[0]?.path[1];
+    return { error: typeof point === "number" ? `Lengkapi judul dan catatan pada poin ${point + 1}.` : `Isi 1–${QC_MAX_FINDINGS} poin temuan dengan judul dan catatan.` };
+  }
+  await requireActiveUser();
+  const p = parsed.data, db = await masterClient();
+  const { data, error } = await db.rpc("submit_certificate_qc_batch", { b: p.branch, d: p.domain, r: p.record, findings: p.findings });
+  if (error) return { error: error.code === "42501" ? "Temuan hanya dapat dikirim QSHE atau Super Admin yang memiliki akses sertifikat ini."
+    : error.code === "22023" ? "Periksa setiap poin temuan. Jika pengiriman ini sudah pernah berhasil, muat ulang untuk melihat hasilnya."
+    : "Temuan belum dapat dikirim. Isian tetap tersedia untuk dicoba kembali." };
+  if (!Array.isArray(data) || data.length !== p.findings.length) throw Error("Hasil pengiriman belum dapat dikonfirmasi.");
+  revalidatePath("/notifikasi");
+  revalidatePath("/peristiwa-kalibrasi/" + p.record);
+  revalidatePath("/kompetensi-personil/" + p.record);
+  revalidatePath("/kalibrasi-alat");
+  return { ids: data.map(String) };
+}
 export async function loadQcThreads(input: unknown, page = 0) {
   const target=targetSchema.parse(input);
   await requireActiveUser();

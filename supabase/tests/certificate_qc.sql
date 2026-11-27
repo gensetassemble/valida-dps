@@ -66,7 +66,31 @@ select public.submit_certificate_qc('QCQA','calibration','db150000-0000-4000-800
 select pg_temp.qc_assert((select status='open' from public.certificate_qc_threads where id=(select id from qc_ids where domain='calibration')),'Super Admin replies as reviewer');
 select set_config('request.jwt.claim.sub','db110000-0000-4000-8000-000000000003',true);
 select pg_temp.qc_assert(exists(select 1 from public.notification_user_feed where category='qc' and title like 'Balasan catatan QC:%'),'PTK receives Super Admin reviewer reply');
+-- Batch submission uses the same permissions and preserves per-point lifecycle.
+select set_config('request.jwt.claim.sub','db110000-0000-4000-8000-000000000001',true);
+do $$ declare payload jsonb; ids uuid[]; retry uuid[]; baseline integer; begin
+ payload:='[{"requestId":"db190000-0000-4000-8000-000000000001","title":"[UJI] Batch serial","body":"Periksa nomor seri"},{"requestId":"db190000-0000-4000-8000-000000000002","title":"[UJI] Batch alamat","body":"Periksa alamat lokasi"}]';
+ ids:=public.submit_certificate_qc_batch('QCQA','personnel','db170000-0000-4000-8000-000000000001',payload);
+ retry:=public.submit_certificate_qc_batch('QCQA','personnel','db170000-0000-4000-8000-000000000001',payload);
+ perform pg_temp.qc_assert(cardinality(ids)=2 and ids[1]<>ids[2] and ids=retry,'batch creates separate findings and retry returns the same ids');
+ perform pg_temp.qc_assert((select count(*)=2 from public.certificate_qc_threads where id=any(ids) and status='open'),'two independently open findings');
+ select count(*) into baseline from public.certificate_qc_threads where branch_code='QCQA';
+ perform pg_temp.qc_denied($q$select public.submit_certificate_qc_batch('QCQA','personnel','db170000-0000-4000-8000-000000000001','[{"requestId":"db190000-0000-4000-8000-000000000003","title":"[UJI] Must rollback","body":"Do not retain"},{"requestId":"db190000-0000-4000-8000-000000000004","title":"","body":"Invalid"}]')$q$,'22023');
+ perform pg_temp.qc_denied($q$select public.submit_certificate_qc_batch('QCQA','personnel','db170000-0000-4000-8000-000000000001','[{"requestId":"db190000-0000-4000-8000-000000000001","title":"Changed retry","body":"Different payload"}]')$q$,'22023');
+ perform pg_temp.qc_denied($q$select public.submit_certificate_qc_batch('QCQA','personnel','db170000-0000-4000-8000-000000000001','[]')$q$,'22023');
+ perform pg_temp.qc_denied(format('select public.submit_certificate_qc_batch(%L,%L,%L,%L::jsonb)','QCQA','personnel','db170000-0000-4000-8000-000000000001',jsonb_build_array(payload->0,payload->0)::text),'22023');
+ perform pg_temp.qc_assert((select count(*)=baseline from public.certificate_qc_threads where branch_code='QCQA'),'invalid batch leaves no partial findings');
+ perform public.submit_certificate_qc('QCQA','personnel','db170000-0000-4000-8000-000000000001',ids[1],'close','','',1,'db190000-0000-4000-8000-000000000005');
+ perform pg_temp.qc_assert((select status='closed' from public.certificate_qc_threads where id=ids[1]) and (select status='open' from public.certificate_qc_threads where id=ids[2]),'batch findings close independently');
+end $$;
+select pg_temp.qc_denied($q$select public.submit_certificate_qc_batch('QCQB','personnel','db170000-0000-4000-8000-000000000001','[{"requestId":"db190000-0000-4000-8000-000000000006","title":"Wrong branch","body":"Must deny"}]')$q$);
+select set_config('request.jwt.claim.sub','db110000-0000-4000-8000-000000000002',true);
+select pg_temp.qc_denied($q$select public.submit_certificate_qc_batch('QCQA','personnel','db170000-0000-4000-8000-000000000001','[{"requestId":"db190000-0000-4000-8000-000000000007","title":"HRGA cannot open","body":"Must deny"}]')$q$);
+select set_config('request.jwt.claim.sub','db110000-0000-4000-8000-000000000003',true);
+select pg_temp.qc_denied($q$select public.submit_certificate_qc_batch('QCQA','calibration','db150000-0000-4000-8000-000000000001','[{"requestId":"db190000-0000-4000-8000-000000000008","title":"PTK cannot open","body":"Must deny"}]')$q$);
+select set_config('request.jwt.claim.sub','db110000-0000-4000-8000-000000000005',true);
+select pg_temp.qc_assert(cardinality(public.submit_certificate_qc_batch('QCQA','calibration','db150000-0000-4000-8000-000000000001','[{"requestId":"db190000-0000-4000-8000-000000000009","title":"Super Admin calibration finding","body":"Allowed reviewer"}]'))=1,'Super Admin can submit calibration batch');
 reset role;
 select pg_temp.qc_assert((select certificate_number='QC-CAL-1' and issue_date='2026-01-01' and due_date='2027-01-01' from public.calibrations where id='db150000-0000-4000-8000-000000000001'),'QC leaves certificate data intact');
-select 'PASS: QC lifecycle, two domains, recipient isolation, deep links, role security, concurrency, idempotency, and unchanged certificate data' as result;
+select 'PASS: QC lifecycle, atomic multi-point submission, independent closure, two domains, recipient isolation, role security, concurrency, idempotency, and unchanged certificate data' as result;
 rollback;

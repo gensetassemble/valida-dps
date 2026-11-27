@@ -49,7 +49,7 @@ export function Modal({
             (size === "large" ? "max-w-[1080px]" : "max-w-[640px]") + " " + className
           }
         >
-          <div className="valida-modal-header flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
+          <div className="valida-modal-header flex shrink-0 items-start justify-between gap-3 border-b border-border bg-gradient-to-r from-[#effaf9] to-white px-4 py-3">
             <div className="min-w-0">
               <Dialog.Title className="break-words text-lg font-bold tracking-tight text-brand-navy">
                 {title}
@@ -57,7 +57,7 @@ export function Modal({
               <Dialog.Description
                 className={
                   description
-                    ? "mt-1.5 max-w-3xl text-xs leading-5 text-muted-foreground"
+                    ? "mt-1 max-w-3xl text-xs leading-snug text-muted-foreground"
                     : "sr-only"
                 }
               >
@@ -79,11 +79,11 @@ export function Modal({
               </Dialog.Close>
             </div>
           </div>
-          <div className={"valida-modal-body min-h-0 overflow-y-auto overscroll-contain p-6 " + bodyClassName}>
+          <div className={"valida-modal-body min-h-0 overflow-y-auto overscroll-contain p-4 " + bodyClassName}>
             {children}
           </div>
           {footer && (
-            <div className="valida-modal-footer flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-white px-6 py-4">
+            <div className="valida-modal-footer flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-white px-4 py-3">
               {footer}
             </div>
           )}

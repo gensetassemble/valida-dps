@@ -41,8 +41,8 @@ export async function CalibrationRequestPanel({
     (r) => !["completed", "cancelled"].includes(String(r.status)),
   );
   return (
-    <Card className="mb-5 space-y-3 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <Card className="mb-3 space-y-1.5 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-bold">
           Permintaan perbaikan / kalibrasi · FOR/SCI-UMA/197
         </h2>
@@ -50,10 +50,8 @@ export async function CalibrationRequestPanel({
           <EquipmentRequestForm branch={branch} equipment={String(row.id)} />
         )}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Koordinator mengajukan formulir; notifikasi masuk ke PTK. Excel
-        dilanjutkan manual. Status selesai tidak mengubah tanggal atau kelayakan
-        alat.
+      <p className="text-xs leading-snug text-muted-foreground">
+        Koordinator mengajukan ke PTK. Form Excel dilanjutkan manual; tanggal dan kelayakan mengikuti hasil kalibrasi yang dicatat.
       </p>
       {!records.length && <p className="text-xs">Belum ada pengajuan.</p>}
       {records.map((r) => {
@@ -68,7 +66,7 @@ export async function CalibrationRequestPanel({
                   : "Sedang Diajukan";
         return (
           <div
-            className="space-y-3 rounded-lg border border-border p-3"
+            className="space-y-2 rounded-lg border border-border p-3"
             key={String(r.id)}
           >
             <div className="flex flex-wrap justify-between gap-2">
@@ -98,7 +96,7 @@ export async function CalibrationRequestPanel({
               {formatTimestamp(String(r.created_at))} ·{" "}
               {String(r.requester_name || "Pengaju")}
             </p>
-            <p className="whitespace-pre-wrap text-xs">{String(r.notes)}</p>
+            <p className="whitespace-pre-wrap text-xs leading-snug">{String(r.notes)}</p>
             {Array.isArray(r.items_snapshot) && r.items_snapshot.length > 1 && (
               <details className="text-xs">
                 <summary className="cursor-pointer font-semibold">

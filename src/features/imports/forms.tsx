@@ -3,7 +3,6 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileSpreadsheet, ScanSearch, ShieldCheck, ListChecks } from "lucide-react";
 import { DOMAINS, DOMAIN_LABELS, FIELDS, type ImportDomain } from "./normalize";
 export function ImportUpload({
   branch,
@@ -26,7 +25,7 @@ export function ImportUpload({
   const guidedImport = clientImport || personnelImport;
   return (
     <form
-      className="space-y-4"
+      className="space-y-3"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -75,13 +74,7 @@ export function ImportUpload({
       }}
     >
       {lockedDomain ? (
-        <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-xs">
-          <input type="hidden" name="domain" value={domain} />
-          <span className="text-muted-foreground">Jenis data</span>
-          <strong className="mt-1 block text-sm text-brand-navy">
-            {DOMAIN_LABELS[domain]}
-          </strong>
-        </div>
+        <input type="hidden" name="domain" value={domain} />
       ) : (
         <label className="block text-xs font-semibold">
           Jenis sumber
@@ -110,11 +103,11 @@ export function ImportUpload({
           accept=".csv,.xlsx,.xls,.xlsb"
           required
           onChange={() => setHeaders([])}
-          className="mt-2"
+          className="mt-1"
         />
         {guidedImport && (
-          <span className="mt-2 block font-normal text-muted-foreground">
-            CSV UTF-8 / XLSX / XLS / XLSB, maksimum 5 MiB. Lembar yang berisi tabel akan ditemukan otomatis.
+          <span className="mt-1 block font-normal leading-snug text-muted-foreground">
+            CSV / XLSX / XLS / XLSB · Maks. 5 MiB · Tabel ditemukan otomatis.
           </span>
         )}
       </label>
@@ -124,62 +117,18 @@ export function ImportUpload({
           <Input name="sheet" className="mt-2" />
         </label>
       )}
-      {guidedImport && (
-        <section className="overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-br from-teal-50/80 via-white to-sky-50/70">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-teal-100 px-4 py-3">
-            <div>
-              <p className="font-semibold text-brand-navy">Cara kerja impor {personnelImport ? "kompetensi personil" : "sertifikat klien"}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Gunakan template VALIDA atau tabel lama; susunan kolom akan dicocokkan saat file diperiksa.
-              </p>
-            </div>
-            <span className="rounded-full bg-teal-100 px-3 py-1 text-[11px] font-semibold text-teal-800">
-              Periksa dahulu
-            </span>
-          </div>
-          <div className="grid gap-3 p-4 text-xs sm:grid-cols-2">
-            {[
-              {
-                title: "Siapkan kolom utama",
-                text: personnelImport ? "Gunakan hasil ekspor kompetensi atau tabel lama. Nama, NPP, judul lisensi, nomor sertifikat, tanggal, dan keterangan akan dibaca." : "Isi portofolio, pelanggan, jenis dan nomor sertifikat. Tanggal terbit wajib untuk sertifikat baru.",
-                icon: FileSpreadsheet,
-                tone: "bg-sky-100 text-sky-700",
-              },
-              {
-                title: "Tabel ditemukan otomatis",
-                text: `Tidak perlu memilih nama lembar. Judul kolom dan lembar yang berisi data ${personnelImport ? "kompetensi" : "sertifikat"} akan ditemukan otomatis.`,
-                icon: ScanSearch,
-                tone: "bg-violet-100 text-violet-700",
-              },
-              {
-                title: "Periksa kecocokan data",
-                text: "Lihat hasil pembacaan dan cocokkan kolom bila nama judul pada file berbeda.",
-                icon: ListChecks,
-                tone: "bg-amber-100 text-amber-700",
-              },
-              {
-                title: "Data belum langsung berubah",
-                text: "File hanya disiapkan untuk pemeriksaan. Data website baru diperbarui setelah Anda menekan Terapkan pembaruan.",
-                icon: ShieldCheck,
-                tone: "bg-emerald-100 text-emerald-700",
-              },
-            ].map(({ title, text, icon: Icon, tone }) => (
-              <div key={title} className="rounded-xl border border-white bg-white/90 p-3 shadow-sm">
-                <div className="flex items-center gap-2 font-semibold text-brand-navy">
-                  <span className={`grid size-8 place-items-center rounded-lg ${tone}`}>
-                    <Icon className="size-4" />
-                  </span>
-                  {title}
-                </div>
-                <p className="mt-2.5 leading-5 text-muted-foreground">{text}</p>
-              </div>
-            ))}
-          </div>
-          <p className="border-t border-teal-100 px-4 py-3 text-xs font-medium text-teal-800">
-            Baris identik dilewati. {personnelImport ? "Catatan perpanjangan hanya membuat proses Sedang Diproses bila masa berlaku sudah masuk 90 hari terakhir atau telah berakhir." : "Perubahan nomor atau tanggal sertifikat tetap harus diperiksa sebelum diterapkan."}
-          </p>
-        </section>
-      )}
+      {guidedImport && <>
+        <p className="text-xs leading-snug text-muted-foreground">Data baru berubah setelah Anda memilih <strong>Terapkan pembaruan</strong>.</p>
+        <details className="rounded-lg border border-teal-100 bg-teal-50/40 px-3 py-2 text-xs">
+          <summary className="cursor-pointer font-semibold text-teal-900">Petunjuk pengisian</summary>
+          <ul className="mt-2 list-disc space-y-1 pl-4 leading-snug text-muted-foreground">
+            <li>{personnelImport ? "Gunakan hasil ekspor kompetensi atau tabel lama. Lengkapi nama, NPP, judul lisensi, nomor sertifikat, tanggal, dan keterangan." : "Isi portofolio, pelanggan, jenis dan nomor sertifikat. Tanggal terbit wajib untuk sertifikat baru."}</li>
+            <li>Nama lembar dan susunan kolom dicocokkan otomatis. Periksa hasil pembacaan; cocokkan kolom bila diperlukan.</li>
+            <li>Baris identik dilewati. Perubahan nomor atau tanggal sertifikat perlu diperiksa sebelum diterapkan.</li>
+            {personnelImport && <li>Catatan perpanjangan membuat proses Sedang Diproses saat sertifikat masuk 90 hari terakhir atau telah berakhir.</li>}
+          </ul>
+        </details>
+      </>}
       {headers.length > 0 && (
         <details open>
           <summary className="cursor-pointer text-sm font-semibold">
@@ -204,7 +153,7 @@ export function ImportUpload({
           </div>
         </details>
       )}
-      <p role="status" className="text-xs text-amber-900">
+      <p role="status" className={message ? "text-xs text-amber-900" : "hidden"}>
         {message}
       </p>
       <div className="flex flex-wrap gap-3">

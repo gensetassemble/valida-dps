@@ -3,18 +3,17 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronDown, MessageSquareText, Plus, Send, RotateCcw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { formatTimestamp } from "@/lib/format";
 import { EvidenceForm } from "@/features/operations/forms";
 import { loadQcPosts, loadQcThreads, loadQcThread, submitQc } from "./actions";
 import { QC_EVENTS, QC_STATUSES, type QcThread, type QcPost, type QcDomain } from "./model";
+import { QcFindingsForm } from "./findings-form";
 
 type Props={branch:string;domain:QcDomain;record:string;reviewer:boolean;responder:boolean;initial:{threads:QcThread[];total:number};documents:{id:string;name:string}[]};
 export function QcConversations(props:Props) {
   const {branch,domain,record,initial,reviewer}=props;
   const [selected,setSelected]=useState<string|null>(null),[creating,setCreating]=useState(false),[extra,setExtra]=useState<QcThread[]>([]),[page,setPage]=useState(0);
   const [error,setError]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
-  const [requestId,setRequestId]=useState(()=>crypto.randomUUID());
   const router=useRouter();
   const threads=[...initial.threads,...extra.filter(t=>!initial.threads.some(i=>i.id===t.id))];
   useEffect(()=>{
@@ -31,33 +30,21 @@ export function QcConversations(props:Props) {
     openTarget();window.addEventListener("hashchange",openTarget);
     return()=>{active=false;window.removeEventListener("hashchange",openTarget);};
   },[branch,domain,record]);
-  async function create(form:FormData){
-    setBusy(true);setError("");
-    try{
-      const result=await submitQc({branch,domain,record,thread:null,operation:"open",body:String(form.get("body")||""),title:String(form.get("title")||""),version:0,requestId,evidence:null});
-      if(result.error){setError(result.error);return;}
-      setCreating(false);setSelected(result.id!);setRequestId(crypto.randomUUID());
-      setNotice("Temuan dibuka. Pemberitahuan sudah diteruskan ke penanggung jawab.");router.refresh();
-    }catch{setError("Koneksi terputus. Coba kirim kembali; permintaan yang sama tidak membuat temuan ganda.");}
-    finally{setBusy(false);}
-  }
-  return <section id={"catatan-qc-"+record} aria-label="Catatan QC sertifikat" className="mb-5 overflow-hidden rounded-2xl border border-teal-200 bg-white shadow-sm">
-    <header className="flex flex-wrap items-start justify-between gap-3 border-b border-teal-100 bg-gradient-to-r from-teal-50 to-white p-5">
-      <div className="flex items-start gap-3"><span className="rounded-xl bg-teal-100 p-2 text-teal-800"><ShieldCheck size={22}/></span><div><h2 className="text-base font-bold">Catatan QC <span className="ml-1 text-xs font-medium text-muted-foreground">{initial.total} temuan</span></h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Periksa kesesuaian sertifikat dan tindak lanjuti dalam satu percakapan.</p></div></div>
-      {reviewer && <Button size="sm" variant="outline" onClick={()=>setCreating(v=>!v)}><Plus size={15}/>{creating?"Tutup isian":"Tambah catatan QC"}</Button>}
+  return <section id={"catatan-qc-"+record} aria-label="Catatan QC sertifikat" className="mb-3 overflow-hidden rounded-xl border border-teal-200 bg-white shadow-sm">
+    <header className="flex flex-wrap items-start justify-between gap-2 border-b border-teal-100 bg-gradient-to-r from-teal-50 to-white p-3">
+      <div className="flex items-start gap-2"><span className="rounded-lg bg-teal-100 p-2 text-teal-800"><ShieldCheck size={18}/></span><div><h2 className="text-sm font-bold">Catatan QC <span className="ml-1 text-xs font-medium text-muted-foreground">{initial.total} temuan</span></h2><p className="mt-0.5 text-xs leading-snug text-muted-foreground">Temuan dan tindak lanjut sertifikat.</p></div></div>
+      {reviewer && <Button size="sm" variant="outline" disabled={busy} onClick={()=>setCreating(v=>!v)}><Plus size={15}/>{creating?"Tutup isian":"Tambah catatan QC"}</Button>}
     </header>
-    <div className="space-y-3 p-4">
-      {creating && <form onSubmit={event=>{event.preventDefault();if(!busy)void create(new FormData(event.currentTarget));}} className="space-y-3 rounded-xl border border-teal-200 bg-teal-50/50 p-4">
-        <label className="block text-xs font-semibold">Bagian yang perlu diperiksa<Input name="title" required maxLength={160} placeholder="Contoh: Nomor seri berbeda" className="mt-1"/></label>
-        <label className="block text-xs font-semibold">Catatan<textarea name="body" required maxLength={4000} rows={3} placeholder="Jelaskan bagian yang perlu diperiksa atau diperbaiki…" className="mt-1 w-full rounded-lg border border-input bg-white p-3 text-sm font-normal"/></label>
-        <p className="text-xs text-muted-foreground">Otomatis diteruskan ke {domain==="calibration"?"PTK yang ditugaskan":"HRGA cabang"}. Jika belum tersedia, Super Admin menerima pemberitahuan.</p>
-        <Button size="sm" disabled={busy}><Send size={14}/>{busy?"Mengirim…":"Kirim catatan"}</Button>
-      </form>}
+    <div className="space-y-2 p-3">
+      {creating && <QcFindingsForm branch={branch} domain={domain} record={record} onBusyChange={setBusy} onCreated={ids=>{
+        setCreating(false);setSelected(ids[0]);setError("");
+        setNotice(`${ids.length} poin temuan dikirim. Setiap poin dapat ditindaklanjuti terpisah.`);router.refresh();
+      }}/>}
       {notice && <p role="status" className="rounded-lg bg-teal-50 p-3 text-xs text-teal-900">{notice}</p>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
       {!threads.length && !creating && <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"><MessageSquareText size={20}/><p>Belum ada catatan QC untuk sertifikat ini.</p></div>}
       {threads.map(t=><div key={t.id} id={"qc-"+t.id} className="scroll-mt-24 overflow-hidden rounded-xl border border-border">
-        <button type="button" aria-expanded={selected===t.id} aria-controls={"qc-body-"+t.id} onClick={()=>setSelected(selected===t.id?null:t.id)} className="flex w-full items-center justify-between gap-3 bg-slate-50/60 p-4 text-left">
+        <button type="button" aria-expanded={selected===t.id} aria-controls={"qc-body-"+t.id} onClick={()=>setSelected(selected===t.id?null:t.id)} className="flex w-full items-center justify-between gap-2 bg-slate-50/60 px-3 py-2.5 text-left">
           <span className="min-w-0"><span className="block break-words text-sm font-semibold">{t.title}</span><span className="mt-1 block text-[11px] text-muted-foreground">{formatTimestamp(t.updated_at)}</span></span>
           <span className="flex shrink-0 items-center gap-2"><QcStatus status={t.status}/><ChevronDown size={15} className={selected===t.id?"rotate-180":""}/></span>
         </button>
@@ -89,7 +76,7 @@ function Conversation({thread,branch,domain,record,reviewer,responder,documents}
     });
   }
   const canReply=reviewer||responder;
-  return <div className="space-y-4 p-4">
+  return <div className="space-y-3 p-3">
     {!!thread.recipient_names.length && <p className="text-[11px] text-muted-foreground">Pemberitahuan terakhir diteruskan ke: {thread.recipient_names.join(", ")}</p>}
     {loading?<p role="status" className="text-sm text-muted-foreground">Memuat percakapan…</p>:<>
       {posts.length<total && <Button size="sm" variant="outline" onClick={async()=>{setLoading(true);try{const r=await loadQcPosts(thread.id,page+1);setPosts(old=>[...r.posts,...old]);setPage(page+1);}catch{setError("Pesan sebelumnya belum dimuat.");}finally{setLoading(false);}}}>Lihat pesan sebelumnya</Button>}

@@ -541,7 +541,7 @@ export function DataTable({
                       !isAdmin &&
                       row.assignment_type !== "personnel");
                   return (
-                    <tr key={id} className="hover:bg-surface-muted">
+                    <tr key={id} className="hover:bg-[#effaf9]">
                       <td
                         data-record-frozen={certificateFrozenColumn(entity.key, "number")}
                         data-frozen={

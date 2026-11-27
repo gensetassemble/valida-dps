@@ -17,13 +17,9 @@ export function ClientCertificateImportButton({ branch }: { branch: string }) {
         open={open}
         onOpenChange={setOpen}
         title="Impor pembaruan sertifikat klien"
-        description="Unggah file, periksa perubahan penting, lalu terapkan pembaruan setelah semuanya sesuai."
+        description="Pilih file → Periksa perubahan → Terapkan pembaruan."
         size="large"
       >
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-950">
-          File hanya dibaca untuk menampilkan perubahan. Data sertifikat baru
-          diperbarui setelah Anda menekan <strong>Terapkan pembaruan</strong>.
-        </div>
         <ImportUpload
           branch={branch}
           initialDomain="clients"

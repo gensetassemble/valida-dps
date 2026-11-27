@@ -17,13 +17,9 @@ export function PersonnelCertificateImportButton({ branch }: { branch: string })
         open={open}
         onOpenChange={setOpen}
         title="Impor pembaruan kompetensi personil"
-        description="Unggah laporan, periksa hasil pencocokan, lalu terapkan pembaruan setelah semuanya sesuai."
+        description="Pilih file → Periksa perubahan → Terapkan pembaruan."
         size="large"
       >
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-950">
-          File hanya dibaca untuk menampilkan perubahan. Data kompetensi dan status
-          perpanjangan belum berubah sebelum Anda menekan <strong>Terapkan pembaruan</strong>.
-        </div>
         <ImportUpload branch={branch} initialDomain="personnel" lockedDomain />
       </Modal>
     </>

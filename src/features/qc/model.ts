@@ -1,4 +1,6 @@
 export type QcDomain = "calibration" | "personnel";
+export const QC_MAX_FINDINGS = 20;
+export type QcFindingDraft = { requestId: string; title: string; body: string };
 export const QC_STATUSES = {
   open: "Perlu ditindaklanjuti",
   in_progress: "Ditindaklanjuti",
