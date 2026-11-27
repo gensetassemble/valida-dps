@@ -37,7 +37,7 @@ set local role authenticated;
 select pg_temp.access_assert((select count(*)=2 from public.equipment),'new QSHE reads every own-branch tool without portfolio grants');
 select pg_temp.access_assert((select count(*)=2 from public.calibrations),'new QSHE reads all calibration events');
 select pg_temp.access_assert((select count(*)=2 from public.personnel_certificates),'new QSHE reads every personnel certificate');
-select pg_temp.access_assert((select count(*)=0 from public.clients),'QSHE customer portfolio restrictions remain unchanged');
+select pg_temp.access_assert((select count(*)=2 from public.clients),'QSHE reads all branch customers without portfolio grants');
 select pg_temp.access_assert(not private.client_scope('NEWQA','da290000-0000-4000-8000-000000000001',true),'QSHE remains read only for customers');
 select pg_temp.access_assert(not private.equipment_scope('NEWQA','da260000-0000-4000-8000-000000000001',true),'QSHE remains read only for equipment');
 select set_config('request.jwt.claim.sub','da230000-0000-4000-8000-000000000002',true);

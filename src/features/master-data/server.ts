@@ -5,7 +5,7 @@ import { requireActiveUser } from "@/lib/auth/guards";
 import {
   hasPermission,
   activeBranch,
-  canManageEmployeeDirectory,
+  canReadEmployeeArchive,
 } from "@/lib/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { getEntity, type EntityConfig } from "./registry";
@@ -14,6 +14,7 @@ import { personnelRenewalDisplay } from "@/features/workflows/model";
 import { operationalOrder } from "@/features/operations/list-order";
 import { portfolioIds } from "@/features/operations/equipment-export-scope";
 import { calibrationExpiryReview } from "@/features/operations/calibration-expiry";
+import { certificateTypePresentation, visibleMasterRecord } from "./certificate-type-visibility";
 export type DataRow = Record<string, unknown>;
 
 async function annotateCalibrationExpiry(db: Awaited<ReturnType<typeof masterClient>>, branch: string, rows: DataRow[]) {
@@ -62,13 +63,14 @@ export async function entityContext(
   writing = false,
 ) {
   const context = await requireActiveUser();
-  const entity = getEntity(key,requestedBranch||context.profile.branch_code);
-  if (!entity) throw new Error("Jenis data tidak tersedia.");
+  const registered = getEntity(key,requestedBranch||context.profile.branch_code);
+  if (!registered) throw new Error("Jenis data tidak tersedia.");
   const branch = activeBranch(
     context.scopes,
     context.profile.branch_code,
     requestedBranch,
   );
+  const entity = certificateTypePresentation(registered, hasPermission(context.scopes, branch, ["super_admin"]));
   const allowed = hasPermission(
     context.scopes,
     branch,
@@ -200,8 +202,8 @@ export async function listRecords(
   const archives = entity.key === "pegawai" && params.archived === "true";
   if (archives) {
     const context = await requireActiveUser();
-    if (!canManageEmployeeDirectory(context.scopes, branch))
-      throw Error("Arsip direktori hanya tersedia untuk IT Officer dan HRGA.");
+    if (!canReadEmployeeArchive(context.scopes, branch))
+      throw Error("Arsip direktori hanya tersedia untuk Super Admin, HRGA, dan QSHE.");
   }
   let query = db
     .from(archives ? entity.table : entity.readTable || entity.table)
@@ -271,7 +273,7 @@ export async function listRecords(
       "Data belum dapat dimuat. Silakan coba kembali atau hubungi administrator.",
     );
   }
-  const rows = ((data ?? []) as DataRow[]).map(personnelRow);
+  const rows = ((data ?? []) as DataRow[]).map(row => personnelRow(visibleMasterRecord(entity, row)));
   if (entity.key === "kalibrasi-alat") await annotateCalibrationExpiry(db, branch, rows);
   if (entity.key === "kompetensi-personil" && rows.length) {
     for (const row of rows)
@@ -359,7 +361,7 @@ export async function getRecord(
   }
   if (data && typeof data.previous_order_value_text === "string")
     data.previous_order_value = data.previous_order_value_text;
-  return data ? personnelRow(data as DataRow) : null;
+  return data ? personnelRow(visibleMasterRecord(entity, data as DataRow)) : null;
 }
 export async function referenceLabels(
   entity: EntityConfig,

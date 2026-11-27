@@ -15,6 +15,7 @@ import {
   type MeasurementGroupInput,
 } from "@/features/operations/measurement-groups";
 import { saveProfileAccount } from "./profile-account";
+import { hasCertificateTypeCode } from "./certificate-type-visibility";
 export type MutationResult =
   | { ok: true; message: string; id?: string }
   | { ok: false; error: string; fields?: Record<string, string> };
@@ -49,6 +50,8 @@ export async function saveRecord(
       ),
     };
   const payload: Record<string, unknown> = { ...parsed.data };
+  if (entity.key === "jenis-sertifikat" && !scope.data.id && !hasCertificateTypeCode(entity))
+    payload.code = "TYPE_" + crypto.randomUUID().replaceAll("-", "");
   if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key)) {
     const prefix = entity.key === "kalibrasi-alat" ? "initial_" : "";
     if (isInternalCalibrationLaboratory(payload[prefix + "laboratory"])) {

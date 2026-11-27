@@ -21,6 +21,9 @@ export function canManageEmployeeDirectory(scopes: Scope[], branch: string) {
       (scope.role_code === "super_admin" || scope.role_code === "hrga"),
   );
 }
+export function canReadEmployeeArchive(scopes: Scope[], branch: string) {
+  return canManageEmployeeDirectory(scopes, branch) || hasPermission(scopes, branch, ["qshe"]);
+}
 export const ALL_ROLES = Object.keys(ROLE_LABELS) as Role[];
 // Match the database capability mapping. All grants remain branch-specific.
 const INHERITED_ROLE: Partial<Record<Role, Role>> = {

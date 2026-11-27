@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import {
   hasPermission,
   canManageEmployeeDirectory,
+  canReadEmployeeArchive,
 } from "@/lib/auth/permissions";
 import { EmployeeStatusPanel } from "@/features/workflows/employee-status-panel";
 import { DirectoryActionsDialog } from "./directory-actions-dialog";
@@ -96,13 +97,13 @@ export async function MasterPage({
     throw error;
   }
   const { entity, branch } = context;
-  const canManageDirectory = canManageEmployeeDirectory(context.scopes, branch);
-  if (key === "pegawai" && params.archived === "true" && !canManageDirectory)
+  const canReadArchive = canReadEmployeeArchive(context.scopes, branch);
+  if (key === "pegawai" && params.archived === "true" && !canReadArchive)
     return (
       <Card className="p-6">
         <PageHeader
           title="Akses ditolak"
-          description="Arsip direktori hanya tersedia untuk IT Officer dan HRGA pada cabang ini."
+          description="Arsip direktori hanya tersedia untuk Super Admin, HRGA, dan QSHE pada cabang ini."
         />
       </Card>
     );
@@ -117,7 +118,7 @@ export async function MasterPage({
         description={entity.description}
         eyebrow={`Data cabang ${branch}`}
       />
-      {key === "pegawai" && canManageDirectory && (
+      {key === "pegawai" && canReadArchive && (
         <div className="mt-4 flex gap-2 text-sm">
           <Link
             className="rounded-lg border border-border bg-white px-3 py-2 underline"
@@ -170,7 +171,7 @@ export async function DetailPage({
   }
   const canManageDirectory = canManageEmployeeDirectory(scopes, branch);
   const record = await getRecord(
-    key === "pegawai" && canManageDirectory
+    key === "pegawai" && canReadEmployeeArchive(scopes, branch)
       ? { ...entity, readTable: entity.table }
       : entity,
     branch,
@@ -225,11 +226,12 @@ export async function DetailPage({
         ))}
       </Card>
       {key === "pegawai" &&
-        hasPermission(scopes, branch, ["admin", "hrga"]) && (
+        hasPermission(scopes, branch, ["admin", "hrga", "qshe"]) && (
           <EmployeeStatusPanel
             branch={branch}
             row={record}
             own={profile.employee_id === id}
+            canWrite={hasPermission(scopes, branch, ["admin", "hrga"])}
           />
         )}
       {key === "pegawai" &&

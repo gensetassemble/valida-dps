@@ -99,8 +99,8 @@ select pg_temp.assert_true((select count(*)=2 from public.user_role_assignments 
 select pg_temp.assert_true((select count(*)=1 from public.personnel_certificates),'coordinator limited to assigned portfolio');
 do $$ declare n integer; begin update public.personnel_certificates set verification_status='verified'; get diagnostics n=row_count; if n<>0 then raise exception 'FAIL: coordinator approves official competency'; end if; end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000006',true);
-select pg_temp.assert_true((select count(*)=1 from public.clients),'QSHE limited to assigned portfolio clients');
-select pg_temp.assert_true((select count(*)=1 from public.equipment),'QSHE limited to assigned assets');
+select pg_temp.assert_true((select count(*)=2 from public.clients),'QSHE reads all branch clients');
+select pg_temp.assert_true((select count(*)=2 from public.equipment),'QSHE reads all branch assets');
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000007',true);
 select pg_temp.assert_true((select count(*)=1 from public.equipment),'PJ limited to assigned assets');
 update public.calibrations set laboratory='[CONTOH] Laboratorium Uji';

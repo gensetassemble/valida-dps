@@ -5,7 +5,7 @@ import { ShieldCheck, Wrench, ClipboardCheck, Network, Contact, Users, BadgeChec
 const roleGuides = [
   { title: "Super Admin & Admin", icon: ShieldCheck, tone: "bg-blue-50 text-blue-800", description: "Kelola data cabang. Arsip, pemulihan, dan verifikasi cepat pegawai khusus Super Admin." },
   { title: "PTK", icon: Wrench, tone: "bg-teal-50 text-teal-800", description: "Kelola alat dan kalibrasi dalam portofolio yang ditugaskan." },
-  { title: "QSHE", icon: ClipboardCheck, tone: "bg-violet-50 text-violet-800", description: "Baca seluruh kalibrasi dan kompetensi personil cabang, lalu beri catatan QC tanpa mengubah sertifikat." },
+  { title: "QSHE", icon: ClipboardCheck, tone: "bg-violet-50 text-violet-800", description: "Baca seluruh data operasional dan master data cabang, termasuk arsip. Beri catatan QC tanpa mengubah sertifikat." },
   { title: "Koordinator Operasional", icon: Network, tone: "bg-cyan-50 text-cyan-800", description: "Baca alat dan kompetensi sesuai penetapan portofolio aktif. Akun harus terhubung ke pegawai yang ditetapkan." },
   { title: "AM / Marketing", icon: Contact, tone: "bg-amber-50 text-amber-800", description: "Kelola pelanggan dan sertifikat dalam cakupan penugasannya." },
   { title: "HRGA", icon: Users, tone: "bg-emerald-50 text-emerald-800", description: "Kelola direktori pegawai dan kompetensi personil cabang." },
