@@ -1,13 +1,14 @@
 "use client";
-import { useState, useTransition, useOptimistic } from "react";
+import { useId, useState, useTransition, useOptimistic } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Popover } from "radix-ui";
-import { ChevronDown, LoaderCircle } from "lucide-react";
+import { ChevronDown, LoaderCircle, SlidersHorizontal } from "lucide-react";
 import { AutoFilterForm } from "@/components/ui/auto-filter-form";
 import { personnelFilterOptions } from "./personnel-filter-options";
 import { validityDisplayLabel } from "@/lib/domain/validity";
 type Choice = { value: string; label: string };
 type Group = { key: string; label: string; options: Choice[] };
+const PERSONNEL_QUICK_FILTERS = new Set(["employee_type", "renewal", "validity"]);
 export function FilterChoices({
   group,
   value,
@@ -107,6 +108,8 @@ export function CompactOperationalFilters({
     router = useRouter(),
     path = usePathname();
   const [pending, start] = useTransition();
+  const [showMore, setShowMore] = useState(false);
+  const moreFiltersId = useId();
   const [optimisticQuery, setOptimisticQuery] = useOptimistic(currentParams.toString());
   const params = new URLSearchParams(optimisticQuery);
   const groups: Group[] =
@@ -151,6 +154,21 @@ export function CompactOperationalFilters({
             ],
           },
         ];
+  const personnel = entity === "kompetensi-personil";
+  const allGroups = [...groups, ...options];
+  const quickGroups = personnel ? allGroups.filter(group => PERSONNEL_QUICK_FILTERS.has(group.key)) : allGroups;
+  const sortGroup: Group = { key: "sort", label: "Urutkan", options: [
+    {value: "", label: "Masa berlaku · prioritas"},
+    {value: "alphabet", label: entity === "kalibrasi-alat" ? "Nama alat A–Z" : "Judul kompetensi A–Z"},
+    ...(personnel ? [{value: "employee", label: "Nama pegawai A–Z"}] : []),
+    {value: "portfolio", label: "Portofolio A–Z"},
+    ...(entity === "kalibrasi-alat" ? [{value: "unit", label: "Subunit pemilik A–Z"}] : []),
+  ]};
+  const moreGroups = personnel ? [...allGroups.filter(group => !PERSONNEL_QUICK_FILTERS.has(group.key)), sortGroup] : [];
+  function filterValue(group: Group) {
+    return params.get(group.key) || (group.key === "kind" && params.get("filter") === "validity_kind" ? params.get("value") || "" : "");
+  }
+  const extraActive = moreGroups.filter(group => !!filterValue(group));
   function change(key: string, value: string) {
     changeValues({[key]:value});
   }
@@ -180,49 +198,47 @@ export function CompactOperationalFilters({
     >
       <AutoFilterForm keys={["q"]} onApply={changeValues} className="min-w-44 flex-1">
         <input
-          aria-label="Cari rekaman"
+          aria-label={personnel ? "Cari pegawai atau sertifikat kompetensi" : "Cari rekaman"}
           name="q"
           defaultValue={params.get("q") || ""}
-          placeholder={entity === "kalibrasi-alat" ? "Cari alat, tag, lembaga, sertifikat, subunit…" : "Cari nama, nomor sertifikat, tag…"}
+          placeholder={entity === "kalibrasi-alat" ? "Cari alat, tag, lembaga, sertifikat, subunit…" : personnel ? "Cari pegawai, lisensi, nomor sertifikat…" : "Cari nama, nomor sertifikat, tag…"}
           maxLength={100}
           className="h-9 w-full rounded-lg border border-input px-3 text-xs"
         />
       </AutoFilterForm>
-      {[...groups, ...options].map((group) => (
+      {quickGroups.map((group) => (
         <FilterChoices
           key={group.key}
           group={group}
-          value={
-            params.get(group.key) ||
-            (group.key === "kind" && params.get("filter") === "validity_kind"
-              ? params.get("value") || ""
-              : "")
-          }
+          value={filterValue(group)}
           onChange={(v) => change(group.key, v)}
         />
       ))}
-      {["kalibrasi-alat", "kompetensi-personil"].includes(entity) && (
+      {personnel && <button type="button" aria-expanded={showMore} aria-controls={moreFiltersId}
+        onClick={() => setShowMore(value => !value)}
+        title={extraActive.length ? extraActive.map(group => group.label + ": " + (group.options.find(option => option.value === filterValue(group))?.label || filterValue(group))).join(" · ") : undefined}
+        className={"inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-medium " + (showMore || extraActive.length ? "border-teal-300 bg-teal-50 text-teal-900" : "border-input bg-white")}>
+        <SlidersHorizontal aria-hidden="true" size={14}/>Filter lainnya
+        {extraActive.length > 0 && <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-900" aria-label={`${extraActive.length} filter tambahan aktif`}>{extraActive.length}</span>}
+        <ChevronDown aria-hidden="true" size={13} className={showMore ? "rotate-180" : ""}/>
+      </button>}
+      {entity === "kalibrasi-alat" && (
         <FilterChoices
-          group={{ key: "sort", label: "Urutkan", options: [
-            {value: "", label: "Masa berlaku · prioritas"},
-            {value: "alphabet", label: entity === "kalibrasi-alat" ? "Nama alat A–Z" : "Judul kompetensi A–Z"},
-            ...(entity === "kompetensi-personil" ? [{value: "employee", label: "Nama pegawai A–Z"}] : []),
-            {value: "portfolio", label: "Portofolio A–Z"},
-            ...(entity === "kalibrasi-alat" ? [{value: "unit", label: "Subunit pemilik A–Z"}] : []),
-          ]}}
+          group={sortGroup}
           value={params.get("sort") || ""}
           onChange={(v) => change("sort", v)}
         />
       )}
       <button
         type="button"
-        onClick={() =>
+        onClick={() => {
+          setShowMore(false);
           start(() => {
             const query = new URLSearchParams({branch}).toString();
             setOptimisticQuery(query);
             router.replace(path + "?" + query, { scroll: false });
-          })
-        }
+          });
+        }}
         className="h-9 px-2 text-xs underline"
       >
         Reset
@@ -231,6 +247,9 @@ export function CompactOperationalFilters({
         {pending && <LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin"/>}
         {pending ? "Memperbarui daftar…" : ""}
       </span>
+      {personnel && <div id={moreFiltersId} hidden={!showMore} className={showMore ? "flex basis-full flex-wrap items-center gap-2 border-t border-border pt-2" : "hidden"} aria-label="Filter tambahan kompetensi personil">
+        {moreGroups.map(group => <FilterChoices key={group.key} group={group} value={filterValue(group)} onChange={value => change(group.key, value)}/>)}
+      </div>}
     </div>
   );
 }

@@ -1,1 +1,1 @@
-export const APPLICATION_RELEASE = "2026.11.27-qc-batch-compact.1";
+export const APPLICATION_RELEASE = "2026.11.27-personnel-filters.1";
