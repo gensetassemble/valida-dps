@@ -48,7 +48,9 @@ async function PersonnelRenewalPanel({ branch, row }: { branch: string; row: Dat
   const active = records.filter(r => !["cancelled", "renewed"].includes(String(r.status)));
   const finished = records.filter(r => ["cancelled", "renewed"].includes(String(r.status)));
   const status = String(active[0]?.status || row.renewal_status || "unprocessed");
-  const canStart = hrga && !lifetime && !superseded && !active.length && row.renewal_status !== "renewed";
+  const canStart = hrga && !lifetime && !superseded && !active.length
+    && !finished.some(record => record.status === "renewed")
+    && (row.renewal_status !== "renewed" || ["Expired", "Kritis", "Perhatian", "Pantau"].includes(String(row.validity_status)));
   const labels: Record<string, string> = RENEWAL_STATUSES;
   return <Card className="mb-3 p-4">
     <div className="flex flex-wrap items-center justify-between gap-2">
