@@ -28,6 +28,15 @@ const sample = (overrides: Partial<Notification> = {}): Notification => ({
   ...overrides,
 });
 describe("notification inbox", () => {
+  it("keeps QC conversation status and deep links separate from renewals", () => {
+    const n=sample({category:"qc",title:"Temuan QC: Nomor seri berbeda",current_status:"qc_awaiting_qshe",event_status:"qc_open",activity_group_id:"qc:thread1",target_href:"/peristiwa-kalibrasi/one?branch=DPS#qc-thread1"});
+    expect(eventLabel(n)).toBe("Menunggu QSHE");
+    expect(shortTitle(n)).toBe(n.title);
+    expect(eventLabel({...n,current_status:"qc_closed"})).toBe("Selesai");
+    expect(eventTone({...n,current_status:"qc_closed"})).toBe("success");
+    expect(safeTarget(n.target_href)).toBe(n.target_href);
+    expect(clusters([sample(),n])).toHaveLength(2);
+  });
   it("uses calendar days in WITA, including midnight boundaries", () => {
     const now = new Date("2026-11-01T16:05:00Z");
     expect(dateGroup("2026-11-01T16:01:00Z", now)).toBe("Hari Ini");

@@ -29,6 +29,8 @@ import { formatBusinessDate } from "@/lib/format";
 import { IntervalInput } from "./interval-input";
 import { ResponsibleCoordinator } from "@/features/workflows/responsible-coordinator";
 import { businessNotes } from "@/features/operations/notes";
+import { certificateFormSections, certificateFieldSection } from "@/features/operations/form-sections";
+import { SectionNavigation } from "@/components/ui/record-sections";
 import { equipmentUnits, normalizeEquipmentUnit } from "@/features/operations/equipment-units";
 import { calibrationLaboratories, isInternalCalibrationLaboratory, normalizeCalibrationLaboratory } from "@/features/operations/calibration-laboratories";
 import { initialCalibrationFields } from "@/features/operations/monitoring";
@@ -445,6 +447,8 @@ export function RecordForm({
   });
   const [error, setFailure] = useState<string>();
   const [overrideResponsible, setOverrideResponsible] = useState(false);
+  const sections=certificateFormSections(entity.key).filter(section=>!(editing && entity.key==="kalibrasi-alat" && section.id==="initial"));
+  const [formSection,setFormSection]=useState("identity");
   const initialEnabled = useWatch({ control, name: "initial_enabled" });
   const calibrationInternal = useWatch({ control, name: initialEquipment ? "initial_calibration_internal" : "calibration_internal" });
   const calibrationExternal = useWatch({ control, name: initialEquipment ? "initial_calibration_external" : "calibration_external" });
@@ -572,12 +576,22 @@ export function RecordForm({
     <>
       <form
         className="space-y-5"
+        onInvalidCapture={event=>{
+          if(!sections.length)return;
+          const field=event.target as HTMLElement;
+          const target=field.closest<HTMLElement>("[data-form-section]")?.dataset.formSection;
+          if(target){event.preventDefault();setFailure("Lengkapi isian yang ditandai sebelum menyimpan.");setFormSection(target);requestAnimationFrame(()=>field.focus());}
+        }}
         onSubmit={handleSubmit((values) => {
           if (["pengguna", "penugasan-peran"].includes(entity.key)) {
             setConfirm(values);
             return;
           }
           return persist(values);
+        },invalid=>{
+          if(!sections.length)return;
+          const key=Object.keys(invalid)[0];
+          if(key){setFormSection(certificateFieldSection(entity.key,key));requestAnimationFrame(()=>document.getElementById(key)?.focus());}
         })}
       >
         <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] leading-5 text-muted-foreground">
@@ -588,6 +602,9 @@ export function RecordForm({
             PIC Perusahaan dan Email PIC mengikuti kontak utama pada data pelanggan yang dipilih, sehingga tidak perlu diisi ulang di sertifikat.
           </p>
         )}
+        {!!sections.length && <SectionNavigation items={sections} value={formSection} onChange={setFormSection}/>}
+        <div className={sections.length?"valida-form-section-body space-y-4":"space-y-4"}>
+        <div data-form-section="parameters" hidden={!!sections.length && formSection!=="parameters"}>
         {entity.key === "riwayat-kalibrasi" && (
           <Controller
             control={control}
@@ -607,6 +624,8 @@ export function RecordForm({
             )}
           />
         )}
+        </div>
+        <div data-form-section={initialEquipment?"initial":"dates"} hidden={!!sections.length && formSection!==(initialEquipment?"initial":"dates")}>
         {endField && entity.key !== "riwayat-kalibrasi" && !lifetime && (!initialEquipment || !!initialEnabled) && (
           <label className="block max-w-sm space-y-1 text-xs font-semibold">
             Tanggal berakhir otomatis
@@ -622,6 +641,8 @@ export function RecordForm({
             </select>
           </label>
         )}
+        </div>
+        {(sections.length?sections:[{id:"all",label:""}]).map(section=><div key={section.id} data-form-section={section.id} hidden={!!sections.length && formSection!==section.id}>
         <div
           role={entity.key === "kalibrasi-alat" ? "table" : undefined}
           aria-label={
@@ -633,7 +654,7 @@ export function RecordForm({
               : "grid gap-4 sm:grid-cols-2"
           }
         >
-          {entity.key === "kalibrasi-alat" && (
+          {entity.key === "kalibrasi-alat" && section.id==="identity" && (
             <div
               role="row"
               className="hidden border-b border-border bg-slate-50 p-2 text-xs font-bold sm:block md:col-span-2"
@@ -644,6 +665,7 @@ export function RecordForm({
             </div>
           )}
           {formFields.map((field) => {
+            if(sections.length && certificateFieldSection(entity.key,field.key)!==section.id)return null;
             if (entity.key === "riwayat-kalibrasi" && ["calibration_date", "calculation_base", "reported_due_date", "date_basis", "date_source", "resolution_note"].includes(field.key)) return null;
             if (["kalibrasi-alat", "riwayat-kalibrasi"].includes(entity.key) && ["interval_label", "initial_interval_label"].includes(field.key)) return null;
             const markChoice = calibrationChoice(field.key);
@@ -990,6 +1012,7 @@ export function RecordForm({
             );
           })}
         </div>
+        </div>)}
         {entity.key === "kalibrasi-alat" && editing && (
           <Link
             className="block text-xs font-semibold underline"
@@ -998,6 +1021,7 @@ export function RecordForm({
             Kelola tanggal dan riwayat kalibrasi alat →
           </Link>
         )}
+        <div hidden={!!sections.length && formSection!==(initialEquipment?"initial":"dates")}>
         {endField && !lifetime && (!initialEquipment || !!initialEnabled) && (
           <p className="rounded-lg border border-border bg-slate-50 p-3 text-xs">
             Tanggal hasil perhitungan kalender:{" "}
@@ -1017,6 +1041,8 @@ export function RecordForm({
               : ". Tanggal ini digunakan bila tanggal akhir dikosongkan. Salin tanggal dokumen bila tersedia."}
           </p>
         )}
+        </div>
+        </div>
         {error && (
           <p
             role="alert"

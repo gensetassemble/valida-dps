@@ -248,6 +248,23 @@ input:not(:disabled):hover, select:not(:disabled):hover, textarea:not(:disabled)
 .pipeline-board {
   height: clamp(24rem, calc(100dvh - 17rem), 54rem);
 }
+.valida-section-body { max-height:65dvh; overflow-y:auto; overscroll-behavior-y:contain; padding:1rem 0.25rem 0.25rem; scrollbar-gutter:stable; }
+.valida-section-body > [hidden] { display:none; }
+.valida-form-section-body { max-height:57dvh; overflow-y:auto; overscroll-behavior-y:contain; padding:0.25rem; scrollbar-gutter:stable; }
+.valida-form-section-body [hidden] { display:none; }
+.valida-route-body:has(.valida-record-sections),
+.valida-route-body:has(.valida-form-section-body) { display:flex; flex-direction:column; overflow:hidden; height:calc(90dvh - 6rem); }
+.valida-route-body > * { flex-shrink:0; }
+.valida-route-body .valida-record-sections { display:flex; flex-direction:column; flex:1; min-height:0; }
+.valida-route-body .valida-section-body { flex:1; min-height:0; max-height:none; }
+.valida-route-body > [data-slot="card"]:has(.valida-form-section-body) { display:flex; flex-direction:column; flex:1; min-height:0; }
+.valida-route-body form:has(> .valida-form-section-body) { display:flex; flex-direction:column; flex:1; min-height:0; }
+.valida-route-body form:has(> .valida-form-section-body) > * { flex-shrink:0; }
+.valida-route-body form > .valida-form-section-body { flex:1 1 0%; min-height:0; max-height:none; }
+.valida-route-body .valida-section-nav { flex-shrink:0; }
+.valida-section-body .valida-detail-grid { margin-bottom:0.75rem; }
+.valida-section-body > div:not([hidden]) { animation:section-appear 130ms ease-out; }
+@keyframes section-appear { from {opacity:0.65;transform:translateY(3px);} to {opacity:1;transform:translateY(0);} }
 :focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 3px;

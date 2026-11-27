@@ -27,7 +27,7 @@ export function parseInboxParams(
     1,
     Math.min(100000, Math.floor(Number(params.page) || 1)),
   );
-  return { filters: { category, state, q, folder: params.folder === "archive" ? "archive" : "inbox" } as Filters, page };
+  return { filters: { category, state, q, section:params.section === "qc"?"qc":"activity", folder: params.folder === "archive" ? "archive" : "inbox" } as Filters, page };
 }
 
 export async function loadInbox(filters: Filters, page: number) {
@@ -41,11 +41,12 @@ export async function loadInbox(filters: Filters, page: number) {
     )
     .eq("profile_id", user.id).eq("branch_code",profile.branch_code);
   query = filters.folder === "archive" ? query.not("user_archived_at", "is", null) : query.is("user_archived_at", null);
+  query = filters.section === "qc" ? query.eq("category","qc") : query.neq("category","qc");
   if (filters.category !== "all")
     query = query.eq("category", filters.category);
   if (filters.state === "unread") query = query.is("read_at", null);
   if (filters.state === "read") query = query.not("read_at", "is", null);
-  if (filters.state === "active") query = query.or("current_status.is.null,current_status.not.in.(completed,cancelled,renewed)");
+  if (filters.state === "active") query = query.or("current_status.is.null,current_status.not.in.(completed,cancelled,renewed,qc_closed)");
   for (const term of safeSearch(filters.q)
     .split(/\s+/)
     .filter(Boolean)
@@ -67,18 +68,9 @@ export async function loadInbox(filters: Filters, page: number) {
         .select("id", { count: "exact", head: true })
         .eq("profile_id", user.id).eq("branch_code",profile.branch_code);
       count = key === "unread" || filters.folder !== "archive" ? count.is("user_archived_at", null) : count.not("user_archived_at", "is", null);
+      count=filters.section==="qc"?count.eq("category","qc"):count.neq("category","qc");
       if (key === "unread") count = count.is("read_at", null);
-      else if (key === "personnel")
-        count = count.like("href", "/kompetensi-personil/%");
-      else if (key === "calibrations")
-        count = count.like("href", "/kalibrasi-alat/%");
-      else if (key === "clients")
-        count = count.like("href", "/sertifikat-klien/%");
-      else if (key === "system")
-        count = count
-          .not("href", "like", "/kompetensi-personil/%")
-          .not("href", "like", "/kalibrasi-alat/%")
-          .not("href", "like", "/sertifikat-klien/%");
+      else if(key!=="all") count=count.eq("category",key);
       return count;
     }),
   ]);
@@ -87,6 +79,12 @@ export async function loadInbox(filters: Filters, page: number) {
   const counts = Object.fromEntries(
     keys.map((key, i) => [key, totals[i].count || 0]),
   ) as Counts;
+  const tabCounts=await Promise.all(["activity","qc"].map(section=>{
+    let q=db.from("notification_user_feed").select("id",{count:"exact",head:true}).eq("profile_id",user.id).eq("branch_code",profile.branch_code).is("user_archived_at",null).is("read_at",null);
+    q=section==="qc"?q.eq("category","qc"):q.neq("category","qc");return q;
+  }));
+  if(tabCounts.some(r=>r.error))throw Error("Jumlah notifikasi belum dapat dimuat.");
+  counts.unread_activity=tabCounts[0].count||0;counts.unread_qc=tabCounts[1].count||0;
   const offset = (page - 1) * PAGE_SIZE;
   return {
     counts,

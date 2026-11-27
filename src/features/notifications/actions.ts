@@ -17,12 +17,14 @@ export async function archiveNotifications(ids: string[], archived: boolean) {
   revalidatePath("/", "layout");
   return {count:data.length};
 }
-export async function readNotifications(ids: string[] | null) {
+export async function readNotifications(ids: string[] | null, section?: "activity"|"qc") {
   const { user,profile } = await requireActiveUser();
   if (ids !== null && !idsSchema.safeParse(ids).success)
     return { error: "Pilihan notifikasi tidak valid." };
   const db = await masterClient();
   let visible = db.from("notification_user_feed").select("id").eq("profile_id", user.id).eq("branch_code",profile.branch_code).is("user_archived_at", null).is("read_at", null).limit(10000);
+  if(section==="qc")visible=visible.eq("category","qc");
+  else if(section==="activity")visible=visible.neq("category","qc");
   if (ids !== null) visible = visible.in("id", [...new Set(ids)]);
   const {data: inbox, error: inboxError} = await visible;
   if (inboxError) return {error: "Inbox belum dapat dimuat."};

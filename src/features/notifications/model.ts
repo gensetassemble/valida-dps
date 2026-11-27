@@ -1,6 +1,7 @@
 import { todayWita } from "@/lib/domain/validity";
 
 export const CATEGORIES = {
+  qc: {label:"Catatan QC",action:"Lihat catatan",color:"#0F766E",soft:"#F0FDFA"},
   clients: {
     label: "Sertifikat Klien",
     action: "Lihat Sertifikat",
@@ -47,12 +48,13 @@ export type Notification = {
   created_at: string;
 };
 export type Filters = {
+  section?: "activity" | "qc";
   folder?: "inbox" | "archive";
   category: "all" | Category;
   state: "all" | "unread" | "read" | "active";
   q: string;
 };
-export type Counts = Record<"all" | "unread" | Category, number>;
+export type Counts = Record<"all" | "unread" | Category, number> & {unread_activity?:number;unread_qc?:number};
 export type Feed = {
   rows: Notification[];
   total: number;
@@ -80,6 +82,7 @@ export function dateGroup(createdAt: string, now = new Date()) {
         : DATE_GROUPS[3];
 }
 export const EVENT_LABELS: Record<string, string> = {
+  qc_open:"Perlu ditindaklanjuti",qc_in_progress:"Ditindaklanjuti",qc_awaiting_qshe:"Menunggu QSHE",qc_closed:"Selesai",
   unprocessed: "Belum Diproses",
   processing: "Sedang Diproses",
   renewed: "Sudah Diperpanjang",
@@ -108,11 +111,11 @@ export function eventTone(n: Notification) {
   const label = eventLabel(n);
   return label === "Sudah Diperpanjang" || label === "Selesai"
     ? "success"
-    : label === "Sedang Diproses" || label === "Sedang Diajukan"
+    : label === "Sedang Diproses" || label === "Sedang Diajukan" || label === "Ditindaklanjuti" || label === "Menunggu QSHE"
       ? "info"
       : label === "Dibatalkan" || label === "Expired"
         ? "danger"
-        : label === "Kritis" || label === "Perhatian"
+        : label === "Kritis" || label === "Perhatian" || label === "Perlu ditindaklanjuti"
           ? "warning"
           : "neutral";
 }

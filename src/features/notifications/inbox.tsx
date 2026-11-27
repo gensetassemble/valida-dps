@@ -18,6 +18,8 @@ import {
   Search,
   Wrench,
   X,
+  MessageSquareText,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -40,6 +42,7 @@ import {
 import styles from "./inbox.module.css";
 
 const ICONS = {
+  qc: MessageSquareText,
   clients: FileCheck2,
   personnel: Award,
   calibrations: Wrench,
@@ -133,7 +136,7 @@ export function NotificationInbox({
   async function mark(ids: string[] | null) {
     setSaving(true);
     try {
-      const result = await readNotifications(ids);
+      const result = await readNotifications(ids,filters.section==="qc"?"qc":"activity");
       if (result.error) toast(result.error, "error");
       else {
         toast(
@@ -166,7 +169,7 @@ export function NotificationInbox({
             <p className={styles.eyebrow}>INBOX VALIDA</p>
             <h1>Pusat Notifikasi</h1>
             <p className={styles.subtitle}>
-              Pantau pengingat masa berlaku dan perkembangan tindak lanjut.
+              Satu tempat untuk tindak lanjut, catatan QC, dan pengingat sertifikat.
             </p>
           </div>
         </div>
@@ -199,6 +202,10 @@ export function NotificationInbox({
       </header>
       <div className={filters.folder === 'archive' ? undefined : styles.columns}>
       <div className={styles.mainColumn}>
+      <nav className={styles.sectionTabs} aria-label="Jenis pemberitahuan">
+        <button aria-pressed={filters.section!=="qc"} onClick={()=>navigate({section:"activity",category:"all",state:"all",folder:"",q:""})}><Activity size={19}/><span><strong>Aktivitas</strong><small>Perkembangan tindak lanjut</small></span><b>{counts.unread_activity||0}</b></button>
+        <button aria-pressed={filters.section==="qc"} onClick={()=>navigate({section:"qc",category:"all",state:"all",folder:"",q:""})}><MessageSquareText size={19}/><span><strong>Catatan QC</strong><small>Temuan dan percakapan sertifikat</small></span><b>{counts.unread_qc||0}</b></button>
+      </nav>
       <div className={styles.toolbar}>
         <nav className="flex flex-wrap gap-2 border-b border-border p-3" aria-label="Folder notifikasi">
           <Button size="sm" variant={filters.folder !== "archive" ? "default" : "outline"} onClick={() => navigate({folder:"",state:"all"})}>Inbox</Button>
@@ -221,7 +228,7 @@ export function NotificationInbox({
             Belum Dibaca
           </FilterChip>
           {(
-            Object.entries(CATEGORIES) as [
+            Object.entries(CATEGORIES).filter(([key])=>key!=="qc" && filters.section!=="qc") as [
               Category,
               (typeof CATEGORIES)[Category],
             ][]
@@ -472,7 +479,7 @@ export function NotificationCard({
         {n.context_name && n.category !== "calibrations" && (
           <p className={styles.context}>{n.context_name}</p>
         )}
-        <p className={styles.metadata}>
+        {n.category!=="qc" && <p className={styles.metadata}>
           {n.portfolio_code && (
             <span>
               Portofolio {n.portfolio_code}
@@ -482,7 +489,7 @@ export function NotificationCard({
           {n.reference_number
             ? `${n.category === "calibrations" ? "Tag Number" : "No. Sertifikat"} ${n.reference_number}`
             : "Nomor referensi belum tersedia"}
-        </p>
+        </p>}
         {n.replacement_certificate_number &&
           n.replacement_certificate_number !== n.reference_number && (
             <p className={styles.newNumber}>

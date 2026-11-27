@@ -41,6 +41,8 @@ import { PersonnelCertificateImportButton } from "@/features/imports/personnel-c
 import { currentComponentData } from "./calibration-component-data";
 import { CalibrationComponentsTable } from "./calibration-components-table";
 import { FileDown, Table2, UserRoundX } from "lucide-react";
+import { QcPanel } from "@/features/qc/panel";
+import { RecordSections } from "@/components/ui/record-sections";
 async function EquipmentExportAction({branch}:{branch:string}) {
   const options = await equipmentOptions(branch);
   return <EquipmentExportMenu key={branch} branch={branch} portfolios={options.portfolios} unavailable={options.unavailable}/>;
@@ -357,6 +359,14 @@ export async function OperationDetail({
           </Button>
         )}
       </div>
+      <RecordSections items={[
+        {id:"summary",label:"Data sertifikat"},
+        ...(hasMeasurementTable?[{id:"parameters",label:"Parameter & bagian alat"}]:[]),
+        ...(["kalibrasi-alat","kompetensi-personil","sertifikat-klien"].includes(entity)?[{id:"process",label:"Proses & riwayat"}]:[]),
+        ...(domain?[{id:"documents",label:"Lampiran"}]:[]),
+        ...(["kalibrasi-alat","riwayat-kalibrasi","kompetensi-personil"].includes(entity)?[{id:"qc",label:"Catatan QC"}]:[]),
+      ]}>
+      <div data-record-section="parameters">
       {componentRows.length>0 && <CalibrationComponentsTable rows={componentRows} branch={c.branch}/>}
       {hasMeasurementTable && componentRows.length===0 && (
           <Card className="mb-4 overflow-x-auto p-4">
@@ -398,6 +408,8 @@ export async function OperationDetail({
             </table>
           </Card>
         )}
+      </div>
+      <div data-record-section="summary">
       {entity === "sertifikat-klien" && (
         <Card className="valida-detail-grid mb-5 grid gap-4 p-5 sm:grid-cols-3">
           {[
@@ -485,6 +497,8 @@ export async function OperationDetail({
           <Link className="mt-2 inline-block font-semibold underline" href={`/peristiwa-kalibrasi/${String(row.latest_calibration_id)}?branch=${c.branch}`}>Periksa peristiwa kalibrasi</Link>
         </Card>
       )}
+      </div>
+      <div data-record-section="process">
       {entity === "sertifikat-klien" && (
         <Card className="mb-5 p-5">
           <h2 className="text-sm font-bold">
@@ -597,6 +611,8 @@ export async function OperationDetail({
           />
         </>
       )}
+      </div>
+      <div data-record-section="documents">
       {domain && (
         <Card className="mt-5 p-5">
           {entity === "kalibrasi-alat" && <p className="mb-3 text-xs text-muted-foreground">Lampiran untuk hasil kalibrasi terbaru. Lampiran hasil sebelumnya tersedia di Riwayat Kalibrasi.</p>}
@@ -604,6 +620,17 @@ export async function OperationDetail({
             <CertificateDocuments documents={documents || []} domain={domain} id={documentRecordId} branch={c.branch} canWrite={canEditRow} />}
         </Card>
       )}
+      </div>
+      <div data-record-section="qc">
+      {entity === "kompetensi-personil" && <QcPanel branch={c.branch} domain="personnel" record={id}/>}
+      {entity === "riwayat-kalibrasi" && <QcPanel branch={c.branch} domain="calibration" record={id}/>}
+      {entity === "kalibrasi-alat" && !!row.latest_calibration_id && <>
+        <p className="mb-2 text-xs text-muted-foreground">Catatan QC berikut untuk sertifikat kalibrasi terbaru. Untuk bagian/katup lain, buka nomor sertifikat pada tabel di atas.</p>
+        <QcPanel branch={c.branch} domain="calibration" record={String(row.latest_calibration_id)}/>
+      </>}
+      {entity === "kalibrasi-alat" && !row.latest_calibration_id && <p className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">Catatan QC tersedia setelah sertifikat kalibrasi dicatat.</p>}
+      </div>
+      </RecordSections>
     </>
   );
 }
