@@ -40,7 +40,8 @@ import { ClientCertificateImportButton } from "@/features/imports/client-certifi
 import { PersonnelCertificateImportButton } from "@/features/imports/personnel-certificate-import-button";
 import { currentComponentData } from "./calibration-component-data";
 import { CalibrationComponentsTable } from "./calibration-components-table";
-import { FileDown, Table2, UserRoundX } from "lucide-react";
+import { Table2 } from "lucide-react";
+import { CurrentExportLink } from "./current-export-link";
 import { QcPanel } from "@/features/qc/panel";
 import { RecordSections } from "@/components/ui/record-sections";
 async function EquipmentExportAction({branch}:{branch:string}) {
@@ -88,39 +89,8 @@ export async function OperationList({
             </Link>
           </Button>
         )}
-        {entity === "kalibrasi-alat" ? <Suspense fallback={<Button disabled variant="export">Menyiapkan ekspor…</Button>}><EquipmentExportAction branch={c.branch}/></Suspense> : <Button asChild variant="export">
-          <a
-            href={
-              "/api/operations/export?" +
-              new URLSearchParams({
-                ...params,
-                entity,
-                branch: c.branch,
-              } as Record<string, string>)
-            }
-          >
-            <FileDown className="size-4" aria-hidden="true" />
-            Ekspor XLSX sesuai filter
-          </a>
-        </Button>}
-        {entity === "kompetensi-personil" && (
-          <Button asChild variant="export">
-            <a
-              href={
-                "/api/operations/export?" +
-                new URLSearchParams({
-                  ...params,
-                  entity,
-                  branch: c.branch,
-                  include_inactive: "true",
-                } as Record<string, string>)
-              }
-            >
-              <UserRoundX className="size-4" aria-hidden="true" />
-              Ekspor termasuk personil nonaktif
-            </a>
-          </Button>
-        )}
+        {entity === "kalibrasi-alat" ? <Suspense fallback={<Button disabled variant="export">Menyiapkan ekspor…</Button>}><EquipmentExportAction branch={c.branch}/></Suspense> : <CurrentExportLink entity={entity} branch={c.branch}/>}
+        {entity === "kompetensi-personil" && <CurrentExportLink entity={entity} branch={c.branch} includeInactive/>}
         {entity === "sertifikat-klien" && <nav aria-label="Versi sertifikat klien" className="flex flex-wrap gap-2 text-xs">
           <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}`}>Sertifikat terkini</Link>
           <Link className="rounded-lg border border-border bg-white px-3 py-2" href={`?branch=${c.branch}&generation=all`}>Semua versi / arsip</Link>

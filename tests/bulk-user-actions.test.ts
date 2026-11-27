@@ -3,7 +3,7 @@ const m=vi.hoisted(()=>({guard:vi.fn(),mfa:vi.fn(),client:vi.fn(),admin:vi.fn()}
 vi.mock("server-only",()=>({}));vi.mock("next/navigation",()=>({unstable_rethrow:()=>{}}));
 vi.mock("@/lib/auth/guards",()=>({requireActiveUser:m.guard}));vi.mock("@/lib/auth/security",()=>({hasSecondFactor:m.mfa}));vi.mock("@/features/master-data/server",()=>({masterClient:m.client}));vi.mock("@/lib/supabase/auth-admin",()=>({getAuthAdminClient:m.admin}));
 import {previewBulkUsers,createBulkUser} from "@/features/bulk-users/actions";
-describe("MFA-bound bulk creation",()=>{
+describe("Super Admin bulk creation",()=>{
  const employee={id:"ef200000-0000-4000-8000-000000000001",full_name:"Nama Pegawai",npp:"04125",employment_status:"active",is_active:true,updated_at:"2026-11-10T00:00:00Z"};
  const input=[{name:"Nama Pegawai",npp:"04125",email:"staff@example.invalid",roles:["tester"]}];
  let committed=false;const rpc=vi.fn(),createUser=vi.fn(),deleteUser=vi.fn();
@@ -19,8 +19,12 @@ describe("MFA-bound bulk creation",()=>{
   const token=await review();expect(createUser).not.toHaveBeenCalled();expect((await createBulkUser(token,0)).status).toBe("success");
   expect(createUser).toHaveBeenCalledWith({email:input[0].email,password:"SyntheticPassword123!",email_confirm:true});expect(rpc).toHaveBeenCalledWith("provision_bulk_user",expect.objectContaining({b:"DPS",role_codes:["tester"],details:expect.objectContaining({employee_id:employee.id,npp:"04125"})}));
  });
- it("rejects tampered previews, a different operator, and lost MFA before Auth creation",async()=>{
+ it("rejects tampered previews and a different operator before Auth creation",async()=>{
   const token=await review();expect((await createBulkUser(token+"x",0)).status).toBe("error");m.guard.mockResolvedValue({user:{id:"admin-2"},scopes:[{branch_code:"DPS",role_code:"super_admin"}]});expect((await createBulkUser(token,0)).status).toBe("error");m.mfa.mockResolvedValue(false);expect((await createBulkUser(token,0)).status).toBe("error");expect(createUser).not.toHaveBeenCalled();
+ });
+ it("allows the authorized operator without a second factor but still rejects an ordinary Admin",async()=>{
+  m.mfa.mockResolvedValue(false);const token=await review();expect((await createBulkUser(token,0)).status).toBe("success");expect(m.mfa).not.toHaveBeenCalled();
+  m.guard.mockResolvedValue({user:{id:"admin-1"},scopes:[{branch_code:"DPS",role_code:"admin"}]});expect((await previewBulkUsers("DPS",input)).error).toBeTruthy();
  });
  it("cleans a new Auth identity only when profile rollback is confirmed",async()=>{
   const token=await review();rpc.mockResolvedValue({error:{code:"23514"},data:null});expect((await createBulkUser(token,0)).status).toBe("error");expect(deleteUser).toHaveBeenCalledWith("new-auth-id");

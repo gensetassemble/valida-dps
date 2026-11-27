@@ -2,7 +2,6 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthAdminClient } from "@/lib/supabase/auth-admin";
 import { publicDatabaseError } from "./server";
-import { hasSecondFactor } from "@/lib/auth/security";
 import {SIMULATION_BRANCH} from "@/lib/simulation";
 import {saveSimulationProfile} from "./simulation-profile";
 
@@ -25,8 +24,6 @@ export async function saveProfileAccount({
     return {
       error: "Hanya Super Admin yang dapat mengelola akun pengguna.",
     };
-  if (!(await hasSecondFactor(db)))
-    return { error: "Verifikasi MFA diperlukan sebelum mengelola akun." };
   if (details.employee_id) {
     const {data: employee, error} = await db.from("employee_directory_records")
       .select("id,full_name,npp").eq("branch_code", branch).eq("id", details.employee_id).maybeSingle();

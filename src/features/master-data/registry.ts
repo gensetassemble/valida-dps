@@ -632,6 +632,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
         label: "Peran",
         kind: "lookup",
         lookup: "roles",
+        hint: "Akses langsung mengikuti peran di cabang ini. QSHE membaca seluruh kalibrasi dan kompetensi personil cabang. Untuk Koordinator, tautkan akun ke pegawai dan isi Penetapan Koordinator atau Penugasan Portofolio; hak baca mengikuti portofolio tersebut.",
         required: true,
         immutable: true,
       },

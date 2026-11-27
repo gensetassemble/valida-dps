@@ -13,12 +13,12 @@ export function DirectoryAccessMatrix({ branch }: { branch: string }) {
   return (
     <details
       id="matriks-akses"
-      className="mt-6 rounded-xl border border-border bg-white p-4 text-xs"
+      className="mt-4 rounded-xl border border-border bg-white p-3 text-xs"
     >
       <summary className="cursor-pointer text-sm font-bold">
         Matriks akses peran · {branch}
       </summary>
-      <p className="my-3 leading-6 text-muted-foreground">
+      <p className="my-2 leading-snug text-muted-foreground">
         Tambah/ubah berarti dapat mengelola data dalam cakupan penugasannya.
         Baca tidak memberi izin perubahan. Akun dengan beberapa peran memperoleh
         gabungan hak yang sah; pembatasan cabang, portofolio, dan pemilik data
@@ -87,12 +87,14 @@ export function DirectoryAccessMatrix({ branch }: { branch: string }) {
           verifikasi cepat nama pegawai hanya untuk IT Officer.
         </li>
         <li>
-          PTK: mengelola alat dalam portofolio tugasnya. PTK dan QSHE saat ini
-          ditugaskan pada seluruh 10 portofolio DPS.
+          PTK: mengelola alat dalam portofolio tugasnya. QSHE: membaca seluruh
+          kalibrasi dan kompetensi personil cabang serta memberi catatan QC,
+          tanpa mengubah data sertifikat.
         </li>
         <li>
           Koordinator Operasional: membaca alat dan kompetensi pada
-          portofolionya; mengajukan kalibrasi tanpa mengubah master alat.
+          portofolionya sesuai Penetapan Koordinator atau Penugasan Portofolio yang
+          berlaku. Akun harus ditautkan ke pegawai yang ditetapkan.
         </li>
         <li>
           AM: mengubah pelanggan/sertifikat yang ditugaskan. HRGA: mengelola

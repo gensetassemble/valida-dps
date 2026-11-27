@@ -73,11 +73,10 @@ describe("Super Admin account provisioning", () => {
     );
     expect(rpc).not.toHaveBeenCalled();
   });
-  it("rejects provisioning before any write when MFA is absent", async () => {
+  it("allows authorized Super Admin provisioning after password-only login", async () => {
     mocks.secondFactor.mockResolvedValue(false);
-    expect((await run({ password: "SyntheticPassword123!" })).error).toMatch(/MFA/);
-    expect(createUser).not.toHaveBeenCalled();
-    expect(rpc).not.toHaveBeenCalled();
+    expect(await run({ password: "SyntheticPassword123!" })).toEqual({ id: "test-id" });
+    expect(mocks.secondFactor).not.toHaveBeenCalled();
   });
   it("creates Auth without email and keeps password outside profile RPC payload", async () => {
     expect(await run({ password: "SyntheticPassword123!" })).toEqual({

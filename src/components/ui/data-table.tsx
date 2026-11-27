@@ -1,5 +1,5 @@
 "use client";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { certificateFrozenColumn, certificateColumnWidth, emailColumnWidth } from "./certificate-table-layout";
 import { DeadlineDate } from "./deadline-date";
 import { DeadlineRemaining } from "./deadline-remaining";
@@ -13,12 +13,10 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
-  Eye,
   Pencil,
   Plus,
   Power,
-  Trash2,
-  RotateCcw,
+  LoaderCircle,
 } from "lucide-react";
 import { Card } from "./card";
 import { Button } from "./button";
@@ -35,7 +33,6 @@ import {
 import { DirectoryActionsDialog } from "@/features/master-data/directory-actions-dialog";
 import { EmployeeStatusDialog } from "@/features/workflows/employee-status-dialog";
 import { businessNotes } from "@/features/operations/notes";
-import { EquipmentPermanentDelete } from "@/features/operations/equipment-archive-action";
 import dynamic from "next/dynamic";
 const RecordForm = dynamic(
   () => import("@/features/master-data/record-form").then((m) => m.RecordForm),
@@ -110,7 +107,6 @@ export function DataTable({
   userId,
   isAdmin,
   canManagePasswords = false,
-  canDeleteEquipment = false,
   canManageDirectory = false,
   parent,
   hideFilters = false,
@@ -141,6 +137,10 @@ export function DataTable({
   }
   const scrolling = useScrollRecords(initialData, query.toString());
   const data = scrolling.data;
+  const tableScroll = useRef<HTMLDivElement>(null);
+  const warmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (warmTimer.current) clearTimeout(warmTimer.current); }, []);
+  useEffect(() => { if (tableScroll.current) tableScroll.current.scrollTop = 0; }, [data.sort, data.dir]);
   function writable(row: DataRow) {
     return (
       canWrite &&
@@ -199,13 +199,31 @@ export function DataTable({
       "pegawai",
     ].includes(entity.key);
   const frozenCertificates = ["sertifikat-klien", "kompetensi-personil"].includes(entity.key);
-  const certificateColumns = ["number", ...(mayBulk ? ["selection"] : []), ...displayColumns, "actions"];
+  const certificateColumns = ["number", ...(mayBulk ? ["selection"] : []), ...displayColumns];
+  const detailColumn = entity.detailColumn || (displayColumns.includes(entity.labelKey) ? entity.labelKey : displayColumns[0]);
+  function protectedRecord(row: DataRow) {
+    const id = String(row[entity.idKey]);
+    return (entity.key === "pengguna" && id === userId) || (entity.key === "penugasan-peran" && row.profile_id === userId) ||
+      (entity.key === "penugasan" && !isAdmin && row.assignment_type !== "personnel");
+  }
   const columnWidth = (column:string) => /email/i.test(column) ? emailColumnWidth(data.rows.map(row=>row[column])) : certificateColumnWidth(column);
+  const requestedSort = params.get("sort");
+  const sortAliases: Record<string, string> = { alphabet: entity.key === "kalibrasi-alat" ? "name" : "original_title", employee: "employee_name", portfolio: entity.key === "kalibrasi-alat" ? "portfolio_code" : "portfolio_sort_key", unit: "owner_unit", priority: "validity_priority" };
+  const activeSort = requestedSort && (entity.columns.includes(requestedSort) || displayColumns.includes(requestedSort) || sortAliases[requestedSort]) ? sortAliases[requestedSort] || requestedSort : data.sort;
+  const activeDir = params.get("dir") === "desc" ? "desc" : requestedSort ? "asc" : data.dir;
   function navigate(values: Record<string, string>) {
-    const next = new URLSearchParams(params.toString());
+    const next = new URLSearchParams(window.location.search);
     next.delete("page");
-    Object.entries(values).forEach(([key, value]) => next.set(key, value));
-    router.replace(`${path}?${next}`, { scroll: false });
+    Object.entries(values).forEach(([key, value]) => { if (key !== "page") next.set(key, value); });
+    window.history.replaceState(null, "", `${path}?${next}`);
+  }
+  function warmSort(column: string) {
+    if (warmTimer.current) clearTimeout(warmTimer.current);
+    warmTimer.current = setTimeout(() => {
+      const next = new URLSearchParams(query);
+      next.set("sort", column); next.set("dir", activeSort === column && activeDir === "asc" ? "desc" : "asc");
+      void scrolling.prefetch(next.toString());
+    }, 150);
   }
   const labelFor = (field: string) =>
     (entity.key === "sertifikat-klien" && field === "client_name"
@@ -369,6 +387,8 @@ export function DataTable({
               <span className="tnum">{data.total}</span> rekaman sesuai akses
               {!hideFilters && " dan filter"}
             </p>
+            {scrolling.sorting && <p role="status" className="mt-1 flex items-center gap-1.5 text-[11px] text-primary"><LoaderCircle size={12} aria-hidden="true" className="motion-safe:animate-spin"/>Memperbarui urutan…</p>}
+            {scrolling.sortError && <p role="alert" className="mt-1 text-xs text-red-800">{scrolling.sortError} <button type="button" className="font-semibold underline" onClick={() => void scrolling.retrySort()}>Coba lagi</button></p>}
           </div>
           {canWrite && entity.create !== false && (
             <Button onClick={() => setEditing("new")}>
@@ -395,7 +415,9 @@ export function DataTable({
         )}
         {data.rows.length ? (
           <div
+            ref={tableScroll}
             role="region"
+            aria-busy={scrolling.sorting}
             aria-label={`Tabel ${entity.title}`}
             tabIndex={0}
             style={frozenCertificates ? {"--record-selection": mayBulk ? "2rem" : "0rem"} as CSSProperties : undefined}
@@ -419,7 +441,6 @@ export function DataTable({
                   {[
                     "number",
                     ...monitoringColumns.map(([key]) => key),
-                    "actions",
                   ].map((key) => (
                     <col key={key} />
                   ))}
@@ -435,7 +456,7 @@ export function DataTable({
                           colSpan={colSpan}
                           rowSpan={rowSpan}
                           scope={colSpan > 1 ? "colgroup" : "col"}
-                          aria-sort={colSpan === 1 && col > 1 && data.sort === monitoringColumns[col - 2]?.[0] ? (data.dir === "asc" ? "ascending" : "descending") : undefined}
+                          aria-sort={colSpan === 1 && col > 1 && activeSort === monitoringColumns[col - 2]?.[0] ? (activeDir === "asc" ? "ascending" : "descending") : undefined}
                           data-frozen={
                             col <= 3
                               ? ["number", "name", "tag"][col - 1]
@@ -444,16 +465,13 @@ export function DataTable({
                           className="min-w-16 border border-border px-2 py-2 text-center normal-case tracking-normal"
                         >
                           {colSpan === 1 && col > 1 ? <button type="button"
-                            onClick={() => navigate({sort: monitoringColumns[col - 2][0], dir: data.sort === monitoringColumns[col - 2][0] && data.dir === "asc" ? "desc" : "asc", page: "1"})}
+                            onClick={() => navigate({sort: monitoringColumns[col - 2][0], dir: activeSort === monitoringColumns[col - 2][0] && activeDir === "asc" ? "desc" : "asc", page: "1"})}
+                            onPointerEnter={() => warmSort(monitoringColumns[col - 2][0])} onPointerLeave={() => { if (warmTimer.current) clearTimeout(warmTimer.current); }}
+                            onFocus={() => warmSort(monitoringColumns[col - 2][0])}
                             className="inline-flex items-center justify-center gap-1" title={`Urutkan ${label}`}>
-                            {label}{data.sort === monitoringColumns[col - 2][0] ? data.dir === "asc" ? <ArrowUp size={12}/> : <ArrowDown size={12}/> : <ArrowUpDown size={12}/>}</button> : label}
+                            {label}{activeSort === monitoringColumns[col - 2][0] ? activeDir === "asc" ? <ArrowUp size={12}/> : <ArrowDown size={12}/> : <ArrowUpDown size={12}/>}</button> : label}
                         </th>
                       ))}
-                      {index === 0 && (
-                        <th rowSpan={3} scope="col" className="px-3 text-center">
-                          Tindakan
-                        </th>
-                      )}
                     </tr>
                   ))
                 ) : (
@@ -489,8 +507,8 @@ export function DataTable({
                         scope="col"
                         data-record-frozen={certificateFrozenColumn(entity.key, column)}
                         aria-sort={
-                          data.sort === column
-                            ? data.dir === "asc"
+                          activeSort === column
+                            ? activeDir === "asc"
                               ? "ascending"
                               : "descending"
                             : "none"
@@ -502,17 +520,18 @@ export function DataTable({
                             navigate({
                               sort: column,
                               dir:
-                                data.sort === column && data.dir === "asc"
+                                activeSort === column && activeDir === "asc"
                                   ? "desc"
                                   : "asc",
                               page: "1",
                             })
                           }
+                          onPointerEnter={() => warmSort(column)} onPointerLeave={() => { if (warmTimer.current) clearTimeout(warmTimer.current); }} onFocus={() => warmSort(column)}
                           className="inline-flex items-center gap-1.5"
                         >
                           {labelFor(column)}
-                          {data.sort === column ? (
-                            data.dir === "asc" ? (
+                          {activeSort === column ? (
+                            activeDir === "asc" ? (
                               <ArrowUp size={12} />
                             ) : (
                               <ArrowDown size={12} />
@@ -523,9 +542,6 @@ export function DataTable({
                         </button>
                       </th>
                     ))}
-                    <th scope="col" className="px-4 py-3 text-center">
-                      Tindakan
-                    </th>
                   </tr>
                 )}
               </thead>
@@ -533,13 +549,6 @@ export function DataTable({
                 {data.rows.map((row, index) => {
                   const id = String(row[entity.idKey]);
                   const name = String(row[entity.labelKey] || id);
-                  const own =
-                    (entity.key === "pengguna" && id === userId) ||
-                    (entity.key === "penugasan-peran" &&
-                      row.profile_id === userId) ||
-                    (entity.key === "penugasan" &&
-                      !isAdmin &&
-                      row.assignment_type !== "personnel");
                   return (
                     <tr key={id} className="hover:bg-[#effaf9]">
                       <td
@@ -581,87 +590,20 @@ export function DataTable({
                           }
                           className={`whitespace-nowrap px-4 py-3 align-middle font-medium${entity.key === "kalibrasi-alat" && centeredCalibrationColumns.has(column) ? " text-center" : ""}`}
                         >
-                          {column ===
-                            (entity.detailColumn || entity.columns[0]) &&
-                          entity.detail ? (
+                          {column === detailColumn && entity.detail ? (
                             <Link
                               className="font-semibold text-primary-hover hover:underline"
                               href={`${entity.detail}/${id}?branch=${branch}`}
                             >
                               {valueFor(row, column)}
                             </Link>
+                          ) : column === detailColumn ? (
+                            <button type="button" className="text-left font-semibold text-primary-hover hover:underline" aria-label={`Lihat ${name}`} onClick={() => setViewing(row)}>{valueFor(row, column)}</button>
                           ) : (
                             valueFor(row, column)
                           )}
                         </td>
                       ))}
-                      <td className="px-4 py-2">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            aria-label={`Lihat ${name}`}
-                            onClick={() =>
-                              entity.detail
-                                ? router.push(
-                                    `${entity.detail}/${id}?branch=${branch}`,
-                                    { scroll: false },
-                                  )
-                                : setViewing(row)
-                            }
-                          >
-                            <Eye size={15} />
-                          </Button>
-                          {writable(row) && (
-                            <>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                aria-label={`Ubah ${name}`}
-                                disabled={own}
-                                onClick={() => setEditing(row)}
-                              >
-                                <Pencil size={15} />
-                              </Button>
-                              {entity.key === "pegawai" &&
-                                canManageDirectory && (
-                                  <DirectoryActionsDialog
-                                    row={row}
-                                    branch={branch}
-                                    compact
-                                  />
-                                )}
-                              {entity.key === "pegawai" ? (
-                                <EmployeeStatusDialog
-                                  branch={branch}
-                                  employee={id}
-                                  version={Number(
-                                    row.employment_status_version,
-                                  )}
-                                  name={name}
-                                  status={String(row.employment_status)}
-                                />
-                              ) : (
-                                typeof row.is_active === "boolean" && (
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label={`${entity.key === "kalibrasi-alat" ? row.is_active ? "Hapus ke Arsip" : "Pulihkan" : row.is_active ? "Nonaktifkan" : "Aktifkan"} ${name}`}
-                                    title={entity.key === "kalibrasi-alat" ? row.is_active ? "Hapus alat ke Arsip" : "Pulihkan alat" : undefined}
-                                    disabled={own}
-                                    onClick={() =>
-                                      beginChange([id], !row.is_active)
-                                    }
-                                  >
-                                    {entity.key === "kalibrasi-alat" ? row.is_active ? <Trash2 size={15} /> : <RotateCcw size={15} /> : <Power size={15} />}
-                                  </Button>
-                                )
-                              )}
-                              {entity.key === "kalibrasi-alat" && row.is_active === false && canDeleteEquipment && <EquipmentPermanentDelete id={id} name={name} branch={branch} updatedAt={String(row.updated_at)}/>}
-                            </>
-                          )}
-                        </div>
-                      </td>
                     </tr>
                   );
                 })}
@@ -669,7 +611,7 @@ export function DataTable({
               {entity.key === "kalibrasi-alat" && (
                 <tfoot>
                   <tr>
-                    <td colSpan={monitoringColumns.length + 2}>
+                    <td colSpan={monitoringColumns.length + 1}>
                       <div className="sticky left-0 w-fit px-4">
                         <ScrollLoader
                           hasMore={data.rows.length < data.total}
@@ -740,6 +682,15 @@ export function DataTable({
           if (!open) setViewing(null);
         }}
         title={`Detail ${entity.singular.toLowerCase()}`}
+        footer={viewing && <>
+          {writable(viewing) && <>
+            <Button variant="outline" disabled={protectedRecord(viewing)} onClick={() => { setEditing(viewing); setViewing(null); }}><Pencil/>Ubah data</Button>
+            {entity.key === "pegawai" && canManageDirectory && <DirectoryActionsDialog row={viewing} branch={branch}/>}
+            {entity.key === "pegawai" ? <EmployeeStatusDialog branch={branch} employee={String(viewing[entity.idKey])} version={Number(viewing.employment_status_version)} name={String(viewing[entity.labelKey])} status={String(viewing.employment_status)}/> :
+              typeof viewing.is_active === "boolean" && <Button variant="outline" disabled={protectedRecord(viewing)} onClick={() => beginChange([String(viewing[entity.idKey])], !viewing.is_active)}><Power/>{viewing.is_active ? "Nonaktifkan" : "Aktifkan"}</Button>}
+          </>}
+          <Button variant="outline" onClick={() => setViewing(null)}>Tutup</Button>
+        </>}
       >
         {viewing && (
           <dl className="grid gap-4 text-xs sm:grid-cols-2">

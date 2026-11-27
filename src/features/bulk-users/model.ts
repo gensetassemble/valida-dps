@@ -30,7 +30,7 @@ export function reviewBulkRows(inputs:unknown[],employees:Employee[],profiles:{e
   if(profiles.some(p=>p.employee_id===e.id))return error("Pegawai sudah terhubung ke akun lain. Kelola profil yang ada.");
   if(!e.is_active||e.employment_status!=="active")return error("Pegawai belum aktif; periksa status di Direktori Pegawai.");
   if(v.roles.includes("coordinator")&&!coordinatorEmployees.has(e.id))return error("Koordinator belum memiliki penugasan portofolio aktif. Lengkapi master data dahulu.");
-  return {...resolved,status:"ready",message:v.roles.some(r=>["super_admin","admin"].includes(r))?"Siap — akun berwenang tinggi; MFA tetap wajib.":"Siap dibuat; wajib mengganti password saat login pertama."};
+  return {...resolved,status:"ready",message:v.roles.some(r=>["super_admin","admin"].includes(r))?"Siap — periksa kembali kewenangan akun ini.":"Siap dibuat; wajib mengganti password saat login pertama."};
  });
  const counts=new Map<string,number>();for(const r of rows)if(r.employeeId&&r.status==="ready")counts.set(r.employeeId,(counts.get(r.employeeId)||0)+1);
  return rows.map(r=>r.employeeId&&(counts.get(r.employeeId)||0)>1?{...r,status:"error" as const,message:"Pegawai berulang dalam file; gunakan satu akun per pegawai."}:r);

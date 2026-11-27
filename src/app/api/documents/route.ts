@@ -28,7 +28,7 @@ export async function DELETE(request: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: "Identitas lampiran tidak valid." }, { status: 400, headers });
   const p = parsed.data;
-  // Keep Next.js authentication/MFA redirects outside the mutation catch.
+  // Keep Next.js authentication redirects outside the mutation catch.
   await requireActiveUser();
   try {
     await entityContext(entities[p.domain], p.branch, true);

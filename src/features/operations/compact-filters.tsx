@@ -188,7 +188,8 @@ export function CompactOperationalFilters({
     }
     start(() => {
       setOptimisticQuery(next.toString());
-      router.replace(path + "?" + next, { scroll: false });
+      if (Object.keys(values).every(key => key === "sort" || key === "dir")) window.history.replaceState(null, "", path + "?" + next);
+      else router.replace(path + "?" + next, { scroll: false });
     });
   }
   return (

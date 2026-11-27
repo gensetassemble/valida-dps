@@ -22,7 +22,7 @@ export async function deleteArchivedEquipment(input: unknown): Promise<MutationR
   const { data, error } = await db.from("equipment").delete()
     .eq("id", id).eq("branch_code", branch).eq("is_active", false)
     .eq("updated_at", updatedAt).select("id");
-  if (error) return { ok: false, error: error.code === "P0001" ? error.message.slice(0,350) : "Penghapusan ditolak. Pastikan alat diarsipkan, tidak memiliki riwayat, dan sesi MFA masih aktif." };
+  if (error) return { ok: false, error: error.code === "P0001" ? error.message.slice(0,350) : "Penghapusan ditolak. Pastikan alat diarsipkan, tidak memiliki riwayat, dan akun Anda berwenang." };
   if (!data?.length) return { ok: false, error: "Data alat sudah berubah atau akses ditolak. Refresh sebelum mencoba kembali." };
   revalidatePath("/kalibrasi-alat", "layout");
   revalidatePath("/master-data/alat", "layout");

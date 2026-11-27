@@ -66,7 +66,7 @@ select set_config('request.jwt.claim.sub','e9120000-0000-4000-8000-000000000001'
 select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','admin.csv',repeat('f',64),'[]')$q$);
 select set_config('request.jwt.claims','{"aal":"aal1"}',true);
-select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','mfa.csv',repeat('f',64),'[]')$q$);
+select pg_temp.uma_denied($q$select public.sync_equipment_uma('UMAQA','ordinary-admin.csv',repeat('f',64),'[]')$q$);
 reset role;
-select 'PASS: UMA create, replay, updates, history, rollback, serial, stale file, PTK-only access, reader, MFA and branch boundaries' as result;
+select 'PASS: UMA create, replay, updates, history, rollback, serial, stale file, PTK-only access, reader and branch boundaries' as result;
 rollback;

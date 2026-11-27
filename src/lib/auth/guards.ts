@@ -7,7 +7,6 @@ import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SIMULATION_BRANCH, SIMULATION_COOKIE, simulationScopes } from "@/lib/simulation";
 import { isRole, type Scope } from "./permissions";
-import { hasSecondFactor } from "./security";
 import { initialPasswordRequired } from "./initial-password";
 export const requireActiveUser = cache(async () => {
   if (!getSupabaseConfig()) redirect("/login?status=unconfigured");
@@ -54,7 +53,5 @@ export const requireActiveUser = cache(async () => {
   const isSimulation=canSimulate && (await cookies()).get(SIMULATION_COOKIE)?.value === "true";
   const scopes=simulationScopes(grantedScopes,isSimulation);
   if (!scopes.length) redirect("/login?status=unassigned");
-  if (scopes.some(s => ["admin", "super_admin"].includes(s.role_code)) && !(await hasSecondFactor(supabase)))
-    redirect("/mfa");
   return { user: data.user, profile:isSimulation?{...profile,branch_code:SIMULATION_BRANCH}:profile, scopes, branches:(branches ?? []).filter(b=>scopes.some(s=>s.branch_code===b.code)), isSimulation,canSimulate };
 });

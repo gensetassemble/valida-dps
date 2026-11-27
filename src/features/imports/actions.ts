@@ -156,7 +156,7 @@ export async function approvePersonnelBatch(form: FormData) {
 }
 
 // This action deliberately uses the signed-in commercial user's database client, including
-// MFA, review_import validation, reviewed_by, and the atomic commit_import RPC.
+// Active role authorization, review_import validation, reviewed_by, and the atomic commit_import RPC.
 // It never supplies JWT claims, service credentials, or direct approval writes.
 export async function importAuthorizedClientWorkbook(form: FormData) {
   const c = await importContext(String(form.get("branch") || ""), "clients");

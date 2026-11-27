@@ -3,7 +3,6 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { unstable_rethrow } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireActiveUser } from "@/lib/auth/guards";
-import { hasSecondFactor } from "@/lib/auth/security";
 import { masterClient } from "@/features/master-data/server";
 import { getAuthAdminClient } from "@/lib/supabase/auth-admin";
 import { todayWita } from "@/lib/domain/validity";
@@ -13,7 +12,7 @@ import {saveSimulationProfile} from "@/features/master-data/simulation-profile";
 
 async function context(branch:string) {
  const c=await requireActiveUser();const db=await masterClient();
- if(!/^[A-Z0-9]{2,8}$/.test(branch)||!c.scopes.some(s=>s.branch_code===branch&&s.role_code==="super_admin")||!(await hasSecondFactor(db)))throw Error("Hanya Super Admin cabang dengan MFA yang dapat membuat akun massal.");
+ if(!/^[A-Z0-9]{2,8}$/.test(branch)||!c.scopes.some(s=>s.branch_code===branch&&s.role_code==="super_admin"))throw Error("Hanya Super Admin cabang yang dapat membuat akun massal.");
  return {...c,db};
 }
 function configuration(){const key=process.env.BULK_USER_REVIEW_SECRET,password=process.env.BULK_USER_INITIAL_PASSWORD;if(!key||key.length<48||!password||password.length<12)throw Error("Pembuatan akun massal belum dikonfigurasi pada server.");return {key,password};}

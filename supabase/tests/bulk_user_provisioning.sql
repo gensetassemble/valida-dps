@@ -1,6 +1,6 @@
 begin;
--- Positive privileged fixtures represent a completed MFA verification.
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+-- Privileged fixtures sign in with email and password only.
+select set_config('request.jwt.claims','{"aal":"aal1"}',true);
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select plan(1);
@@ -28,9 +28,8 @@ select pg_temp.check_true(not public.initial_password_change_required());
 select pg_temp.check_true(private.actor_enabled());
 select pg_temp.check_true(private.branch_access('DPS'));
 select set_config('request.jwt.claim.sub','ef100000-0000-4000-8000-000000000001',true);
-do $$begin begin perform public.provision_bulk_user('DPS','{}',array['tester']);raise exception 'Expected MFA denial';exception when insufficient_privilege then null;end;end $$;
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select pg_temp.check_true(private.has_role('DPS',array['super_admin']));
 do $$begin begin perform public.provision_bulk_user('DPS','{"employee_id":"ef200000-0000-4000-8000-000000000001","full_name":"Wrong","email":"staff.profile.qa@example.invalid","npp":"99381","is_active":false}',array['tester']);raise exception 'Expected duplicate rejection';exception when check_violation then null;end;end $$;
 reset role;
-select pass('Bulk creates profile and roles atomically; mandatory initial password change enforced by RLS and Auth trigger; MFA, RBAC and duplicates protected');
+select pass('Password-only bulk creates profile and roles atomically; initial password change, RBAC and duplicate protections retained');
 select * from finish();rollback;

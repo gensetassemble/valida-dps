@@ -46,8 +46,6 @@ select set_config('request.jwt.claim.sub','cf110000-0000-4000-8000-000000000003'
 select pg_temp.denied_document($q$select public.remove_operational_document('cf190000-0000-4000-8000-000000000001','DOCQ','personnel','cf140000-0000-4000-8000-000000000001')$q$,'42501');
 select set_config('request.jwt.claim.sub','cf110000-0000-4000-8000-000000000004',true);
 select set_config('request.jwt.claims','{"aal":"aal1"}',true);
-select pg_temp.denied_document($q$select public.remove_operational_document('cf190000-0000-4000-8000-000000000001','DOCQ','personnel','cf140000-0000-4000-8000-000000000001')$q$,'42501');
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 select pg_temp.denied_document($q$select public.remove_operational_document('cf190000-0000-4000-8000-000000000003','DOCQ','client','cf160000-0000-4000-8000-000000000001')$q$,'23503');
 select set_config('request.jwt.claim.sub','cf110000-0000-4000-8000-000000000001',true);
 select pg_temp.check_document((public.remove_operational_document('cf190000-0000-4000-8000-000000000001','DOCQ','personnel','cf140000-0000-4000-8000-000000000001')->>'cleanup_pending')::boolean,'HRGA can detach upload');
@@ -68,6 +66,6 @@ reset role;
 select pg_temp.check_document((select count(*)=2 from public.audit_logs where table_name='operational_documents' and action='DELETE' and record_id in ('cf190000-0000-4000-8000-000000000001','cf190000-0000-4000-8000-000000000002')),'one audit event per deletion');
 select pg_temp.check_document(not exists(select 1 from private.removed_operational_documents where id='cf190000-0000-4000-8000-000000000003'),'blocked evidence removal rolls back ledger');
 select pg_temp.check_document(exists(select 1 from public.operational_documents where id='cf190000-0000-4000-8000-000000000003'),'pipeline evidence retained');
-select pass('Attachment removal enforces roles, branch, MFA, parent, evidence FK, audit, idempotency and private cleanup; certificates unchanged');
+select pass('Password-only attachment removal enforces roles, branch, parent, evidence FK, audit, idempotency and private cleanup; certificates unchanged');
 select * from finish();
 rollback;

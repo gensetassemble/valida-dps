@@ -76,18 +76,18 @@ describe("application access requires an assigned active role", () => {
     const c=await requireActiveUser();expect(c.isSimulation).toBe(false);expect(c.canSimulate).toBe(true);
     expect(c.scopes).toEqual([{role_code:"tester",branch_code:"DPS"}]);
   });
-  it("requires MFA on entering simulation and never combines it with DPS write scope",async()=>{
+  it("allows password-only simulation without combining it with DPS write scope",async()=>{
     grants=[{role_code:"tester",branch_code:"DPS"},{role_code:"super_admin",branch_code:"SIMDPS"}];
     mocks.mode.mockReturnValue({value:"true"});mocks.secondFactor.mockResolvedValue(false);
-    await expect(requireActiveUser()).rejects.toThrow("REDIRECT:/mfa");
-    mocks.secondFactor.mockResolvedValue(true);const c=await requireActiveUser();
+    const c=await requireActiveUser();
     expect(c.isSimulation).toBe(true);expect(c.profile.branch_code).toBe("SIMDPS");
     expect(c.scopes).toEqual([{role_code:"super_admin",branch_code:"SIMDPS"}]);
   });
-  it("requires MFA for privileged sessions", async () => {
-    grants = [{ role_code: "super_admin", branch_code: "DPS" }];
+  it.each(["super_admin", "admin", "qshe", "hrga", "equipment_manager"])("allows %s after password login without querying MFA", async role => {
+    grants = [{ role_code: role, branch_code: "DPS" }];
     mocks.secondFactor.mockResolvedValue(false);
-    await expect(requireActiveUser()).rejects.toThrow("REDIRECT:/mfa");
+    expect((await requireActiveUser()).scopes).toEqual([{ role_code: role, branch_code: "DPS" }]);
+    expect(mocks.secondFactor).not.toHaveBeenCalled();
   });
   it("allows a verified privileged session", async () => {
     grants = [{ role_code: "super_admin", branch_code: "DPS" }];
